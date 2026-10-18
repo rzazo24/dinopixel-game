@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>DinoPixel</title>
+<meta name="description" content="Corre, salta y esquiva con tu animal pixel favorito.">
+<meta name="theme-color" content="#6ec6f0">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <h1>DINO<span>PIXEL</span></h1>
+  <div class="frame">
+    <canvas id="game" width="600" height="200" aria-label="Juego"></canvas>
+  </div>
+  <p class="label">Elige tu animal</p>
+  <div id="picker" class="picker"></div>
+  <p class="hint">
+    <b>Espacio</b> / <b>↑</b> / toca arriba: saltar &nbsp;·&nbsp;
+    <b>↓</b> / mantén abajo: agacharte &nbsp;·&nbsp;
+    <b>P</b>: pausa &nbsp;·&nbsp; <b>M</b>: sonido
+  </p>
+  <div class="actions">
+    <button id="mute" class="small" type="button">🔊 Sonido</button>
+    <button id="install" class="small" type="button" hidden>⬇ Instalar</button>
+  </div>
+</main>
+<script src="game.js"></script>
+</body>
+</html>
