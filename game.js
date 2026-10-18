@@ -618,6 +618,7 @@ function drawHills(base, amp, freq, par, color) {
   }
 }
 
+const SKY_BODY_Y = 66;                                  // vertical position of the sun / moon (it used to sit right under the score)
 function drawBackground() {
   // stepped sky bands
   const bands = 10, bh = Math.ceil(GROUND / bands);
@@ -638,10 +639,10 @@ function drawBackground() {
   }
   // sun / moon
   ctx.globalAlpha = 1 - night;
-  if (night < 1) pixelDisc(W - 100, 44, 5, '#ffd23f');
+  if (night < 1) pixelDisc(W - 100, SKY_BODY_Y, 5, '#ffd23f');
   ctx.globalAlpha = night;
   if (night > 0) {
-    pixelDisc(W - 100, 44, 5, '#f4f1c8', [3, -2, 4]);
+    pixelDisc(W - 100, SKY_BODY_Y, 5, '#f4f1c8', [3, -2, 4]);
   }
   ctx.globalAlpha = 1;
   // clouds
