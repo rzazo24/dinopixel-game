@@ -159,6 +159,23 @@ try {
   await fresh(`localStorage.setItem('dp-music', '0')`); await startRun('dino');
   t.check('music: a saved "off" is respected (no music, button says so)', (await ev('__dp.music.playing')) === false && (await ev(`document.querySelector('#music span').textContent`)) === 'Sin música');
 
+  /* ---- an achievement banner must not overlap the game over screen ---- */
+  await fresh(`localStorage.setItem('dp-stats', JSON.stringify({jumps:199}))`);
+  await startRun();                                           // the first jump is the 200th -> "Saltarín" banner
+  t.check('banner: achievement banner is up while running', (await ev('__dp.achShow.t')) > 0);
+  await chrome.waitFor(`__dp.state === 'over'`, 25000);
+  await sleep(250);
+  const bannerStillActive = (await ev('__dp.achShow.t')) > 0;
+  // the banner lives at y=68..82 (logical px) in light green; the game over title is yellow, so any such green pixel there is the banner
+  const green = await ev(`(() => { const c = document.getElementById('game'), k = __dp.K, g = c.getContext('2d');
+    const d = g.getImageData(0, 64 * k, c.width, 22 * k).data; let n = 0;
+    // the game over screen dims everything by 25% after the banner is drawn, so look for both shades of the green
+    const near = (i, r, gr, b) => Math.abs(d[i] - r) < 4 && Math.abs(d[i + 1] - gr) < 4 && Math.abs(d[i + 2] - b) < 4;
+    for (let i = 0; i < d.length; i += 4) if (near(i, 155, 229, 100) || near(i, 116, 172, 75)) n++;
+    return n; })()`);
+  t.check('banner: it is not drawn on top of the game over screen (the "Logros:" line lists it instead)', bannerStillActive && green === 0, { bannerStillActive, green });
+  t.check('game over lists the achievement of the run', (await ev('JSON.stringify(__dp.newAch)')).includes('Saltarín'));
+
   /* ---- volume + pause menu ---- */
   await fresh();
   const volLabel = () => ev(`document.querySelector('#vol span').textContent`);

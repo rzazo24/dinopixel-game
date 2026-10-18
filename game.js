@@ -798,8 +798,9 @@ function draw() {
   });
   ctx.globalAlpha = 1;
   drawHUD();
-  if (banner.t > 0 && !paused) pixText(banner.text, W / 2, 44, 2, 'center', '#ffd23f');
-  if (achShow.t > 0 && !paused) pixText('Logro: ' + achShow.text, W / 2, 68, 2, 'center', '#9be564');
+  // in-run banners only while running: the game over screen lists unlocks and achievements itself (they used to overlap)
+  if (banner.t > 0 && state === 'running' && !paused) pixText(banner.text, W / 2, 44, 2, 'center', '#ffd23f');
+  if (achShow.t > 0 && state === 'running' && !paused) pixText('Logro: ' + achShow.text, W / 2, 68, 2, 'center', '#9be564');
 
   const ty = GROUND * 0.38;
   if (paused) {
@@ -1499,7 +1500,7 @@ if (/[?&]test=1/.test(location.search)) {
     ANIMALS, ACH, stats, ach, music, get master() { return master; }, press, setScore: (v) => { score = v; },
      setJump: (v) => { jumpHeld = v; }, setDuck: (v) => { duckHeld = v; },
     get P() { return P; }, get o() { return obstacles; }, get state() { return state; }, get score() { return score; },
-    get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },
+    get K() { return K; }, get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },
   };
 }
 })();
