@@ -126,6 +126,11 @@ Cómo está hecho, por si quieres tocarlo:
   se ve nítido en cualquier densidad.
 - **Texto e iconos pixel** dibujados desde mapas de bits, sin imágenes.
 
+## Licencia
+
+El código y el arte de este proyecto se publican bajo la licencia [MIT](LICENSE). La fuente Press Start 2P
+(en `fonts/`) mantiene su propia licencia, la [SIL OFL 1.1](fonts/OFL.txt).
+
 ## Créditos
 
 - Fuente [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) de CodeMan38, bajo licencia
