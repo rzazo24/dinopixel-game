@@ -174,7 +174,10 @@ ctx.imageSmoothingEnabled = false;
 
 // Native-resolution canvas: every logical px is K whole device px, so pixel art stays razor sharp.
 // The world is ~560+ logical px wide and ~300 tall, whatever the screen.
-let K = 1;
+let K = 1, insetR = 0;                                  // insetR: right safe-area (notch) in logical px
+const probe = document.createElement('div');
+probe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;padding-right:env(safe-area-inset-right,0px)';
+document.body.appendChild(probe);
 function resize() {
   const dpr = window.devicePixelRatio || 1;
   const dw = Math.max(1, Math.round(window.innerWidth * dpr));
@@ -188,6 +191,7 @@ function resize() {
   ctx.setTransform(K, 0, 0, K, 0, 0);
   ctx.imageSmoothingEnabled = false;
   GROUND = H - 40;
+  insetR = Math.ceil((parseFloat(getComputedStyle(probe).paddingRight) || 0) * dpr / K);
 }
 resize();
 
@@ -486,9 +490,9 @@ function drawHUD() {
   const c = col('hud');
   const blink = flash > 0 && Math.floor(flash / 7) % 2 === 0;
   ctx.globalAlpha = 0.6;
-  pixText('HI ' + pad(hi), W - 86, 12, 2, 'right', c, false);
+  pixText('HI ' + pad(hi), W - 86 - insetR, 12, 2, 'right', c, false);
   ctx.globalAlpha = 1;
-  if (!blink) pixText(pad(score), W - 12, 12, 2, 'right', c, false);
+  if (!blink) pixText(pad(score), W - 12 - insetR, 12, 2, 'right', c, false);
 }
 
 function draw() {
