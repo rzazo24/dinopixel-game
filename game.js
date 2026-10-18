@@ -3,7 +3,7 @@
 
 /* ---------- constants ---------- */
 const W = 600, H = 200, GROUND = 160, S = 3;           // logical size, ground line, sprite scale
-const GRAV = 0.6, JUMP_V = 11, START_SPEED = 6, MAX_SPEED = 13;
+const GRAV = 0.6, JUMP_V = 12, START_SPEED = 6, MAX_SPEED = 13;
 const PX = 50;                                          // player x
 const SP = 16;                                          // animal sprite size in cells
 
@@ -233,7 +233,7 @@ function spawn() {
     const parts = [];
     let w = 0, h = 0;
     for (let i = 0; i < n; i++) {
-      const big = Math.random() < 0.4;
+      const big = n < 3 && Math.random() < 0.4;   // 3-cactus groups stay small so they remain jumpable
       const k = big ? 4 : 3;
       parts.push({ k, dx: w });
       w += 10 * k + 6;
@@ -298,10 +298,13 @@ function update(dt) {
 /* ---------- draw ---------- */
 const col = (k) => mix(DAY[k], NIGHT[k], night);
 
-function pixelDisc(cx, cy, r, c) {
+// pixel disc; with `cut` ([dx, dy, r] in cells) the cut-out disc is skipped, giving a crescent
+function pixelDisc(cx, cy, r, c, cut) {
   ctx.fillStyle = c;
   for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
-    if (dx * dx + dy * dy <= r * r) ctx.fillRect(cx + dx * 4, cy + dy * 4, 4, 4);
+    if (dx * dx + dy * dy > r * r) continue;
+    if (cut && (dx - cut[0]) ** 2 + (dy - cut[1]) ** 2 <= cut[2] ** 2) continue;
+    ctx.fillRect(cx + dx * 4, cy + dy * 4, 4, 4);
   }
 }
 
@@ -338,8 +341,7 @@ function drawBackground() {
   if (night < 1) pixelDisc(500, 44, 5, '#ffd23f');
   ctx.globalAlpha = night;
   if (night > 0) {
-    pixelDisc(500, 44, 5, '#f4f1c8');
-    pixelDisc(512, 36, 4, mix(DAY.skyT, NIGHT.skyT, 1));
+    pixelDisc(500, 44, 5, '#f4f1c8', [3, -2, 4]);
   }
   ctx.globalAlpha = 1;
   // clouds
@@ -416,15 +418,15 @@ function text(str, x, y, size, align = 'center', color = '#fff') {
 
 function drawHUD() {
   const c = col('hud');
-  ctx.font = 'bold 16px ui-monospace, "Courier New", monospace';
+  ctx.font = 'bold 20px ui-monospace, "Courier New", monospace';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = c;
   const blink = flash > 0 && Math.floor(flash / 7) % 2 === 0;
   ctx.globalAlpha = 0.6;
-  ctx.fillText('HI ' + pad(hi), W - 90, 16);
+  ctx.fillText('HI ' + pad(hi), W - 108, 20);
   ctx.globalAlpha = 1;
-  if (!blink) ctx.fillText(pad(score), W - 12, 16);
+  if (!blink) ctx.fillText(pad(score), W - 12, 20);
 }
 
 function draw() {

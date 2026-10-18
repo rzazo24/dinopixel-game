@@ -98,3 +98,12 @@ canvas#game {
   box-shadow: 4px 4px 0 var(--shadow);
   z-index: 10;
 }
+.hint.touch { display: none; }
+@media (pointer: coarse) {
+  .hint.kb { display: none; }
+  .hint.touch { display: block; }
+}
+@media (max-width: 520px) {
+  main { padding-left: 8px; padding-right: 8px; }
+  .frame { border-width: 4px; box-shadow: 0 0 0 3px var(--panel), 5px 5px 0 3px var(--shadow); }
+}
