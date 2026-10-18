@@ -260,9 +260,9 @@ ctx.imageSmoothingEnabled = false;
 
 // Native-resolution canvas: every logical px is K whole device px, so pixel art stays razor sharp.
 // The world is ~560+ logical px wide and ~300 tall, whatever the screen.
-let K = 1, insetR = 0;                                  // insetR: right safe-area (notch) in logical px
+let K = 1, insetR = 0, insetL = 0;                      // safe-area (notch) on each side, in logical px
 const probe = document.createElement('div');
-probe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;padding-right:env(safe-area-inset-right,0px)';
+probe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;padding-right:env(safe-area-inset-right,0px);padding-left:env(safe-area-inset-left,0px)';
 document.body.appendChild(probe);
 function resize() {
   const dpr = window.devicePixelRatio || 1;
@@ -278,6 +278,7 @@ function resize() {
   ctx.imageSmoothingEnabled = false;
   GROUND = H - 40;
   insetR = Math.ceil((parseFloat(getComputedStyle(probe).paddingRight) || 0) * dpr / K);
+  insetL = Math.ceil((parseFloat(getComputedStyle(probe).paddingLeft) || 0) * dpr / K);
 }
 resize();
 
@@ -866,11 +867,34 @@ function glyphs(str) {
   return out;
 }
 // y is the top of the text (accents rise 2 cells above it); s is the pixel size in logical px
+const textBoxes = [];                                    // what was drawn this frame: { t, x, w, y, h }
+// Centered text that must fit between the notches: if it is too wide it wraps onto two lines (or shrinks as a last resort).
+// Returns the height used, so callers can stack lines.
+function pixFit(str, y, s, color) {
+  const left = insetL + 12, right = W - insetR - 12, cx = (left + right) / 2, maxW = right - left;
+  const width = (t, k) => [...t.normalize('NFC')].length * 6 * k - k;
+  if (width(str, s) <= maxW) { pixText(str, cx, y, s, 'center', color); return 7 * s + 6; }
+  const words = str.split(' ');
+  let best = null;
+  for (let i = 1; i < words.length; i++) {                // most balanced split into two lines
+    const a = words.slice(0, i).join(' '), b = words.slice(i).join(' ');
+    const m = Math.max(width(a, s), width(b, s));
+    if (!best || m < best.m) best = { a, b, m };
+  }
+  if (best && best.m <= maxW) {
+    pixText(best.a, cx, y, s, 'center', color);
+    pixText(best.b, cx, y + 7 * s + 6, s, 'center', color);
+    return 2 * (7 * s + 6);
+  }
+  pixText(str, cx, y, Math.max(1, s - 1), 'center', color);    // a single huge word: shrink
+  return 7 * Math.max(1, s - 1) + 6;
+}
 function pixText(str, x, y, s, align = 'left', color = '#fff', shadow = true) {
   const gl = glyphs(str);
   const w = gl.length * 6 * s - s;
   const x0 = Math.round(align === 'center' ? x - w / 2 : align === 'right' ? x - w : x);
   y = Math.round(y);
+  textBoxes.push({ t: str, x: x0, w, y, h: 7 * s });
   const pass = (ox, oy, c) => {
     ctx.fillStyle = c;
     gl.forEach(({ c: ch, m }, i) => {
@@ -900,6 +924,7 @@ function drawHUD() {
 }
 
 function draw() {
+  textBoxes.length = 0;
   // scroll specks/clouds
   const v = state === 'running' ? speed : 0;
   specks.forEach((s) => { s.x -= v; if (s.x < -8) { s.x = W + rnd(0, 40); s.y = rnd(GROUND + 10, H - 4); } });
@@ -917,26 +942,28 @@ function draw() {
   ctx.globalAlpha = 1;
   drawHUD();
   // in-run banners only while running: the game over screen lists unlocks and achievements itself (they used to overlap)
-  if (banner.t > 0 && state === 'running' && !paused) pixText(banner.text, W / 2, 44, 2, 'center', '#ffd23f');
-  if (achShow.t > 0 && state === 'running' && !paused) pixText('Logro: ' + achShow.text, W / 2, 68, 2, 'center', '#9be564');
+  if (banner.t > 0 && state === 'running' && !paused) pixFit(banner.text, 44, 2, '#ffd23f');
+  if (achShow.t > 0 && state === 'running' && !paused) pixFit('Logro: ' + achShow.text, 68, 2, '#9be564');
 
   const ty = GROUND * 0.38;
   if (paused) {
     // the pause menu is a DOM overlay
   } else if (state === 'ready') {
-    pixText(animal.name, W / 2, ty - 14, 4, 'center');
-    pixText('Toca la pantalla o pulsa espacio', W / 2, ty + 28, 2, 'center');
-    pixText(ABILITY[animal.id][0] + ': ' + ABILITY[animal.id][1], W / 2, ty + 54, 2, 'center', '#ffd23f');
+    let y = ty - 14;
+    y += pixFit(animal.name, y, 4) + 4;
+    y += pixFit('Toca la pantalla o pulsa espacio', y, 2);
+    pixFit(ABILITY[animal.id][0] + ': ' + ABILITY[animal.id][1], y, 2, '#ffd23f');
   } else if (state === 'over') {
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, 0, W, H);
-    pixText('Game over', W / 2, ty - 14, 4, 'center', '#ffd23f');
-    pixText('Toca o pulsa espacio para reintentar', W / 2, ty + 28, 2, 'center');
+    let y = ty - 14;                                   // lines stack, so a wrapped line never runs into the next one
+    y += pixFit('Game over', y, 4, '#ffd23f') + 4;
+    y += pixFit('Toca o pulsa espacio para reintentar', y, 2) + 6;
+    if (newlyUnlocked.length) y += pixFit('Nuevo: ' + newlyUnlocked.join(', '), y, 2, '#ffd23f');
     if (lastRank) {
       const wk = lastRank.week ? 'Semana #' + lastRank.week.all.rank + ' - ' : '';
-      pixText(wk + 'Global #' + lastRank.all.rank + ' - ' + animal.name + ' #' + lastRank.animal.rank, W / 2, ty + 84, 2, 'center', '#7fd0ff');
+      y += pixFit(wk + 'Global #' + lastRank.all.rank + ' - ' + animal.name + ' #' + lastRank.animal.rank, y, 2, '#7fd0ff');
     }
-    if (newAch.length) pixText('Logros: ' + newAch[0] + (newAch.length > 1 ? ' +' + (newAch.length - 1) : ''), W / 2, ty + 110, 2, 'center', '#9be564');
-    if (newlyUnlocked.length) pixText('Nuevo: ' + newlyUnlocked.join(', '), W / 2, ty + 56, 2, 'center', '#ffd23f');
+    if (newAch.length) pixFit('Logros: ' + newAch[0] + (newAch.length > 1 ? ' +' + (newAch.length - 1) : ''), y, 2, '#9be564');
   }
 }
 
@@ -1620,7 +1647,7 @@ if (/[?&]test=1/.test(location.search)) {
     ANIMALS, ACH, stats, ach, music, sfx, get master() { return master; }, press, setScore: (v) => { score = v; },
      setJump: (v) => { jumpHeld = v; }, setDuck: (v) => { duckHeld = v; },
     get P() { return P; }, get o() { return obstacles; }, get state() { return state; }, get score() { return score; },
-    get biome() { return BIOMES[biome].id; }, get banner() { return banner; }, get K() { return K; }, get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },
+    get biome() { return BIOMES[biome].id; }, get banner() { return banner; }, get K() { return K; }, get W() { return W; }, get insets() { return [insetL, insetR]; }, textBoxes, get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },
   };
 }
 })();

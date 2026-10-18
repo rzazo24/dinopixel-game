@@ -242,6 +242,26 @@ try {
   // obstacles already on screen keep scrolling into the next zone; what matters is the zone they were spawned in
   t.check('zones: every obstacle uses the sprites of the zone it was spawned in', seen.every((k) => { const [z, kind] = k.split(':'); return allowed[z].includes(kind); }), seen);
 
+  /* ---- iPhone in landscape with a notch: no canvas text may go under it ---- */
+  await chrome.send('Emulation.setDeviceMetricsOverride', { width: 844, height: 390, deviceScaleFactor: 3, mobile: true });
+  await chrome.send('Emulation.setSafeAreaInsetsOverride', { insets: { left: 47, right: 47, top: 0, bottom: 21 } });
+  await fresh(ALL);
+  const ins = await ev('__dp.insets');
+  t.check('notch: the game reads both safe-area insets', ins[0] > 0 && ins[1] > 0, ins);
+  const spill = [];
+  for (const a of await ev('__dp.ANIMALS.map(a => a.id)')) {
+    await ev(`document.querySelector('[data-id=${a}]').click()`); await click('play'); await sleep(250);
+    const bad = await ev(`(() => { const [l, r] = __dp.insets; return __dp.textBoxes.filter(b => b.x < l || b.x + b.w > __dp.W - r).map(b => b.t); })()`);
+    if (bad.length) spill.push(a + ': ' + bad.join(' | '));
+    await click('pause-btn'); await click('home'); await sleep(150);
+  }
+  t.check('notch: every animal\'s start screen text fits between the notches (long ones wrap)', spill.length === 0, spill);
+  await ev(`document.querySelector('[data-id=frog]').click()`); await click('play'); await sleep(250);
+  t.check('notch: the frog ability text is wrapped onto two lines', (await ev(`__dp.textBoxes.filter(b => /CARGAR|SUPERSALTO|SALTO/i.test(b.t)).length`)) === 2, await ev('__dp.textBoxes.map(b => b.t)'));
+  await click('pause-btn'); await click('home'); await sleep(150);
+  await chrome.send('Emulation.setSafeAreaInsetsOverride', { insets: { left: 0, right: 0, top: 0, bottom: 0 } });
+  await chrome.send('Emulation.setDeviceMetricsOverride', { width: 1000, height: 560, deviceScaleFactor: 1, mobile: false });
+
   /* ---- volume + pause menu ---- */
   await fresh();
   const volLabel = () => ev(`document.querySelector('#vol span').textContent`);
