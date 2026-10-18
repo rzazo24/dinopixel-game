@@ -26,6 +26,7 @@ self.addEventListener('activate', (e) => {
 // Cache first, refreshing the cache in the background when online.
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  if (new URL(e.request.url).pathname.startsWith('/_vercel/')) return; // analytics: never cache
   e.respondWith(
     caches.match(e.request).then((hit) => {
       const net = fetch(e.request)
