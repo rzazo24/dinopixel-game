@@ -521,25 +521,40 @@ const FONT = {
   8: F('01110/10001/10001/01110/10001/10001/01110'), 9: F('01110/10001/10001/01111/00001/00010/01100'),
   '.': F('00000/00000/00000/00000/00000/01100/01100'), ':': F('00000/01100/01100/00000/01100/01100/00000'),
   '!': F('00100/00100/00100/00100/00100/00000/00100'), '-': F('00000/00000/00000/11111/00000/00000/00000'),
+  ',': F('00000/00000/00000/00000/00110/00100/01000'), '?': F('01110/10001/00001/00110/00100/00000/00100'),
 };
-// y is the top of the text; s is the pixel size in logical px
+// Accents are drawn as extra cells above a base letter (acute, tilde, diaeresis), so á é í ó ú ñ ü all work.
+const MARKS = {
+  '\u0301': [[3, -2], [2, -1]],                       // acute
+  '\u0303': [[1, -1], [2, -2], [3, -2], [4, -1]],     // tilde
+  '\u0308': [[1, -2], [3, -2]],                       // diaeresis
+};
+function glyphs(str) {
+  const out = [];
+  for (const c of str.toUpperCase().normalize('NFD')) {
+    if (c >= '\u0300' && c <= '\u036f') { if (out.length) out[out.length - 1].m = c; }
+    else out.push({ c, m: null });
+  }
+  return out;
+}
+// y is the top of the text (accents rise 2 cells above it); s is the pixel size in logical px
 function pixText(str, x, y, s, align = 'left', color = '#fff', shadow = true) {
-  str = str.toUpperCase();
-  const w = str.length * 6 * s - s;
+  const gl = glyphs(str);
+  const w = gl.length * 6 * s - s;
   const x0 = Math.round(align === 'center' ? x - w / 2 : align === 'right' ? x - w : x);
   y = Math.round(y);
   const pass = (ox, oy, c) => {
     ctx.fillStyle = c;
-    for (let i = 0; i < str.length; i++) {
-      const umlaut = str[i] === 'Ü';
-      const g = FONT[umlaut ? 'U' : str[i]];
-      if (!g) continue;
+    gl.forEach(({ c: ch, m }, i) => {
+      const g = FONT[ch];
       const gx = x0 + ox + i * 6 * s;
-      for (let r = 0; r < 7; r++) for (let b = 0; b < 5; b++) {
-        if (g[r] & (16 >> b)) ctx.fillRect(gx + b * s, y + oy + r * s, s, s);
+      if (g) {
+        for (let r = 0; r < 7; r++) for (let b = 0; b < 5; b++) {
+          if (g[r] & (16 >> b)) ctx.fillRect(gx + b * s, y + oy + r * s, s, s);
+        }
       }
-      if (umlaut) { ctx.fillRect(gx + s, y + oy - 2 * s, s, s); ctx.fillRect(gx + 3 * s, y + oy - 2 * s, s, s); }
-    }
+      if (m && MARKS[m]) MARKS[m].forEach(([mx, my]) => ctx.fillRect(gx + mx * s, y + oy + my * s, s, s));
+    });
   };
   if (shadow) pass(s, s, 'rgba(0,0,0,.55)');
   pass(0, 0, color);
