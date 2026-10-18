@@ -1,5 +1,7 @@
 # DinoPixel
 
+**[Juega ahora: dinopixel-game.vercel.app](https://dinopixel-game.vercel.app/)**
+
 Un juego de correr y saltar al estilo del dinosaurio de Chrome, en pixel art a color, con **6 animales
 desbloqueables**, cada uno con su propia habilidad. Se juega en el navegador y se puede instalar como **PWA**
 (funciona sin conexión). Sin dependencias ni paso de compilación: HTML, CSS y JavaScript puros.
