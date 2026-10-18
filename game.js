@@ -227,7 +227,9 @@ let vibeOn = store.get('dp-vibe', '1') === '1';
 const haptic = (pattern) => { if (canVibrate && vibeOn) { try { navigator.vibrate(pattern); } catch { /* ignore */ } } };
 
 /* ---------- unlocks: animals open up as your best score grows ---------- */
-const UNLOCK = { dino: 0, cat: 300, dog: 600, bunny: 1000, chick: 1500, peng: 2000 };
+// Best score needed per animal. Points come at ~43/s at the start and ~94/s at top speed (reached at ~2100),
+// so 1000 is ~20 s of perfect play and 12000 is ~2.5 minutes without a single mistake.
+const UNLOCK = { dino: 0, cat: 1000, dog: 2500, bunny: 5000, chick: 8000, peng: 12000 };
 ANIMALS.forEach((a) => { a.unlock = UNLOCK[a.id] || 0; });
 let best = Number(store.get('dp-best', '0')) || 0;      // best score reached with any animal
 const unlocked = (a) => best >= a.unlock;
