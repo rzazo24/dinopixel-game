@@ -77,6 +77,12 @@ const ANIMALS = [
       '...aaaaaaaaaaa..', '...aawwwwwwaa...', '....aawwwwaa....', '.....aaaaaa.....',
       '......aaaa......',
     ],
+    bodyUp: [                          // wing raised behind the back (flap frame)
+      '..........rrr...', '.........aaaaa..', '.........aakaaac', '.........aaaaac.',
+      '.........aar....', '...www..aaaaa...', '..awww.aaaaaaa..', '..aawwaaaaaaaa..',
+      '...aaaaaaaaaaa..', '...aaaaaaaaaaa..', '....aaaaaaaa....', '.....aaaaaa.....',
+      '......aaaa......',
+    ],
     legs: BIPED_LEGS('c'),
   },
   {
@@ -147,6 +153,10 @@ ANIMALS.forEach((a) => {
   const crouch = a.body.filter((_, i) => !drop.includes(i));
   a.frames = a.legs.map((l) => mk(a.body, l));
   a.duck = a.legs.map((l) => mk(crouch, l));
+  if (a.bodyUp) {                                              // animals with flapping wings get a second set of frames
+    a.framesUp = a.legs.map((l) => mk(a.bodyUp, l));
+    a.duckUp = a.legs.map((l) => mk(a.bodyUp.filter((_, i) => !drop.includes(i)), l));
+  }
 });
 const cactusImg = sprite(CACTUS, CACTUS_PAL);
 const birdImgs = BIRD.map((b) => sprite(b, BIRD_PAL));
@@ -251,7 +261,7 @@ if (!unlocked(animal)) animal = ANIMALS[0];
 let state = 'ready';                                    // ready | running | over
 let paused = false;
 let score, speed, hi, night = 0, nightTarget = 0, scroll, distSince, gap, mile, flash, diedAt;
-let obstacles, dust, animT, duckHeld = false, jumpHeld = false;
+let obstacles, dust, animT, flapT = 0, duckHeld = false, jumpHeld = false;
 let banner = { text: '', t: 0 }, newlyUnlocked = [];
 let runToken = null, lastRank = null, pendingRun = null;   // online ranking (see the ranking section below)
 const MIN_H = 75, CUT_V = 4;                           // variable jump: released early => cut once above MIN_H
@@ -263,7 +273,7 @@ const stars = Array.from({ length: 70 }, () => ({ x: rnd(0, 1400), y: rnd(4, 220
 
 function reset() {
   score = 0; speed = START_SPEED; scroll = 0; distSince = 0; gap = 320; mile = 0; flash = 0;
-  night = 0; nightTarget = 0; animT = 0;
+  night = 0; nightTarget = 0; animT = 0; flapT = 0;
   obstacles = []; dust = [];
   P.h = 0; P.vy = 0; P.duck = false; P.doubled = false; P.inv = 0;
   P.shield = animal.id === 'dog' ? 1 : 0;
@@ -360,6 +370,7 @@ function update(dt) {
   score += speed * dt * 0.12 * (animal.id === 'peng' && P.duck ? 2 : 1);   // penguin: sliding doubles points
   scroll += speed * dt;
   animT += speed * dt;
+  flapT += dt;
 
   // physics
   P.duck = duckHeld && P.h === 0;
@@ -494,8 +505,15 @@ function drawPlayer() {
   if (P.inv > 0 && Math.floor(P.inv / 5) % 2 === 0) return;     // blink while invulnerable
   const run = Math.floor(animT / 40) % 2;   // one step every 40 px of travel: ~6 frames at start, ~3 at top speed
   const f = P.h > 0 || state !== 'running' ? 0 : run;
-  if (P.duck) blit(animal.duck[f], PX, GROUND - 36, 48, 36);
-  else blit(animal.frames[f], PX, GROUND - P.h - SP * S, SP * S, SP * S);
+  let frames = animal.frames, duck = animal.duck;
+  if (animal.framesUp && state === 'running') {
+    // wings: slow flap with the steps on the ground, quick flap in the air, slower and wider while gliding
+    const gliding = animal.id === 'chick' && jumpHeld && P.vy < 0;
+    const up = P.h > 0 ? Math.floor(flapT / (gliding ? 7 : 4)) % 2 : Math.floor(animT / 20) % 2;
+    if (up) { frames = animal.framesUp; duck = animal.duckUp; }
+  }
+  if (P.duck) blit(duck[f], PX, GROUND - 36, 48, 36);
+  else blit(frames[f], PX, GROUND - P.h - SP * S, SP * S, SP * S);
 }
 
 function drawObstacles() {
