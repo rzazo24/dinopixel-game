@@ -44,7 +44,32 @@ Los récords se guardan por animal en el navegador (`localStorage`).
 - **Velocidad** (60–100 %): ralentiza todo el juego por igual. Por defecto 100 % en móvil y 80 % en PC.
 - **Sonido**: efectos generados con WebAudio (no hay archivos de audio).
 - **Vibración**: solo en dispositivos que la soportan (Android).
+- **Ranking**: botón *Ranking* del menú y de la pausa (ver más abajo).
 - **Ayuda**: botón *Ayuda* del menú y de la pausa (o la tecla `H`), con controles, animales y consejos.
+
+## Ranking global
+
+Ranking online con **apodo** y tableros **global y por animal** (top 20 y tu posición). Se abre desde el botón
+*Ranking* del menú o de la pausa; al morir, el juego muestra tu puesto.
+
+- **Cómo funciona:** funciones de Vercel en [api/](api/) (sin dependencias) guardan las puntuaciones en
+  [Upstash Redis](https://upstash.com/) usando su API REST. Solo se guarda tu apodo, un id aleatorio y tu mejor
+  puntuación (la IP se usa un momento para limitar envíos y no se almacena).
+- **Sin conexión:** la puntuación se guarda y se envía cuando vuelva la red. Si el ranking no está configurado,
+  el juego funciona igual y la pantalla de ranking avisa de que no está disponible.
+- **Trampas:** no hay protección perfecta en un juego de navegador. El servidor firma cada partida al empezar,
+  comprueba que el tiempo transcurrido cuadre con la puntuación, acepta cada partida una sola vez, limita los
+  envíos por jugador e IP y filtra apodos. Frena las trampas casuales, no a alguien decidido.
+
+**Activarlo en Vercel** (una sola vez):
+
+1. En el proyecto de Vercel: *Storage → Create Database → Upstash (Redis)*. El plan **Free** basta de sobra.
+2. Conéctalo al proyecto. Vercel crea las variables `KV_REST_API_URL` y `KV_REST_API_TOKEN`
+   (también valen `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN`).
+3. Vuelve a desplegar. Opcional: define `SCORE_SECRET` para firmar las partidas con tu propia clave.
+
+Endpoints: `GET /api/start`, `POST /api/score`, `GET /api/ranking?board=all|dino|cat|dog|bunny|chick|peng`,
+`POST /api/name`.
 
 ## Ejecutarlo en local
 
@@ -54,6 +79,8 @@ python3 -m http.server 8080
 ```
 
 Hace falta servirlo por `http://localhost` (o HTTPS): el service worker no funciona abriendo el archivo con `file://`.
+Con este servidor el ranking aparece como no disponible; para probarlo en local hace falta `vercel dev` con las
+variables de Upstash.
 
 ## Desplegar en Vercel
 
@@ -67,7 +94,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v23';   // -> 'dinopixel-v24', ...
+const CACHE = 'dinopixel-v24';   // -> 'dinopixel-v25', ...
 ```
 
 Notas de instalación:
@@ -84,6 +111,7 @@ index.html      menú, escenario del juego y overlays
 style.css       interfaz pixel (botones biselados, iconos, adaptación a móvil/notch)
 game.js         motor: física, obstáculos, sprites, fuente pixel, iconos, desbloqueos, PWA
 sw.js           service worker (caché, aviso de nueva versión)
+api/            funciones del ranking (Vercel Functions + Upstash Redis)
 manifest.json   datos de la PWA
 icons/          iconos de la app
 fonts/          Press Start 2P (licencia OFL)

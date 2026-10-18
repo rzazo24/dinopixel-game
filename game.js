@@ -251,6 +251,7 @@ let paused = false;
 let score, speed, hi, night = 0, nightTarget = 0, scroll, distSince, gap, mile, flash, diedAt;
 let obstacles, dust, animT, duckHeld = false, jumpHeld = false;
 let banner = { text: '', t: 0 }, newlyUnlocked = [];
+let runToken = null, lastRank = null, pendingRun = null;   // online ranking (see the ranking section below)
 const MIN_H = 75, CUT_V = 4;                           // variable jump: released early => cut once above MIN_H
 const P = { h: 0, vy: 0, duck: false, doubled: false, shield: 0, inv: 0 };
 
@@ -269,7 +270,13 @@ function reset() {
 }
 reset();
 
-function start() { reset(); state = 'running'; }
+function start() {
+  reset();
+  state = 'running';
+  lastRank = null;
+  runToken = null;
+  api('/api/start').then((r) => { if (r.ok && r.data.t) runToken = r.data.t; });   // signed token: lets the server check run time vs score
+}
 
 function die() {
   state = 'over';
@@ -278,6 +285,7 @@ function die() {
   haptic([70, 40, 140]);
   if (score > hi) { hi = Math.floor(score); store.set('dp-hi-' + animal.id, String(hi)); }
   if (score > best) { best = Math.floor(score); store.set('dp-best', String(best)); }
+  submitRun();
 }
 
 function jump() {
@@ -522,6 +530,7 @@ const FONT = {
   8: F('01110/10001/10001/01110/10001/10001/01110'), 9: F('01110/10001/10001/01111/00001/00010/01100'),
   '.': F('00000/00000/00000/00000/00000/01100/01100'), ':': F('00000/01100/01100/00000/01100/01100/00000'),
   '!': F('00100/00100/00100/00100/00100/00000/00100'), '-': F('00000/00000/00000/11111/00000/00000/00000'),
+  '#': F('01010/01010/11111/01010/11111/01010/01010'),
   ',': F('00000/00000/00000/00000/00110/00100/01000'), '?': F('01110/10001/00001/00110/00100/00000/00100'),
 };
 // Accents are drawn as extra cells above a base letter (acute, tilde, diaeresis), so á é í ó ú ñ ü all work.
@@ -602,6 +611,7 @@ function draw() {
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, 0, W, H);
     pixText('Game over', W / 2, ty - 14, 4, 'center', '#ffd23f');
     pixText('Toca o pulsa espacio para reintentar', W / 2, ty + 28, 2, 'center');
+    if (lastRank) pixText('Ranking #' + lastRank.all.rank + ' global - #' + lastRank.animal.rank + ' ' + animal.name, W / 2, ty + 84, 2, 'center', '#7fd0ff');
     if (newlyUnlocked.length) pixText('Nuevo: ' + newlyUnlocked.join(', '), W / 2, ty + 56, 2, 'center', '#ffd23f');
   }
 }
@@ -624,6 +634,7 @@ const ICONS = {
   lock: ['00111100', '01000010', '01000010', '11111111', '11111111', '11110111', '11110111', '11111111'],
   vibrate: ['00011000', '10011001', '10011001', '10011001', '10011001', '10011001', '00011000', '00000000'],
   help: ['00111100', '01100110', '00000110', '00001100', '00011000', '00000000', '00011000', '00011000'],
+  trophy: ['11111111', '10111101', '10111101', '01111110', '00111100', '00011000', '00011000', '00111100'],
   phone: ['1111111', '1000001', '1000001', '1000001', '1000001', '1000001', '1000001', '1000001', '1000001', '1111111', '0011100'],
 };
 function iconSvg(name) {
@@ -733,6 +744,7 @@ function press() {
 }
 
 document.addEventListener('keydown', (e) => {
+  if (!rankEl.hidden) { if (e.code === 'Escape') { e.preventDefault(); closeRank(); } return; }
   if (!help.hidden) { if (e.code === 'Escape' || e.code === 'KeyH') { e.preventDefault(); closeHelp(); } return; }
   if (e.code === 'KeyH') { e.preventDefault(); if (inGame) setPaused(true); openHelp(); return; }
   if (!inGame) {
@@ -844,6 +856,168 @@ help.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => r
 $('help-close').addEventListener('click', closeHelp);
 $('help-btn').addEventListener('click', openHelp);
 $('help-btn2').addEventListener('click', openHelp);
+
+/* ---------- online ranking ---------- */
+// Backend: /api/* Vercel functions + Upstash Redis. Everything here degrades silently if the backend is missing or offline.
+const rankEl = $('rank'), rankBody = $('rank-body'), rankMsg = $('rank-msg'), nickInput = $('nick-input');
+const NICK_RE = /^[\p{L}\p{N}][\p{L}\p{N} ._-]*$/u;
+function newPid() {
+  const a = new Uint8Array(16);
+  if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(a); else a.forEach((_, i) => { a[i] = Math.random() * 256 | 0; });
+  return [...a].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+let pid = store.get('dp-pid', '');
+if (!/^[a-f0-9]{32}$/.test(pid)) { pid = newPid(); store.set('dp-pid', pid); }
+let nick = store.get('dp-nick', '');
+let rankBoard = 'all', rankReq = 0, nagged = false;
+
+async function api(path, body) {
+  const ctl = new AbortController();
+  const to = setTimeout(() => ctl.abort(), 7000);
+  try {
+    const r = await fetch(path, body
+      ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: ctl.signal }
+      : { signal: ctl.signal });
+    let data = {};
+    try { data = await r.json(); } catch { /* not JSON (e.g. a 404 page) */ }
+    return { ok: r.ok, status: r.status, data };
+  } catch {
+    return { ok: false, status: 0, data: {} };     // offline / timeout
+  } finally { clearTimeout(to); }
+}
+const retryable = (r) => r.status === 0 || (r.status >= 500 && r.status !== 503);   // 503 = ranking not configured: don't retry
+
+function submitRun() {
+  const sc = Math.floor(score);
+  if (sc < 20 || !runToken) return;                 // trivial runs and runs without a server token are not ranked
+  const run = { animal: animal.id, score: sc, t: runToken };
+  runToken = null;
+  if (!nick) {
+    if (!pendingRun || run.score > pendingRun.score) pendingRun = run;
+    if (!nagged) {                                   // ask for a nickname once per session
+      nagged = true;
+      setTimeout(() => { if (inGame && state === 'over' && rankEl.hidden) openRank('Buena partida! Elige un apodo para guardar tu puntuación.'); }, 700);
+    }
+    return;
+  }
+  sendScore(run);
+}
+async function sendScore(run) {
+  const r = await api('/api/score', { pid, nick, ...run });
+  if (r.ok) { lastRank = r.data; flushQueue(); }
+  else if (retryable(r)) queueRun(run);
+}
+function queueRun(run) {
+  let q = [];
+  try { q = JSON.parse(store.get('dp-queue', '[]')); } catch { /* ignore */ }
+  q.push({ ...run, nick });
+  store.set('dp-queue', JSON.stringify(q.slice(-5)));
+}
+let flushing = false;
+async function flushQueue() {
+  if (flushing) return;
+  let q = [];
+  try { q = JSON.parse(store.get('dp-queue', '[]')); } catch { /* ignore */ }
+  if (!q.length) return;
+  flushing = true;
+  const left = [];
+  for (const run of q) {
+    const r = await api('/api/score', { pid, ...run });
+    if (retryable(r)) left.push(run);
+  }
+  store.set('dp-queue', JSON.stringify(left));
+  flushing = false;
+}
+window.addEventListener('online', flushQueue);
+setTimeout(flushQueue, 4000);
+
+function buildRankTabs() {
+  const box = $('rank-tabs');
+  const mk = (board, label, node) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'small tab'; b.dataset.board = board; b.setAttribute('role', 'tab');
+    b.setAttribute('aria-label', label); b.title = label;
+    if (node) b.appendChild(node); else b.textContent = label;
+    b.addEventListener('click', () => loadRank(board));
+    box.appendChild(b);
+  };
+  mk('all', 'Global');
+  ANIMALS.forEach((a) => mk(a.id, a.name, spriteCanvas(a.frames[0], 1)));
+}
+buildRankTabs();
+
+function openRank(msg) {
+  if (inGame && state === 'running') setPaused(true);
+  rankMsg.textContent = msg || '';
+  nickInput.value = nick;
+  rankEl.hidden = false;
+  loadRank(rankBoard);
+  (msg ? nickInput : $('rank-close')).focus();
+}
+function closeRank() {
+  rankEl.hidden = true;
+  (inGame ? $('resume') : $('rank-btn')).focus();
+}
+async function loadRank(board) {
+  rankBoard = board;
+  const mine = ++rankReq;
+  $('rank-tabs').querySelectorAll('.tab').forEach((b) => b.classList.toggle('on', b.dataset.board === board));
+  rankBody.innerHTML = '<p class="note">Cargando...</p>';
+  const r = await api('/api/ranking?board=' + board + '&pid=' + pid);
+  if (mine !== rankReq) return;                      // a newer tab was opened meanwhile
+  if (!r.ok) {
+    const why = r.status === 0 ? 'Sin conexión. Inténtalo más tarde.'
+      : (r.status === 503 || r.status === 404) ? 'El ranking aún no está disponible.' : 'No se pudo cargar el ranking.';
+    rankBody.innerHTML = '<p class="note"></p>';
+    rankBody.firstChild.textContent = why;
+    return;
+  }
+  renderRank(r.data);
+}
+function renderRank(d) {
+  rankBody.replaceChildren();
+  if (!d.rows.length) {
+    const p = document.createElement('p'); p.className = 'note'; p.textContent = 'Aún no hay puntuaciones. Sé el primero!';
+    rankBody.appendChild(p);
+    return;
+  }
+  const tbl = document.createElement('table'); tbl.className = 'lb';
+  const add = (rk, n, sc, me) => {
+    const tr = tbl.insertRow(); if (me) tr.className = 'me';
+    tr.insertCell().textContent = '#' + rk;
+    tr.insertCell().textContent = n;                 // textContent: nicknames are never interpreted as HTML
+    tr.insertCell().textContent = sc;
+  };
+  d.rows.forEach((x) => add(x.r, x.n, x.s, x.me));
+  if (d.me && !d.rows.some((x) => x.me)) {
+    const c = tbl.insertRow().insertCell(); c.colSpan = 3; c.className = 'sep'; c.textContent = '...';
+    add(d.me.r, d.me.n, d.me.s, true);
+  }
+  const foot = document.createElement('p'); foot.className = 'note'; foot.textContent = d.total + ' jugadores';
+  rankBody.append(tbl, foot);
+}
+async function saveNick() {
+  const v = nickInput.value.normalize('NFC').replace(/\s+/g, ' ').trim();
+  const len = [...v].length;
+  if (!len || len > 10 || !NICK_RE.test(v)) { rankMsg.textContent = 'Apodo no válido: 1-10 letras o números (se permite . _ -).'; return; }
+  rankMsg.textContent = 'Guardando...';
+  const r = await api('/api/name', { pid, nick: v });
+  if (r.status === 400) { rankMsg.textContent = r.data.error === 'banned' ? 'Ese apodo no está permitido.' : 'Apodo no válido.'; return; }
+  nick = v;
+  store.set('dp-nick', nick);
+  rankMsg.textContent = 'Apodo guardado.';
+  if (pendingRun) {
+    const run = pendingRun; pendingRun = null;
+    await sendScore(run);
+    if (lastRank) rankMsg.textContent = 'Guardado! Eres el #' + lastRank.all.rank + ' del ranking global.';
+  }
+  loadRank(rankBoard);
+}
+$('nick-save').addEventListener('click', saveNick);
+nickInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveNick(); } });
+$('rank-close').addEventListener('click', closeRank);
+$('rank-btn').addEventListener('click', () => openRank());
+$('rank-btn2').addEventListener('click', () => openRank());
 
 /* ---------- UI: animal picker, sound, install ---------- */
 const picker = $('picker');

@@ -1,5 +1,5 @@
 // Bump this on every release: it is what makes browsers see a "new version".
-const CACHE = 'dinopixel-v23';
+const CACHE = 'dinopixel-v24';
 const ASSETS = [
   './',
   'index.html',
@@ -50,7 +50,7 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.pathname.startsWith('/_vercel/')) return; // analytics: never cache
+  if (url.pathname.startsWith('/_vercel/') || url.pathname.startsWith('/api/')) return; // analytics + ranking API: never cache
   e.respondWith((async () => {
     const cache = await caches.open(CACHE);
     // the start URL may be "/", "/index.html" or have a query string: all map to the cached page
