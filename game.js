@@ -220,6 +220,11 @@ const sfx = {
   mile: () => { beep(660, 660, 0.08); setTimeout(() => beep(990, 990, 0.12), 90); },
 };
 
+/* ---------- haptics (Android; iOS has no web vibration API) ---------- */
+const canVibrate = typeof navigator.vibrate === 'function';
+let vibeOn = store.get('dp-vibe', '1') === '1';
+const haptic = (pattern) => { if (canVibrate && vibeOn) { try { navigator.vibrate(pattern); } catch { /* ignore */ } } };
+
 /* ---------- unlocks: animals open up as your best score grows ---------- */
 const UNLOCK = { dino: 0, cat: 300, dog: 600, bunny: 1000, chick: 1500, peng: 2000 };
 ANIMALS.forEach((a) => { a.unlock = UNLOCK[a.id] || 0; });
@@ -269,6 +274,7 @@ function die() {
   state = 'over';
   diedAt = performance.now();
   sfx.die();
+  haptic([70, 40, 140]);
   if (score > hi) { hi = Math.floor(score); store.set('dp-hi-' + animal.id, String(hi)); }
   if (score > best) { best = Math.floor(score); store.set('dp-best', String(best)); }
 }
@@ -360,6 +366,7 @@ function update(dt) {
       newlyUnlocked.push(a.name);
       banner = { text: a.name + ' desbloqueado!', t: 200 };
       sfx.mile();
+      haptic([40, 60, 40, 60, 90]);
     }
   }
 
@@ -379,6 +386,7 @@ function update(dt) {
         P.shield = 0; P.inv = INVULN;
         banner = { text: 'Escudo roto!', t: 90 };
         sfx.die();
+        haptic(60);
       } else { die(); break; }
     }
   }
@@ -598,6 +606,7 @@ const ICONS = {
   up: ['00011000', '00111100', '01111110', '11111111', '00011000', '00011000', '00011000', '00011000'],
   down: ['00011000', '00011000', '00011000', '00011000', '11111111', '01111110', '00111100', '00011000'],
   lock: ['00111100', '01000010', '01000010', '11111111', '11111111', '11110111', '11110111', '11111111'],
+  vibrate: ['00011000', '10011001', '10011001', '10011001', '10011001', '10011001', '00011000', '00000000'],
   phone: ['1111111', '1000001', '1000001', '1000001', '1000001', '1000001', '1000001', '1000001', '1000001', '1111111', '0011100'],
 };
 function iconSvg(name) {
@@ -791,6 +800,15 @@ function setMuted(m) {
   setIcon($('mute').querySelector('i'), m ? 'mute' : 'sound');
   $('mute').querySelector('span').textContent = m ? 'Sin sonido' : 'Sonido';
 }
+function setVibe(v) {
+  vibeOn = v;
+  store.set('dp-vibe', v ? '1' : '0');
+  $('vibe').querySelector('span').textContent = v ? 'Vibración' : 'Sin vibración';
+  $('vibe').classList.toggle('off', !v);
+}
+if (canVibrate) $('vibe').hidden = false;      // hide the button on devices without vibration (iOS, desktop)
+$('vibe').addEventListener('click', (e) => { setVibe(!vibeOn); if (vibeOn) haptic(25); e.currentTarget.blur(); });
+setVibe(vibeOn);
 $('mute').addEventListener('click', (e) => { setMuted(!muted); e.currentTarget.blur(); });
 setMuted(muted);
 

@@ -280,3 +280,5 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
 @media (max-height: 500px) and (orientation: landscape) {
   main { padding-top: max(12px, env(safe-area-inset-top)); padding-bottom: max(12px, env(safe-area-inset-bottom)); }
 }
+
+.small.off { opacity: .65; }
