@@ -275,6 +275,7 @@ function start() {
   state = 'running';
   lastRank = null;
   runToken = null;
+  showShare(false);
   api('/api/start').then((r) => { if (r.ok && r.data.t) runToken = r.data.t; });   // signed token: lets the server check run time vs score
 }
 
@@ -286,6 +287,7 @@ function die() {
   if (score > hi) { hi = Math.floor(score); store.set('dp-hi-' + animal.id, String(hi)); }
   if (score > best) { best = Math.floor(score); store.set('dp-best', String(best)); }
   submitRun();
+  showShare(score >= 20);
 }
 
 function jump() {
@@ -635,6 +637,8 @@ const ICONS = {
   vibrate: ['00011000', '10011001', '10011001', '10011001', '10011001', '10011001', '00011000', '00000000'],
   help: ['00111100', '01100110', '00000110', '00001100', '00011000', '00000000', '00011000', '00011000'],
   trophy: ['11111111', '10111101', '10111101', '01111110', '00111100', '00011000', '00011000', '00111100'],
+  share: ['00010000', '00111000', '01010100', '00010000', '00010000', '10010001', '10000001', '11111111'],
+  trash: ['00111100', '11111111', '01000010', '01011010', '01011010', '01011010', '01000010', '01111110'],
   phone: [                                       // a phone: thin bezel, big screen, speaker slit, home button
     '011111110', '111111111', '111000111', '111111111', '100000001', '100000001', '100000001', '100000001',
     '100000001', '100000001', '100000001', '111111111', '111101111', '111111111', '011111110',
@@ -723,6 +727,7 @@ function exitGame() {
   setPaused(false);
   stage.hidden = true;
   menu.hidden = false;
+  showShare(false);
   refreshPicker();
   $('play').focus();
 }
@@ -860,6 +865,24 @@ $('help-close').addEventListener('click', closeHelp);
 $('help-btn').addEventListener('click', openHelp);
 $('help-btn2').addEventListener('click', openHelp);
 
+/* ---------- share ---------- */
+const shareBtn = $('share-btn');
+function showShare(on) { shareBtn.hidden = !on; }
+function flashShare(msg) {
+  const span = shareBtn.querySelector('span'), old = 'Compartir';
+  span.textContent = msg;
+  setTimeout(() => { span.textContent = old; }, 1800);
+}
+async function shareRun() {
+  const text = 'He llegado a ' + Math.floor(score) + ' puntos con ' + animal.name + ' en DinoPixel. ¿Puedes superarme?';
+  const url = location.origin + '/';
+  try {
+    if (navigator.share) { await navigator.share({ title: 'DinoPixel', text, url }); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }       // user closed the share sheet
+  try { await navigator.clipboard.writeText(text + ' ' + url); flashShare('¡Copiado!'); } catch { flashShare('No se pudo copiar'); }
+}
+shareBtn.addEventListener('click', shareRun);
+
 /* ---------- online ranking ---------- */
 // Backend: /api/* Vercel functions + Upstash Redis. Everything here degrades silently if the backend is missing or offline.
 const rankEl = $('rank'), rankBody = $('rank-body'), rankMsg = $('rank-msg'), nickInput = $('nick-input');
@@ -899,7 +922,7 @@ function submitRun() {
     if (!pendingRun || run.score > pendingRun.score) pendingRun = run;
     if (!nagged) {                                   // ask for a nickname once per session
       nagged = true;
-      setTimeout(() => { if (inGame && state === 'over' && rankEl.hidden) openRank('Buena partida! Elige un apodo para guardar tu puntuación.'); }, 700);
+      setTimeout(() => { if (inGame && state === 'over' && rankEl.hidden) openRank('¡Buena partida! Elige un apodo para guardar tu puntuación.'); }, 700);
     }
     return;
   }
@@ -958,6 +981,7 @@ function openRank(msg) {
   (msg ? nickInput : $('rank-close')).focus();
 }
 function closeRank() {
+  resetDeleteLabel();
   rankEl.hidden = true;
   (inGame ? $('resume') : $('rank-btn')).focus();
 }
@@ -980,7 +1004,7 @@ async function loadRank(board) {
 function renderRank(d) {
   rankBody.replaceChildren();
   if (!d.rows.length) {
-    const p = document.createElement('p'); p.className = 'note'; p.textContent = 'Aún no hay puntuaciones. Sé el primero!';
+    const p = document.createElement('p'); p.className = 'note'; p.textContent = 'Aún no hay puntuaciones. ¡Sé el primero!';
     rankBody.appendChild(p);
     return;
   }
@@ -996,7 +1020,7 @@ function renderRank(d) {
     const c = tbl.insertRow().insertCell(); c.colSpan = 3; c.className = 'sep'; c.textContent = '...';
     add(d.me.r, d.me.n, d.me.s, true);
   }
-  const foot = document.createElement('p'); foot.className = 'note'; foot.textContent = d.total + ' jugadores';
+  const foot = document.createElement('p'); foot.className = 'note'; foot.textContent = d.total + (d.total === 1 ? ' jugador' : ' jugadores');
   rankBody.append(tbl, foot);
 }
 async function saveNick() {
@@ -1012,10 +1036,30 @@ async function saveNick() {
   if (pendingRun) {
     const run = pendingRun; pendingRun = null;
     await sendScore(run);
-    if (lastRank) rankMsg.textContent = 'Guardado! Eres el #' + lastRank.all.rank + ' del ranking global.';
+    if (lastRank) rankMsg.textContent = '¡Guardado! Eres el #' + lastRank.all.rank + ' del ranking global.';
   }
   loadRank(rankBoard);
 }
+let delTimer = null;
+function resetDeleteLabel() { clearTimeout(delTimer); delTimer = null; $('rank-del').querySelector('span').textContent = 'Borrar mis datos'; }
+async function deleteMyData() {
+  if (!delTimer) {                                  // first click: ask for confirmation
+    $('rank-del').querySelector('span').textContent = '¿Seguro? Pulsa otra vez';
+    delTimer = setTimeout(resetDeleteLabel, 4000);
+    return;
+  }
+  resetDeleteLabel();
+  rankMsg.textContent = 'Borrando...';
+  const r = await api('/api/delete', { pid });
+  if (!r.ok) { rankMsg.textContent = 'No se pudo borrar. Inténtalo más tarde.'; return; }
+  nick = ''; pendingRun = null; lastRank = null;
+  store.set('dp-nick', ''); store.set('dp-queue', '[]');
+  pid = newPid(); store.set('dp-pid', pid);        // a fresh id: nothing links the old data to this device
+  nickInput.value = '';
+  rankMsg.textContent = 'Tus datos se han borrado del ranking.';
+  loadRank(rankBoard);
+}
+$('rank-del').addEventListener('click', deleteMyData);
 $('nick-save').addEventListener('click', saveNick);
 nickInput.addEventListener('input', () => {       // force capitals while typing, keeping the caret where it was
   const a = nickInput.selectionStart, b = nickInput.selectionEnd;

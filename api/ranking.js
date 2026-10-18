@@ -10,6 +10,11 @@ module.exports = async (req, res) => {
     const board = String(q.board || 'all');
     if (!L.validBoard(board)) return res.status(400).json({ error: 'board' });
     const pid = L.PID_RE.test(q.pid || '') ? q.pid : null;
+    // requests with a pid skip the CDN cache and hit Redis: cap them per IP so nobody can run up the bill
+    if (pid && !(await L.rateLimit('dp:rl:rk:' + L.ipHash(req), 300, 3600))) {
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(429).json({ error: 'rate' });
+    }
     res.setHeader('Cache-Control', pid ? 'no-store' : 's-maxage=10, stale-while-revalidate=30');
 
     const key = L.boardKey(board);

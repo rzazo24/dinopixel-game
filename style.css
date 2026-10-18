@@ -399,3 +399,15 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
 }
 
 #nick-input, .lb td { text-transform: uppercase; }
+
+/* ---------- share button, ranking footer ---------- */
+#share-btn {
+  position: absolute;
+  left: 0; right: 0;
+  margin: 0 auto;
+  width: max-content;
+  bottom: max(14px, env(safe-area-inset-bottom));
+}
+.rank-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.rank-privacy { margin: 0; font-size: 7px; line-height: 1.6; opacity: .7; text-align: center; }
+@media (max-height: 500px) { .rank-privacy { font-size: 6px; } }

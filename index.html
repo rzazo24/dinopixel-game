@@ -6,6 +6,21 @@
 <title>DinoPixel</title>
 <meta name="description" content="Corre, salta y esquiva con tu animal pixel favorito.">
 <meta name="theme-color" content="#6ec6f0">
+<link rel="canonical" href="https://dinopixel-game.vercel.app/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DinoPixel">
+<meta property="og:locale" content="es_ES">
+<meta property="og:title" content="DinoPixel - corre, salta y esquiva">
+<meta property="og:description" content="Pixel art a color con 6 animales desbloqueables, habilidades propias y ranking global. Gratis, en tu navegador.">
+<meta property="og:url" content="https://dinopixel-game.vercel.app/">
+<meta property="og:image" content="https://dinopixel-game.vercel.app/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="DinoPixel: un dinosaurio pixel art esquivando cactus junto a otros animales">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="DinoPixel - corre, salta y esquiva">
+<meta name="twitter:description" content="Pixel art a color con 6 animales desbloqueables, habilidades propias y ranking global.">
+<meta name="twitter:image" content="https://dinopixel-game.vercel.app/og-image.png">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -43,6 +58,7 @@
 <div id="stage" hidden>
   <canvas id="game" width="600" height="200" aria-label="Juego"></canvas>
   <button id="pause-btn" class="round" type="button" aria-label="Pausa"><i data-icon="pause"></i></button>
+  <button id="share-btn" class="small" type="button" hidden><i data-icon="share"></i><span>Compartir</span></button>
   <div id="pause" class="overlay" hidden>
     <h2>PAUSA</h2>
     <button id="resume" class="big" type="button"><i data-icon="play"></i><span>SEGUIR</span></button>
@@ -67,7 +83,11 @@
       <input id="nick-input" type="text" maxlength="10" placeholder="Tu apodo" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Tu apodo">
       <button id="nick-save" class="small" type="button">Guardar</button>
     </div>
-    <button id="rank-close" class="small" type="button"><i data-icon="close"></i><span>Cerrar</span></button>
+    <div class="rank-actions">
+      <button id="rank-del" class="small" type="button"><i data-icon="trash"></i><span>Borrar mis datos</span></button>
+      <button id="rank-close" class="small" type="button"><i data-icon="close"></i><span>Cerrar</span></button>
+    </div>
+    <p class="rank-privacy">Se guardan tu apodo, tu mejor puntuación y un id aleatorio. Nada más.</p>
   </div>
 </div>
 <div id="help" class="help" hidden role="dialog" aria-modal="true" aria-label="Ayuda">
