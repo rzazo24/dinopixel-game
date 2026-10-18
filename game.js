@@ -113,26 +113,41 @@ const CLOUD = [
   '.....www......', '..wwwwwwww....', 'wwwwwwwwwwww..', 'wwwwwwwwwwwwww',
 ];
 
-function sprite(rows, pal, w) {
+// Sprites get a 1-cell transparent margin that holds an automatic dark outline.
+// Always draw them with blit(), which accounts for that margin.
+function sprite(rows, pal, outline = '#1b1b2b') {
+  const w = rows[0].length, h = rows.length;
   const c = document.createElement('canvas');
-  c.width = w || rows[0].length;
-  c.height = rows.length;
+  c.width = w + 2;
+  c.height = h + 2;
   const g = c.getContext('2d');
-  rows.forEach((row, y) => {
-    for (let x = 0; x < row.length; x++) {
-      const col = pal[row[x]];
-      if (col) { g.fillStyle = col; g.fillRect(x, y, 1, 1); }
+  const on = (x, y) => x >= 0 && x < w && y >= 0 && y < h && !!pal[rows[y][x]];
+  if (outline) {
+    g.fillStyle = outline;
+    for (let y = -1; y <= h; y++) for (let x = -1; x <= w; x++) {
+      if (!on(x, y) && (on(x - 1, y) || on(x + 1, y) || on(x, y - 1) || on(x, y + 1))) g.fillRect(x + 1, y + 1, 1, 1);
     }
-  });
+  }
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    if (on(x, y)) { g.fillStyle = pal[rows[y][x]]; g.fillRect(x + 1, y + 1, 1, 1); }
+  }
   return c;
+}
+// draw `img` so that its art (without the outline margin) fills x, y, w, h
+function blit(img, x, y, w, h) {
+  const cx = w / (img.width - 2), cy = h / (img.height - 2);
+  ctx.drawImage(img, x - cx, y - cy, img.width * cx, img.height * cy);
 }
 
 ANIMALS.forEach((a) => {
-  a.frames = a.legs.map((l) => sprite([...a.body, ...l].map((r) => r.padEnd(SP, '.')), a.pal, SP));
+  const mk = (body, legs) => sprite([...body, ...legs].map((r) => r.padEnd(SP, '.')), a.pal);
+  const crouch = a.body.filter((_, i) => i < 7 || i > 10);      // squat: drop the middle of the torso
+  a.frames = a.legs.map((l) => mk(a.body, l));
+  a.duck = a.legs.map((l) => mk(crouch, l));
 });
 const cactusImg = sprite(CACTUS, CACTUS_PAL);
 const birdImgs = BIRD.map((b) => sprite(b, BIRD_PAL));
-const cloudImg = sprite(CLOUD, { w: '#ffffff' });
+const cloudImg = sprite(CLOUD, { w: '#ffffff' }, null);
 
 /* ---------- helpers ---------- */
 const $ = (id) => document.getElementById(id);
@@ -157,13 +172,20 @@ const canvas = $('game');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
-// The world is about 530-600 logical px wide and 200..300 tall, matching the screen's aspect ratio
-// so the canvas can fill the whole window without distortion.
+// Native-resolution canvas: every logical px is K whole device px, so pixel art stays razor sharp.
+// The world is ~560+ logical px wide and ~300 tall, whatever the screen.
+let K = 1;
 function resize() {
-  const a = (window.innerWidth || 600) / (window.innerHeight || 200);
-  if (a >= 3) { H = 200; W = Math.round(200 * a); }
-  else { W = 600; H = Math.round(600 / a); if (H > 300) { H = 300; W = Math.round(300 * a); } }
-  canvas.width = W; canvas.height = H;
+  const dpr = window.devicePixelRatio || 1;
+  const dw = Math.max(1, Math.round(window.innerWidth * dpr));
+  const dh = Math.max(1, Math.round(window.innerHeight * dpr));
+  K = Math.max(1, Math.round(dh / 300));
+  while (K > 1 && dw / K < 560) K--;
+  W = Math.ceil(dw / K); H = Math.ceil(dh / K);
+  canvas.width = W * K; canvas.height = H * K;
+  canvas.style.width = (W * K / dpr) + 'px';
+  canvas.style.height = (H * K / dpr) + 'px';
+  ctx.setTransform(K, 0, 0, K, 0, 0);
   ctx.imageSmoothingEnabled = false;
   GROUND = H - 40;
 }
@@ -267,7 +289,7 @@ function hitbox(o) {
 }
 function playerBox() {
   return P.duck
-    ? { x: PX + 6, y: GROUND - P.h - 30 + 4, w: 44, h: 26 }
+    ? { x: PX + 8, y: GROUND - P.h - 36 + 5, w: 34, h: 29 }
     : { x: PX + 10, y: GROUND - P.h - 48 + 6, w: 28, h: 40 };
 }
 const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
@@ -361,15 +383,8 @@ function drawBackground() {
   // clouds
   ctx.fillStyle = col('cloud');
   const cc = col('cloud');
-  clouds.forEach((c) => {
-    ctx.globalAlpha = 0.9;
-    ctx.save();
-    ctx.translate(Math.round(c.x), Math.round(c.y));
-    ctx.fillStyle = cc;
-    // draw cloud mask tinted via composite
-    ctx.drawImage(tint(cloudImg, cc), 0, 0, 14 * c.s, 4 * c.s);
-    ctx.restore();
-  });
+  ctx.globalAlpha = 0.9;
+  clouds.forEach((c) => blit(tint(cloudImg, cc), Math.round(c.x), Math.round(c.y), 14 * c.s, 4 * c.s));
   ctx.globalAlpha = 1;
   drawHills(34, 14, 0.012, 0.15, col('hill1'));
   drawHills(18, 10, 0.02, 0.4, col('hill2'));
@@ -402,45 +417,78 @@ function tint(img, color) {
 
 function drawPlayer() {
   const run = Math.floor(animT / 9) % 2;
-  const img = animal.frames[P.h > 0 || state !== 'running' ? 0 : run];
-  if (P.duck) ctx.drawImage(img, PX - 4, GROUND - 30, 56, 30);
-  else ctx.drawImage(img, PX, GROUND - P.h - SP * S, SP * S, SP * S);
+  const f = P.h > 0 || state !== 'running' ? 0 : run;
+  if (P.duck) blit(animal.duck[f], PX, GROUND - 36, 48, 36);
+  else blit(animal.frames[f], PX, GROUND - P.h - SP * S, SP * S, SP * S);
 }
 
 function drawObstacles() {
   obstacles.forEach((o) => {
     if (o.type === 'bird') {
-      ctx.drawImage(birdImgs[o.f || 0], Math.round(o.x), GROUND + o.dy, o.w, o.h);
+      blit(birdImgs[o.f || 0], Math.round(o.x), GROUND + o.dy, o.w, o.h);
     } else {
       o.parts.forEach((p) => {
         const w = 10 * p.k, h = 13 * p.k;
-        ctx.drawImage(cactusImg, Math.round(o.x + p.dx), GROUND + 2 - h, w, h);
+        blit(cactusImg, Math.round(o.x + p.dx), GROUND + 2 - h, w, h);
       });
     }
   });
 }
 
-function text(str, x, y, size, align = 'center', color = '#fff') {
-  ctx.font = `bold ${size}px ui-monospace, "Courier New", monospace`;
-  ctx.textAlign = align;
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = 'rgba(0,0,0,.55)';
-  ctx.fillText(str, x + 2, y + 2);
-  ctx.fillStyle = color;
-  ctx.fillText(str, x, y);
+// 5x7 pixel font (A-Z, 0-9 and a little punctuation), drawn with plain fillRects so it stays crisp
+const F = (s) => s.split('/').map((r) => parseInt(r, 2));
+const FONT = {
+  A: F('01110/10001/10001/11111/10001/10001/10001'), B: F('11110/10001/10001/11110/10001/10001/11110'),
+  C: F('01110/10001/10000/10000/10000/10001/01110'), D: F('11110/10001/10001/10001/10001/10001/11110'),
+  E: F('11111/10000/10000/11110/10000/10000/11111'), F: F('11111/10000/10000/11110/10000/10000/10000'),
+  G: F('01110/10001/10000/10111/10001/10001/01111'), H: F('10001/10001/10001/11111/10001/10001/10001'),
+  I: F('01110/00100/00100/00100/00100/00100/01110'), J: F('00111/00010/00010/00010/00010/10010/01100'),
+  K: F('10001/10010/10100/11000/10100/10010/10001'), L: F('10000/10000/10000/10000/10000/10000/11111'),
+  M: F('10001/11011/10101/10101/10001/10001/10001'), N: F('10001/11001/10101/10011/10001/10001/10001'),
+  O: F('01110/10001/10001/10001/10001/10001/01110'), P: F('11110/10001/10001/11110/10000/10000/10000'),
+  Q: F('01110/10001/10001/10001/10101/10010/01101'), R: F('11110/10001/10001/11110/10100/10010/10001'),
+  S: F('01111/10000/10000/01110/00001/00001/11110'), T: F('11111/00100/00100/00100/00100/00100/00100'),
+  U: F('10001/10001/10001/10001/10001/10001/01110'), V: F('10001/10001/10001/10001/10001/01010/00100'),
+  W: F('10001/10001/10001/10101/10101/11011/10001'), X: F('10001/10001/01010/00100/01010/10001/10001'),
+  Y: F('10001/10001/01010/00100/00100/00100/00100'), Z: F('11111/00001/00010/00100/01000/10000/11111'),
+  0: F('01110/10001/10011/10101/11001/10001/01110'), 1: F('00100/01100/00100/00100/00100/00100/01110'),
+  2: F('01110/10001/00001/00010/00100/01000/11111'), 3: F('11110/00001/00001/01110/00001/00001/11110'),
+  4: F('00010/00110/01010/10010/11111/00010/00010'), 5: F('11111/10000/11110/00001/00001/10001/01110'),
+  6: F('00110/01000/10000/11110/10001/10001/01110'), 7: F('11111/00001/00010/00100/01000/01000/01000'),
+  8: F('01110/10001/10001/01110/10001/10001/01110'), 9: F('01110/10001/10001/01111/00001/00010/01100'),
+  '.': F('00000/00000/00000/00000/00000/01100/01100'), ':': F('00000/01100/01100/00000/01100/01100/00000'),
+  '!': F('00100/00100/00100/00100/00100/00000/00100'), '-': F('00000/00000/00000/11111/00000/00000/00000'),
+};
+// y is the top of the text; s is the pixel size in logical px
+function pixText(str, x, y, s, align = 'left', color = '#fff', shadow = true) {
+  str = str.toUpperCase();
+  const w = str.length * 6 * s - s;
+  const x0 = Math.round(align === 'center' ? x - w / 2 : align === 'right' ? x - w : x);
+  y = Math.round(y);
+  const pass = (ox, oy, c) => {
+    ctx.fillStyle = c;
+    for (let i = 0; i < str.length; i++) {
+      const umlaut = str[i] === 'Ü';
+      const g = FONT[umlaut ? 'U' : str[i]];
+      if (!g) continue;
+      const gx = x0 + ox + i * 6 * s;
+      for (let r = 0; r < 7; r++) for (let b = 0; b < 5; b++) {
+        if (g[r] & (16 >> b)) ctx.fillRect(gx + b * s, y + oy + r * s, s, s);
+      }
+      if (umlaut) { ctx.fillRect(gx + s, y + oy - 2 * s, s, s); ctx.fillRect(gx + 3 * s, y + oy - 2 * s, s, s); }
+    }
+  };
+  if (shadow) pass(s, s, 'rgba(0,0,0,.55)');
+  pass(0, 0, color);
 }
 
 function drawHUD() {
   const c = col('hud');
-  ctx.font = 'bold 16px ui-monospace, "Courier New", monospace';
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = c;
   const blink = flash > 0 && Math.floor(flash / 7) % 2 === 0;
   ctx.globalAlpha = 0.6;
-  ctx.fillText('HI ' + pad(hi), W - 92, 18);
+  pixText('HI ' + pad(hi), W - 86, 12, 2, 'right', c, false);
   ctx.globalAlpha = 1;
-  if (!blink) ctx.fillText(pad(score), W - 12, 18);
+  if (!blink) pixText(pad(score), W - 12, 12, 2, 'right', c, false);
 }
 
 function draw() {
@@ -465,12 +513,12 @@ function draw() {
   if (paused) {
     // the pause menu is a DOM overlay
   } else if (state === 'ready') {
-    text(animal.name.toUpperCase(), W / 2, ty, 28);
-    text('Toca la pantalla o pulsa ESPACIO', W / 2, ty + 36, 14);
+    pixText(animal.name, W / 2, ty - 14, 4, 'center');
+    pixText('Toca la pantalla o pulsa espacio', W / 2, ty + 28, 2, 'center');
   } else if (state === 'over') {
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, 0, W, H);
-    text('GAME OVER', W / 2, ty, 32, 'center', '#ffd23f');
-    text('Toca o pulsa ESPACIO para reintentar', W / 2, ty + 36, 14);
+    pixText('Game over', W / 2, ty - 14, 4, 'center', '#ffd23f');
+    pixText('Toca o pulsa espacio para reintentar', W / 2, ty + 28, 2, 'center');
   }
 }
 
@@ -599,10 +647,10 @@ ANIMALS.forEach((a) => {
   b.className = 'pick';
   b.dataset.id = a.id;
   const c = document.createElement('canvas');
-  c.width = c.height = SP * S;
+  c.width = c.height = (SP + 2) * S;
   const g = c.getContext('2d');
   g.imageSmoothingEnabled = false;
-  g.drawImage(a.frames[0], 0, 0, SP * S, SP * S);
+  g.drawImage(a.frames[0], 0, 0, (SP + 2) * S, (SP + 2) * S);
   const s = document.createElement('span');
   s.textContent = a.name;
   const best = document.createElement('small');
