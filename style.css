@@ -437,3 +437,15 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
 .ach.got .req { color: #9be564; opacity: 1; }
 .ach .bar { margin-top: 6px; height: 6px; background: #151837; box-shadow: 0 -2px 0 0 var(--shadow), 0 2px 0 0 var(--shadow), -2px 0 0 0 var(--shadow), 2px 0 0 0 var(--shadow); }
 .ach .bar div { height: 100%; background: var(--accent); }
+
+/* weekly / all-time switch and animal icon in ranking rows */
+#rank-period { margin-bottom: -4px; }
+#rank-period .tab { min-width: 110px; justify-content: center; }
+.lb td.ico { width: 30px; padding-left: 0; padding-right: 4px; }
+.lb td.ico canvas { display: block; width: 18px; height: 18px; image-rendering: pixelated; }
+
+/* phones in landscape (<= 400px tall): the key hints live in the Help screen, so drop them to keep the menu on one screen */
+@media (max-height: 400px) and (orientation: landscape) {
+  .hint { display: none !important; }
+  .actions { gap: 12px; margin-top: 10px; }
+}

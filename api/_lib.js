@@ -87,9 +87,24 @@ function body(req) {
   return req.body || {};
 }
 const boardKey = (b) => 'dp:lb:' + b;
+
+/* ---- weekly boards: a new set of boards every Monday 00:00 UTC, kept 14 days so old weeks vanish on their own ---- */
+const WEEK_MS = 7 * 24 * 3600 * 1000;
+const WEEK_TTL = 14 * 24 * 3600;
+function weekInfo(now = Date.now()) {
+  const d = new Date(now);
+  const day = (d.getUTCDay() + 6) % 7;                              // Monday = 0
+  const start = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - day);
+  return { id: new Date(start).toISOString().slice(0, 10), start, end: start + WEEK_MS };
+}
+const weekKey = (board, id) => `dp:wk:${id}:${board}`;
+// which animal set each score on the global boards (so rows can show an icon)
+const animalHashKey = (period, id) => (period === 'week' ? `dp:ba:wk:${id}` : 'dp:ba:all');
+const recentWeekIds = (n = 3, now = Date.now()) => Array.from({ length: n }, (_, i) => weekInfo(now - i * WEEK_MS).id);
 const validBoard = (b) => b === 'all' || ANIMALS.includes(b);
 
 module.exports = {
   ANIMALS, PID_RE, TOP, MAX_SCORE, MAX_RATE, SLACK,
+  WEEK_TTL, weekInfo, weekKey, animalHashKey, recentWeekIds,
   configured, cmd, pipe, newToken, verifyToken, cleanNick, isBanned, ipHash, rateLimit, body, boardKey, validBoard,
 };

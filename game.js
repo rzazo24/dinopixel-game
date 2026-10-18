@@ -246,7 +246,7 @@ const unlocked = (a) => best >= a.unlock;
 
 /* ---------- achievements ---------- */
 const jsonStore = (k, d) => { try { return Object.assign(d, JSON.parse(store.get(k, '{}'))); } catch { return d; } };
-const stats = jsonStore('dp-stats', { runs: 0, jumps: 0, dodged: 0, birds: 0, doubles: 0, shields: 0, glideSec: 0, slidePts: 0, noDuckBest: 0, podium: 0, shared: 0 });
+const stats = jsonStore('dp-stats', { runs: 0, jumps: 0, dodged: 0, birds: 0, doubles: 0, shields: 0, glideSec: 0, slidePts: 0, noDuckBest: 0, podium: 0, weekwin: 0, shared: 0 });
 const ach = jsonStore('dp-ach', {});                    // { id: unlock timestamp }
 const animalBest = {};                                  // best score per animal (kept in memory, saved with the record)
 ANIMALS.forEach((a) => { animalBest[a.id] = Number(store.get('dp-hi-' + a.id, '0')) || 0; });
@@ -273,6 +273,7 @@ const ACH = [
   { id: 'master', name: 'Maestro', desc: '1500 puntos con cada animal', goal: ANIMALS.length, val: () => ANIMALS.filter((a) => animalBest[a.id] >= 1500).length },
   { id: 'collector', name: 'Coleccionista', desc: 'Desbloquea los 6 animales', goal: ANIMALS.length, val: () => ANIMALS.filter(unlocked).length },
   { id: 'podium', name: 'Podio', desc: 'Entra en el top 3 del ranking global', goal: 1, val: () => stats.podium },
+  { id: 'weekwin', name: 'Campeón semanal', desc: 'Sé el número 1 del ranking semanal', goal: 1, val: () => stats.weekwin },
   { id: 'share', name: 'Embajador', desc: 'Comparte una puntuación', goal: 1, val: () => stats.shared },
 ];
 let achQ = [], achShow = { text: '', t: 0 }, newAch = [], runDucked = false;
@@ -697,7 +698,10 @@ function draw() {
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, 0, W, H);
     pixText('Game over', W / 2, ty - 14, 4, 'center', '#ffd23f');
     pixText('Toca o pulsa espacio para reintentar', W / 2, ty + 28, 2, 'center');
-    if (lastRank) pixText('Ranking #' + lastRank.all.rank + ' global - #' + lastRank.animal.rank + ' ' + animal.name, W / 2, ty + 84, 2, 'center', '#7fd0ff');
+    if (lastRank) {
+      const wk = lastRank.week ? 'Semana #' + lastRank.week.all.rank + ' - ' : '';
+      pixText(wk + 'Global #' + lastRank.all.rank + ' - ' + animal.name + ' #' + lastRank.animal.rank, W / 2, ty + 84, 2, 'center', '#7fd0ff');
+    }
     if (newAch.length) pixText('Logros: ' + newAch[0] + (newAch.length > 1 ? ' +' + (newAch.length - 1) : ''), W / 2, ty + 110, 2, 'center', '#9be564');
     if (newlyUnlocked.length) pixText('Nuevo: ' + newlyUnlocked.join(', '), W / 2, ty + 56, 2, 'center', '#ffd23f');
   }
@@ -1021,7 +1025,7 @@ function newPid() {
 let pid = store.get('dp-pid', '');
 if (!/^[a-f0-9]{32}$/.test(pid)) { pid = newPid(); store.set('dp-pid', pid); }
 let nick = store.get('dp-nick', '').toUpperCase();
-let rankBoard = 'all', rankReq = 0, nagged = false;
+let rankBoard = 'all', rankPeriod = 'week', rankReq = 0, nagged = false;
 
 async function api(path, body) {
   const ctl = new AbortController();
@@ -1056,7 +1060,13 @@ function submitRun() {
 }
 async function sendScore(run) {
   const r = await api('/api/score', { pid, nick, ...run });
-  if (r.ok) { lastRank = r.data; if (r.data.all && r.data.all.rank <= 3) { stats.podium = 1; checkAch(); } flushQueue(); }
+  if (r.ok) {
+    lastRank = r.data;
+    if (r.data.all && r.data.all.rank <= 3) stats.podium = 1;
+    if (r.data.week && r.data.week.all.rank === 1) stats.weekwin = 1;
+    checkAch();
+    flushQueue();
+  }
   else if (retryable(r)) queueRun(run);
 }
 function queueRun(run) {
@@ -1115,8 +1125,9 @@ async function loadRank(board) {
   rankBoard = board;
   const mine = ++rankReq;
   $('rank-tabs').querySelectorAll('.tab').forEach((b) => b.classList.toggle('on', b.dataset.board === board));
+  $('rank-period').querySelectorAll('.tab').forEach((b) => b.classList.toggle('on', b.dataset.period === rankPeriod));
   rankBody.innerHTML = '<p class="note">Cargando...</p>';
-  const r = await api('/api/ranking?board=' + board + '&pid=' + pid);
+  const r = await api('/api/ranking?board=' + board + '&period=' + rankPeriod + '&pid=' + pid);
   if (mine !== rankReq) return;                      // a newer tab was opened meanwhile
   if (!r.ok) {
     const why = r.status === 0 ? 'Sin conexión. Inténtalo más tarde.'
@@ -1127,26 +1138,35 @@ async function loadRank(board) {
   }
   renderRank(r.data);
 }
+function countdown(ts) {
+  const m = Math.max(0, Math.floor((ts - Date.now()) / 60000));
+  const days = Math.floor(m / 1440), hours = Math.floor((m % 1440) / 60);
+  return days ? days + 'd ' + hours + 'h' : hours ? hours + 'h ' + (m % 60) + 'min' : (m % 60) + 'min';
+}
 function renderRank(d) {
   rankBody.replaceChildren();
   if (!d.rows.length) {
-    const p = document.createElement('p'); p.className = 'note'; p.textContent = 'Aún no hay puntuaciones. ¡Sé el primero!';
+    const p = document.createElement('p'); p.className = 'note'; p.textContent = rankPeriod === 'week' ? 'Esta semana aún no hay puntuaciones. ¡Sé el primero!' : 'Aún no hay puntuaciones. ¡Sé el primero!';
     rankBody.appendChild(p);
     return;
   }
   const tbl = document.createElement('table'); tbl.className = 'lb';
-  const add = (rk, n, sc, me) => {
+  const add = (rk, n, sc, me, aid) => {
     const tr = tbl.insertRow(); if (me) tr.className = 'me';
     tr.insertCell().textContent = '#' + rk;
+    const ic = tr.insertCell(); ic.className = 'ico';
+    const an = ANIMALS.find((x) => x.id === aid);
+    if (an) ic.appendChild(spriteCanvas(an.frames[0], 1));   // the animal that set this score
     tr.insertCell().textContent = n;                 // textContent: nicknames are never interpreted as HTML
     tr.insertCell().textContent = sc;
   };
-  d.rows.forEach((x) => add(x.r, x.n, x.s, x.me));
+  d.rows.forEach((x) => add(x.r, x.n, x.s, x.me, x.a));
   if (d.me && !d.rows.some((x) => x.me)) {
-    const c = tbl.insertRow().insertCell(); c.colSpan = 3; c.className = 'sep'; c.textContent = '...';
-    add(d.me.r, d.me.n, d.me.s, true);
+    const c = tbl.insertRow().insertCell(); c.colSpan = 4; c.className = 'sep'; c.textContent = '...';
+    add(d.me.r, d.me.n, d.me.s, true, d.me.a);
   }
-  const foot = document.createElement('p'); foot.className = 'note'; foot.textContent = d.total + (d.total === 1 ? ' jugador' : ' jugadores');
+  const foot = document.createElement('p'); foot.className = 'note';
+  foot.textContent = d.total + (d.total === 1 ? ' jugador' : ' jugadores') + (d.endsAt ? ' - Se reinicia en ' + countdown(d.endsAt) : '');
   rankBody.append(tbl, foot);
 }
 async function saveNick() {
@@ -1198,6 +1218,7 @@ nickInput.addEventListener('input', () => {       // force capitals while typing
   try { nickInput.setSelectionRange(a, b); } catch { /* not supported */ }
 });
 nickInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveNick(); } });
+$('rank-period').querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => { rankPeriod = b.dataset.period; loadRank(rankBoard); }));
 $('rank-close').addEventListener('click', closeRank);
 $('rank-btn').addEventListener('click', () => openRank());
 $('rank-btn2').addEventListener('click', () => openRank());
@@ -1321,5 +1342,14 @@ if ('serviceWorker' in navigator) {
     document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
     setInterval(check, 60 * 60 * 1000);
   });
+}
+
+/* ---------- test hook: only when the URL has ?test=1 (used by tests/, harmless otherwise) ---------- */
+if (/[?&]test=1/.test(location.search)) {
+  window.__dp = {
+    ANIMALS, ACH, stats, ach, press, setJump: (v) => { jumpHeld = v; }, setDuck: (v) => { duckHeld = v; },
+    get P() { return P; }, get o() { return obstacles; }, get state() { return state; }, get score() { return score; },
+    get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },
+  };
 }
 })();

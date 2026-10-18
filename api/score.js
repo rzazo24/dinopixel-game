@@ -28,18 +28,30 @@ module.exports = async (req, res) => {
     const fresh = await L.cmd('SET', 'dp:tok:' + tok.nonce, '1', 'NX', 'EX', 172800);
     if (fresh === null) return res.status(409).json({ error: 'used' });
 
+    const wk = L.weekInfo();
     const ka = L.boardKey('all'), kb = L.boardKey(animal);
+    const kaw = L.weekKey('all', wk.id), kbw = L.weekKey(animal, wk.id);
+    const standing = (k) => [['ZREVRANK', k, pid], ['ZSCORE', k, pid], ['ZCARD', k]];
     const r = await L.pipe([
-      ['ZADD', ka, 'GT', score, pid],
-      ['ZADD', kb, 'GT', score, pid],
-      ['HSET', 'dp:names', pid, nick],
-      ['ZREVRANK', ka, pid], ['ZSCORE', ka, pid], ['ZCARD', ka],
-      ['ZREVRANK', kb, pid], ['ZSCORE', kb, pid], ['ZCARD', kb],
+      ['ZADD', ka, 'GT', 'CH', score, pid],              // 0: CH -> 1 when the player's best on that board changed
+      ['ZADD', kb, 'GT', 'CH', score, pid],              // 1
+      ['ZADD', kaw, 'GT', 'CH', score, pid],             // 2
+      ['ZADD', kbw, 'GT', 'CH', score, pid],             // 3
+      ['EXPIRE', kaw, L.WEEK_TTL], ['EXPIRE', kbw, L.WEEK_TTL],   // 4, 5
+      ['HSET', 'dp:names', pid, nick],                   // 6
+      ...standing(ka), ...standing(kb), ...standing(kaw), ...standing(kbw),   // 7..18
     ]);
+    // remember which animal set the score on the global boards
+    const tail = [];
+    if (r[0]) tail.push(['HSET', L.animalHashKey('all'), pid, animal]);
+    if (r[2]) tail.push(['HSET', L.animalHashKey('week', wk.id), pid, animal], ['EXPIRE', L.animalHashKey('week', wk.id), L.WEEK_TTL]);
+    if (tail.length) await L.pipe(tail);
+
+    const row = (o) => ({ rank: r[o] + 1, best: Number(r[o + 1]), total: r[o + 2] });
     res.status(200).json({
       ok: true,
-      all: { rank: r[3] + 1, best: Number(r[4]), total: r[5] },
-      animal: { rank: r[6] + 1, best: Number(r[7]), total: r[8] },
+      all: row(7), animal: row(10),
+      week: { all: row(13), animal: row(16), endsAt: wk.end },
     });
   } catch (e) {
     res.status(500).json({ error: 'server' });
