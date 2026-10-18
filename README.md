@@ -39,6 +39,14 @@ Empiezas con el dino; el resto se desbloquea con tu **mejor puntuación** (con c
 
 Los récords se guardan por animal en el navegador (`localStorage`).
 
+## Logros
+
+20 logros con aviso en pantalla al conseguirlos y una pantalla **Logros** (botón del menú) con el progreso de cada
+uno. Entre ellos: puntuaciones (500 a 7000), partidas jugadas, saltos, obstáculos y pájaros esquivados, 1000 puntos
+sin agacharte, uno por habilidad (doble salto del gato, escudo del perro, planeo de la gallina, deslizar del
+pingüino), 1500 con cada animal, desbloquear los 6, entrar en el top 3 del ranking y compartir. Se guardan en el
+navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos, sin avisos.
+
 ## Ajustes
 
 - **Velocidad** (60–100 %): ralentiza todo el juego por igual. Por defecto 100 % en móvil y 80 % en PC.
@@ -105,7 +113,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v33';   // -> 'dinopixel-v34', ...
+const CACHE = 'dinopixel-v34';   // -> 'dinopixel-v35', ...
 ```
 
 Notas de instalación:

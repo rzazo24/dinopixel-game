@@ -423,3 +423,17 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
 #rank-del:hover { --face: #d9473d; }
 #rank-del.confirm { --face: #ff5448; --edge: #fff; animation: blink-red .5s steps(2, end) infinite; }
 @keyframes blink-red { 50% { --face: #c23b32; } }
+
+/* ---------- achievements ---------- */
+.help h2 #ach-count { font-size: 12px; color: var(--accent); margin-left: 8px; }
+.achs { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px 22px; }
+.ach { display: flex; gap: 12px; align-items: flex-start; opacity: .62; }
+.ach.got { opacity: 1; }
+.ach i[data-icon] { --c: 3px; flex: 0 0 auto; color: rgba(244, 241, 222, .6); margin-top: 2px; }
+.ach.got i[data-icon] { color: #ffd23f; }
+.ach p { margin: 0; flex: 1 1 auto; min-width: 0; }
+.ach em { font-style: normal; color: var(--accent); }
+.ach .req { color: var(--ink); opacity: .8; }
+.ach.got .req { color: #9be564; opacity: 1; }
+.ach .bar { margin-top: 6px; height: 6px; background: #151837; box-shadow: 0 -2px 0 0 var(--shadow), 0 2px 0 0 var(--shadow), -2px 0 0 0 var(--shadow), 2px 0 0 0 var(--shadow); }
+.ach .bar div { height: 100%; background: var(--accent); }

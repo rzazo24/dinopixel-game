@@ -244,6 +244,51 @@ ANIMALS.forEach((a) => { a.unlock = UNLOCK[a.id] || 0; });
 let best = Number(store.get('dp-best', '0')) || 0;      // best score reached with any animal
 const unlocked = (a) => best >= a.unlock;
 
+/* ---------- achievements ---------- */
+const jsonStore = (k, d) => { try { return Object.assign(d, JSON.parse(store.get(k, '{}'))); } catch { return d; } };
+const stats = jsonStore('dp-stats', { runs: 0, jumps: 0, dodged: 0, birds: 0, doubles: 0, shields: 0, glideSec: 0, slidePts: 0, noDuckBest: 0, podium: 0, shared: 0 });
+const ach = jsonStore('dp-ach', {});                    // { id: unlock timestamp }
+const animalBest = {};                                  // best score per animal (kept in memory, saved with the record)
+ANIMALS.forEach((a) => { animalBest[a.id] = Number(store.get('dp-hi-' + a.id, '0')) || 0; });
+const saveStats = () => { store.set('dp-stats', JSON.stringify(stats)); store.set('dp-ach', JSON.stringify(ach)); };
+// val(): current progress; the achievement is earned when val() >= goal
+const bestNow = () => Math.max(best, state === 'running' ? Math.floor(score) : 0);
+const ACH = [
+  { id: 'first', name: 'Primeros pasos', desc: 'Juega tu primera partida', goal: 1, val: () => stats.runs },
+  { id: 'runs25', name: 'Constante', desc: 'Juega 25 partidas', goal: 25, val: () => stats.runs },
+  { id: 'runs100', name: 'Veterano', desc: 'Juega 100 partidas', goal: 100, val: () => stats.runs },
+  { id: 's500', name: 'Calentando', desc: '500 puntos en una partida', goal: 500, val: bestNow },
+  { id: 's1400', name: 'Madrugador', desc: 'Sobrevive a una noche entera (1400)', goal: 1400, val: bestNow },
+  { id: 's3000', name: 'Imparable', desc: '3000 puntos en una partida', goal: 3000, val: bestNow },
+  { id: 's7000', name: 'Leyenda', desc: '7000 puntos en una partida', goal: 7000, val: bestNow },
+  { id: 'jumps200', name: 'Saltarín', desc: 'Salta 200 veces', goal: 200, val: () => stats.jumps },
+  { id: 'jumps2000', name: 'Resorte', desc: 'Salta 2000 veces', goal: 2000, val: () => stats.jumps },
+  { id: 'dodge100', name: 'Esquivador', desc: 'Esquiva 100 obstáculos', goal: 100, val: () => stats.dodged },
+  { id: 'birds30', name: 'Cazapájaros', desc: 'Esquiva 30 pájaros', goal: 30, val: () => stats.birds },
+  { id: 'noduck', name: 'Pie plano', desc: '1000 puntos sin agacharte', goal: 1000, val: () => stats.noDuckBest },
+  { id: 'double50', name: 'Rebote', desc: '50 dobles saltos con el gato', goal: 50, val: () => stats.doubles },
+  { id: 'shield5', name: 'Escudo de hierro', desc: 'Salva 5 golpes con el perro', goal: 5, val: () => stats.shields },
+  { id: 'glide20', name: 'Planeador', desc: 'Planea 20 segundos con la gallina', goal: 20, val: () => Math.floor(stats.glideSec) },
+  { id: 'slide1000', name: 'Surfista', desc: '1000 puntos deslizando con el pingüino', goal: 1000, val: () => Math.floor(stats.slidePts) },
+  { id: 'master', name: 'Maestro', desc: '1500 puntos con cada animal', goal: ANIMALS.length, val: () => ANIMALS.filter((a) => animalBest[a.id] >= 1500).length },
+  { id: 'collector', name: 'Coleccionista', desc: 'Desbloquea los 6 animales', goal: ANIMALS.length, val: () => ANIMALS.filter(unlocked).length },
+  { id: 'podium', name: 'Podio', desc: 'Entra en el top 3 del ranking global', goal: 1, val: () => stats.podium },
+  { id: 'share', name: 'Embajador', desc: 'Comparte una puntuación', goal: 1, val: () => stats.shared },
+];
+let achQ = [], achShow = { text: '', t: 0 }, newAch = [], runDucked = false;
+function checkAch(silent) {
+  if (state === 'running' && !runDucked) stats.noDuckBest = Math.max(stats.noDuckBest, Math.floor(score));
+  let got = false;
+  for (const a of ACH) {
+    if (!ach[a.id] && a.val() >= a.goal) {
+      ach[a.id] = Date.now();
+      got = true;
+      if (!silent) { achQ.push(a.name); newAch.push(a.name); sfx.mile(); haptic([30, 50, 30]); }
+    }
+  }
+  if (got) saveStats();
+}
+
 /* ---------- abilities: [name, how it works] ---------- */
 const ABILITY = {
   dino: ['Clásico', 'Sin habilidad'],
@@ -278,6 +323,7 @@ function reset() {
   P.h = 0; P.vy = 0; P.duck = false; P.doubled = false; P.inv = 0;
   P.shield = animal.id === 'dog' ? 1 : 0;
   banner = { text: '', t: 0 }; newlyUnlocked = [];
+  newAch = []; achQ = []; achShow = { text: '', t: 0 }; runDucked = false;
   hi = Number(store.get('dp-hi-' + animal.id, '0'));
 }
 reset();
@@ -296,8 +342,11 @@ function die() {
   diedAt = performance.now();
   sfx.die();
   haptic([70, 40, 140]);
-  if (score > hi) { hi = Math.floor(score); store.set('dp-hi-' + animal.id, String(hi)); }
+  if (score > hi) { hi = Math.floor(score); store.set('dp-hi-' + animal.id, String(hi)); animalBest[animal.id] = hi; }
   if (score > best) { best = Math.floor(score); store.set('dp-best', String(best)); }
+  stats.runs++;
+  checkAch();
+  saveStats();
   submitRun();
   showShare(score >= 20);
 }
@@ -305,9 +354,11 @@ function die() {
 function jump() {
   if (P.h > 0) {
     // cat: one extra jump in mid-air
-    if (animal.id === 'cat' && !P.doubled) { P.doubled = true; P.vy = JUMP_V * 0.8; sfx.jump(); puff(4); }
+    if (animal.id === 'cat' && !P.doubled) { P.doubled = true; P.vy = JUMP_V * 0.8; sfx.jump(); puff(4); stats.jumps++; stats.doubles++; checkAch(); }
     return;
   }
+  stats.jumps++;
+  checkAch();
   P.vy = animal.id === 'bunny' ? JUMP_V * 1.1 : JUMP_V;
   sfx.jump();
   puff(8);
@@ -363,11 +414,16 @@ function update(dt) {
   dust = dust.filter((d) => d.life > 0);
   if (flash > 0) flash -= dt;
   if (banner.t > 0) banner.t -= dt;
+  if (achShow.t > 0) achShow.t -= dt;
+  else if (achQ.length) achShow = { text: achQ.shift(), t: 170 };
   if (P.inv > 0) P.inv -= dt;
   if (state !== 'running') return;
 
   speed = Math.min(MAX_SPEED, START_SPEED + score / 300);
-  score += speed * dt * 0.12 * (animal.id === 'peng' && P.duck ? 2 : 1);   // penguin: sliding doubles points
+  const slide = animal.id === 'peng' && P.duck;
+  score += speed * dt * 0.12 * (slide ? 2 : 1);   // penguin: sliding doubles points
+  if (slide) stats.slidePts += speed * dt * 0.12;
+  if (duckHeld) runDucked = true;
   scroll += speed * dt;
   animT += speed * dt;
   flapT += dt;
@@ -377,6 +433,7 @@ function update(dt) {
   if (P.h > 0 || P.vy > 0) {
     if (!jumpHeld && P.vy > CUT_V && P.h >= MIN_H) P.vy = CUT_V;   // released early: shorter jump
     const glide = animal.id === 'chick' && jumpHeld && P.vy < 0;   // chicken: hold while falling to glide
+    if (glide) stats.glideSec += dt / 60;
     P.vy -= GRAV * (duckHeld ? 3 : glide ? 0.3 : 1) * dt;
     P.h += P.vy * dt;
     if (P.h <= 0) { P.h = 0; P.vy = 0; P.doubled = false; puff(5); }
@@ -396,7 +453,7 @@ function update(dt) {
 
   // milestone
   const m = Math.floor(score / 100);
-  if (m > mile) { mile = m; if (m > 0) { sfx.mile(); flash = 60; } }
+  if (m > mile) { mile = m; if (m > 0) { sfx.mile(); flash = 60; checkAch(); } }
 
   // obstacles
   distSince += speed * dt;
@@ -405,9 +462,15 @@ function update(dt) {
   for (const o of obstacles) {
     o.x -= speed * dt;
     if (o.type === 'bird') o.f = ((animT / 14) | 0) % 2;
+    if (P.inv > 0 && overlap(pb, hitbox(o))) o.hit = true;   // walking through an obstacle while invulnerable is not a dodge
+    if (!o.counted && o.x + o.w < PX) {               // passed the player without touching: dodged
+      o.counted = true;
+      if (!o.hit) { stats.dodged++; if (o.type === 'bird') stats.birds++; checkAch(); }
+    }
     if (P.inv <= 0 && overlap(pb, hitbox(o))) {
       if (P.shield > 0) {
-        P.shield = 0; P.inv = INVULN;
+        P.shield = 0; P.inv = INVULN; o.hit = true;
+        stats.shields++; checkAch();
         banner = { text: 'Escudo roto!', t: 90 };
         sfx.die();
         haptic(60);
@@ -621,6 +684,7 @@ function draw() {
   ctx.globalAlpha = 1;
   drawHUD();
   if (banner.t > 0 && !paused) pixText(banner.text, W / 2, 44, 2, 'center', '#ffd23f');
+  if (achShow.t > 0 && !paused) pixText('Logro: ' + achShow.text, W / 2, 68, 2, 'center', '#9be564');
 
   const ty = GROUND * 0.38;
   if (paused) {
@@ -634,6 +698,7 @@ function draw() {
     pixText('Game over', W / 2, ty - 14, 4, 'center', '#ffd23f');
     pixText('Toca o pulsa espacio para reintentar', W / 2, ty + 28, 2, 'center');
     if (lastRank) pixText('Ranking #' + lastRank.all.rank + ' global - #' + lastRank.animal.rank + ' ' + animal.name, W / 2, ty + 84, 2, 'center', '#7fd0ff');
+    if (newAch.length) pixText('Logros: ' + newAch[0] + (newAch.length > 1 ? ' +' + (newAch.length - 1) : ''), W / 2, ty + 110, 2, 'center', '#9be564');
     if (newlyUnlocked.length) pixText('Nuevo: ' + newlyUnlocked.join(', '), W / 2, ty + 56, 2, 'center', '#ffd23f');
   }
 }
@@ -659,6 +724,7 @@ const ICONS = {
   trophy: ['11111111', '10111101', '10111101', '01111110', '00111100', '00011000', '00011000', '00111100'],
   share: ['00010000', '00111000', '01010100', '00010000', '00010000', '10010001', '10000001', '11111111'],
   trash: ['00111100', '11111111', '01000010', '01011010', '01011010', '01011010', '01000010', '01111110'],
+  medal: ['01100110', '00111100', '00011000', '00111100', '01111110', '01111110', '01111110', '00111100'],
   phone: [                                       // a phone: thin bezel, big screen, speaker slit, home button
     '011111110', '111111111', '111000111', '111111111', '100000001', '100000001', '100000001', '100000001',
     '100000001', '100000001', '100000001', '111111111', '111101111', '111111111', '011111110',
@@ -773,6 +839,7 @@ function press() {
 }
 
 document.addEventListener('keydown', (e) => {
+  if (!achEl.hidden) { if (e.code === 'Escape') { e.preventDefault(); closeAch(); } return; }
   if (!rankEl.hidden) { if (e.code === 'Escape') { e.preventDefault(); closeRank(); } return; }
   if (!help.hidden) { if (e.code === 'Escape' || e.code === 'KeyH') { e.preventDefault(); closeHelp(); } return; }
   if (e.code === 'KeyH') { e.preventDefault(); if (inGame) setPaused(true); openHelp(); return; }
@@ -900,11 +967,47 @@ async function shareRun() {
   const text = 'He llegado a ' + Math.floor(score) + ' puntos con ' + animal.name + ' en DinoPixel. ¿Puedes superarme?';
   const url = location.origin + '/';
   try {
-    if (navigator.share) { await navigator.share({ title: 'DinoPixel', text, url }); return; }
+    if (navigator.share) { await navigator.share({ title: 'DinoPixel', text, url }); stats.shared = 1; checkAch(); return; }
   } catch (e) { if (e && e.name === 'AbortError') return; }       // user closed the share sheet
-  try { await navigator.clipboard.writeText(text + ' ' + url); flashShare('¡Copiado!'); } catch { flashShare('No se pudo copiar'); }
+  try { await navigator.clipboard.writeText(text + ' ' + url); flashShare('¡Copiado!'); stats.shared = 1; checkAch(); } catch { flashShare('No se pudo copiar'); }
 }
 shareBtn.addEventListener('click', shareRun);
+
+/* ---------- achievements screen ---------- */
+const achEl = $('ach'), achBody = $('ach-body');
+function renderAch() {
+  const done = ACH.filter((a) => ach[a.id]).length;
+  $('ach-count').textContent = done + '/' + ACH.length;
+  achBody.replaceChildren();
+  const grid = document.createElement('div'); grid.className = 'achs';
+  // earned ones first, then by how close they are
+  const order = [...ACH].sort((a, b) => (!!ach[b.id] - !!ach[a.id]) || (Math.min(1, b.val() / b.goal) - Math.min(1, a.val() / a.goal)));
+  order.forEach((a) => {
+    const got = !!ach[a.id], v = Math.min(a.val(), a.goal);
+    const row = document.createElement('div'); row.className = 'ach' + (got ? ' got' : '');
+    const ic = document.createElement('i'); ic.dataset.icon = got ? 'medal' : 'lock'; setIcon(ic, ic.dataset.icon);
+    const txt = document.createElement('p');
+    const em = document.createElement('em'); em.textContent = a.name;
+    const prog = document.createElement('span'); prog.className = 'req';
+    prog.textContent = got ? 'Conseguido' : v + ' / ' + a.goal;
+    txt.append(em, document.createElement('br'), a.desc, document.createElement('br'), prog);
+    row.append(ic, txt);
+    if (!got && a.goal > 1) {                         // progress bar
+      const bar = document.createElement('div'); bar.className = 'bar';
+      const fill = document.createElement('div'); fill.style.width = Math.floor(100 * v / a.goal) + '%';
+      bar.appendChild(fill); txt.appendChild(bar);
+    }
+    grid.appendChild(row);
+  });
+  achBody.appendChild(grid);
+}
+function openAch() { renderAch(); achEl.hidden = false; $('ach-close').focus(); }
+function closeAch() { achEl.hidden = true; $('ach-btn').focus(); }
+$('ach-btn').addEventListener('click', openAch);
+$('ach-close').addEventListener('click', closeAch);
+checkAch(true);                                       // mark what you already earned (no banners on load)
+document.addEventListener('visibilitychange', () => { if (document.hidden) saveStats(); });
+window.addEventListener('pagehide', saveStats);
 
 /* ---------- online ranking ---------- */
 // Backend: /api/* Vercel functions + Upstash Redis. Everything here degrades silently if the backend is missing or offline.
@@ -953,7 +1056,7 @@ function submitRun() {
 }
 async function sendScore(run) {
   const r = await api('/api/score', { pid, nick, ...run });
-  if (r.ok) { lastRank = r.data; flushQueue(); }
+  if (r.ok) { lastRank = r.data; if (r.data.all && r.data.all.rank <= 3) { stats.podium = 1; checkAch(); } flushQueue(); }
   else if (retryable(r)) queueRun(run);
 }
 function queueRun(run) {
