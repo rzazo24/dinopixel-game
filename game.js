@@ -522,11 +522,28 @@ function draw() {
   }
 }
 
+/* ---------- game speed ---------- */
+const PACES = [0.6, 0.7, 0.8, 0.9, 1];
+const fine = !window.matchMedia('(pointer: coarse)').matches;   // mouse/keyboard devices default to 80%
+let pace = Number(store.get('dp-pace', fine ? '0.8' : '1'));
+if (!PACES.includes(pace)) pace = fine ? 0.8 : 1;
+function showPace() {
+  ['pace', 'pace2'].forEach((id) => { $(id).textContent = '⏱ Velocidad: ' + Math.round(pace * 100) + '%'; });
+}
+function cyclePace(e) {
+  pace = PACES[(PACES.indexOf(pace) + 1) % PACES.length];
+  store.set('dp-pace', String(pace));
+  showPace();
+  e.currentTarget.blur();
+}
+['pace', 'pace2'].forEach((id) => $(id).addEventListener('click', cyclePace));
+showPace();
+
 /* ---------- loop ---------- */
 let inGame = false;
 let last = performance.now();
 function frame(t) {
-  const dt = Math.min((t - last) / 16.667, 3);
+  const dt = Math.min((t - last) / 16.667, 3) * pace;   // pace < 1 slows the whole simulation evenly
   last = t;
   if (inGame) {
     if (!paused) update(dt);

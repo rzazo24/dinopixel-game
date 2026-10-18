@@ -56,7 +56,7 @@ h1 span { color: var(--accent); }
 .pick.on { border-color: var(--accent); background: #3a3f7a; }
 .hint { font-size: 12px; line-height: 1.8; opacity: .85; margin: 20px 0 10px; }
 .hint b { background: var(--panel); padding: 1px 5px; border: 2px solid var(--shadow); }
-.actions { display: flex; gap: 10px; justify-content: center; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 .small {
   font: inherit;
   font-size: 13px;
