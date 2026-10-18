@@ -239,7 +239,12 @@ function beep(f0, f1, dur, type = 'square', level = 0.08, force = false) {
 const sfx = {
   jump: () => beep(300, 650, 0.12),
   die: () => beep(260, 40, 0.4, 'sawtooth', 0.1),
-  mile: () => { beep(660, 660, 0.08); setTimeout(() => beep(990, 990, 0.12), 90); },
+  // every 500 points: a soft two-note tick (the score blinks every 100 points, silently)
+  mile: () => { beep(880, 880, 0.05, 'square', 0.04); setTimeout(() => beep(1175, 1175, 0.07, 'square', 0.04), 70); },
+  // achievement: a quick rising arpeggio
+  ach: () => [523, 659, 784].forEach((f, i) => setTimeout(() => beep(f, f, 0.1, 'square', 0.06), i * 85)),
+  // new animal unlocked: a short fanfare ending on a long high note
+  unlock: () => [[392, 0.1], [523, 0.1], [659, 0.1], [784, 0.1], [1047, 0.3]].forEach(([f, d], i) => setTimeout(() => beep(f, f, d, 'square', 0.07), i * 95)),
 };
 
 /* ---------- music: procedural chiptune generated live (square lead, triangle bass, noise hats, sine kick) ---------- */
@@ -396,7 +401,7 @@ function checkAch(silent) {
     if (!ach[a.id] && a.val() >= a.goal) {
       ach[a.id] = Date.now();
       got = true;
-      if (!silent) { achQ.push(a.name); newAch.push(a.name); sfx.mile(); haptic([30, 50, 30]); }
+      if (!silent) { achQ.push(a.name); newAch.push(a.name); sfx.ach(); haptic([30, 50, 30]); }
     }
   }
   if (got) saveStats();
@@ -561,14 +566,17 @@ function update(dt) {
       store.set('dp-best', String(best));
       newlyUnlocked.push(a.name);
       banner = { text: a.name + ' desbloqueado!', t: 200 };
-      sfx.mile();
+      sfx.unlock();
       haptic([40, 60, 40, 60, 90]);
     }
   }
 
   // milestone
   const m = Math.floor(score / 100);
-  if (m > mile) { mile = m; if (m > 0) { sfx.mile(); flash = 60; checkAch(); } }
+  if (m > mile) {
+    mile = m;
+    if (m > 0) { if (m % 5 === 0) sfx.mile(); flash = 60; checkAch(); }   // sound only every 500 points
+  }
 
   // obstacles
   distSince += speed * dt;
@@ -1498,7 +1506,7 @@ if ('serviceWorker' in navigator) {
 /* ---------- test hook: only when the URL has ?test=1 (used by tests/, harmless otherwise) ---------- */
 if (/[?&]test=1/.test(location.search)) {
   window.__dp = {
-    ANIMALS, ACH, stats, ach, music, get master() { return master; }, press, setScore: (v) => { score = v; },
+    ANIMALS, ACH, stats, ach, music, sfx, get master() { return master; }, press, setScore: (v) => { score = v; },
      setJump: (v) => { jumpHeld = v; }, setDuck: (v) => { duckHeld = v; },
     get P() { return P; }, get o() { return obstacles; }, get state() { return state; }, get score() { return score; },
     get K() { return K; }, get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },

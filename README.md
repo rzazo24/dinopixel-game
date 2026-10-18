@@ -54,7 +54,8 @@ navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos
 - **Velocidad** (60–100 %): ralentiza todo el juego por igual. Por defecto 100 % en móvil y 80 % en PC.
 - **Volumen** (botón del menú y de la pausa): 25, 50, 75 o 100 %, para música y efectos a la vez, con un pitido para
   oír el nivel. Se recuerda.
-- **Efectos** (`M`): sonidos generados con WebAudio (no hay archivos de audio).
+- **Efectos** (`M`): sonidos generados con WebAudio (no hay archivos de audio). Un tic suave cada 500 puntos (el
+  contador parpadea cada 100, en silencio), un arpegio al conseguir un logro y una fanfarria al desbloquear un animal.
 - **Música** (`N`): chiptune generado en directo, sin archivos de audio, así que funciona sin conexión. De día suena
   en tono mayor y de noche en menor y algo más lenta. El tempo sube con la velocidad del juego (y con el ajuste de
   velocidad), y al ir más rápido entran el charles y el bombo. Se pausa con la pausa y se corta al morir; el menú
@@ -135,7 +136,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v40';   // -> 'dinopixel-v41', ...
+const CACHE = 'dinopixel-v41';   // -> 'dinopixel-v42', ...
 ```
 
 Notas de instalación:

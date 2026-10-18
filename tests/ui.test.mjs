@@ -159,6 +159,20 @@ try {
   await fresh(`localStorage.setItem('dp-music', '0')`); await startRun('dino');
   t.check('music: a saved "off" is respected (no music, button says so)', (await ev('__dp.music.playing')) === false && (await ev(`document.querySelector('#music span').textContent`)) === 'Sin música');
 
+  /* ---- sounds: soft tick every 500 points, own sounds for achievements and new animals ---- */
+  await fresh(); await startRun(); await noObstacles(); await grounded();
+  await ev(`window.__calls = { mile: 0, ach: 0, unlock: 0 }; for (const k of Object.keys(__calls)) { const f = __dp.sfx[k]; __dp.sfx[k] = (...a) => { __calls[k]++; return f(...a); }; }`);
+  for (const sc of [95, 195, 295, 395]) { await ev(`__dp.setScore(${sc})`); await sleep(450); }
+  t.check('sound: no tick when crossing 100, 200, 300, 400', (await ev('__calls.mile')) === 0, await ev('__calls'));
+  await ev('__dp.setScore(495)'); await sleep(450);
+  t.check('sound: one tick when crossing 500', (await ev('__calls.mile')) === 1, await ev('__calls'));
+  await ev('__dp.setScore(995)'); await sleep(450);
+  t.check('sound: animal unlock (1000) plays the unlock fanfare, once', (await ev('__calls.unlock')) === 1, await ev('__calls'));
+  await fresh(`localStorage.setItem('dp-stats', JSON.stringify({jumps:1999}))`);
+  await ev(`window.__calls = { mile: 0, ach: 0, unlock: 0 }; for (const k of Object.keys(__calls)) { const f = __dp.sfx[k]; __dp.sfx[k] = (...a) => { __calls[k]++; return f(...a); }; }`);
+  await startRun();                                           // the first jump is the 2000th -> "Resorte"
+  t.check('sound: earning "Resorte" plays the achievement sound once and never the tick', (await ev('__calls.ach')) === 1 && (await ev('__calls.mile')) === 0, await ev('__calls'));
+
   /* ---- an achievement banner must not overlap the game over screen ---- */
   await fresh(`localStorage.setItem('dp-stats', JSON.stringify({jumps:199}))`);
   await startRun();                                           // the first jump is the 200th -> "Saltarín" banner
