@@ -2,7 +2,7 @@
   "name": "DinoPixel",
   "short_name": "DinoPixel",
   "description": "Corre, salta y esquiva con tu animal pixel favorito.",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "landscape",

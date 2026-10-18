@@ -1,5 +1,5 @@
 // Bump this on every release: it is what makes browsers see a "new version".
-const CACHE = 'dinopixel-v8';
+const CACHE = 'dinopixel-v9';
 const ASSETS = [
   './',
   'index.html',
@@ -12,9 +12,24 @@ const ASSETS = [
   'icons/apple-touch-icon.png',
 ];
 
+// Safari (and Chrome) refuse to serve a response whose `redirected` flag is set to a navigation
+// ("Response served by service worker has redirections"). Re-wrap such responses so they are plain.
+async function clean(res) {
+  if (!res.redirected) return res;
+  return new Response(await res.blob(), { status: res.status, statusText: res.statusText, headers: res.headers });
+}
+
 self.addEventListener('install', (e) => {
   // No skipWaiting here: the page asks the user first (see SKIP_WAITING below).
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
+  e.waitUntil(
+    caches.open(CACHE).then((cache) =>
+      Promise.all(ASSETS.map(async (url) => {
+        const res = await fetch(url, { cache: 'reload' });   // bypass the HTTP cache so we store fresh files
+        if (!res.ok) throw new Error(url + ' -> ' + res.status);
+        await cache.put(url, await clean(res));
+      }))
+    )
+  );
 });
 
 self.addEventListener('message', (e) => {
@@ -29,22 +44,24 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Cache first, refreshing the cache in the background when online.
+// Cache first (files are versioned through CACHE), network as fallback.
 self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
-  if (new URL(e.request.url).pathname.startsWith('/_vercel/')) return; // analytics: never cache
-  e.respondWith(
-    caches.match(e.request).then((hit) => {
-      const net = fetch(e.request)
-        .then((res) => {
-          if (res.ok && new URL(e.request.url).origin === location.origin) {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(e.request, copy));
-          }
-          return res;
-        })
-        .catch(() => hit);
-      return hit || net;
-    })
-  );
+  const req = e.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.pathname.startsWith('/_vercel/')) return; // analytics: never cache
+  e.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+    // the start URL may be "/", "/index.html" or have a query string: all map to the cached page
+    let hit = await cache.match(req, { ignoreSearch: true });
+    if (!hit && req.mode === 'navigate') hit = await cache.match('./');
+    if (hit) return hit;
+    try {
+      const res = await fetch(req);
+      if (res.ok && url.origin === location.origin) cache.put(req, (await clean(res)).clone());
+      return res;
+    } catch {
+      return req.mode === 'navigate' ? (await cache.match('./')) || Response.error() : Response.error();
+    }
+  })());
 });
