@@ -191,13 +191,13 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
   position: absolute;
   top: max(14px, env(safe-area-inset-top));
   left: calc(14px + env(safe-area-inset-left));
-  width: 44px;
-  height: 44px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.round i[data-icon] { --c: 3px; }
+.round i[data-icon] { --c: 2px; }
 .overlay {
   position: absolute;
   inset: 0;
