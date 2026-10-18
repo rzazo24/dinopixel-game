@@ -709,6 +709,7 @@ function setPaused(v) {
   duckHeld = false;
   jumpHeld = false;
   pauseEl.hidden = !paused;
+  refreshShare();
   $('fs').hidden = inFs() || installed;
 }
 function enterGame() {
@@ -867,7 +868,9 @@ $('help-btn2').addEventListener('click', openHelp);
 
 /* ---------- share ---------- */
 const shareBtn = $('share-btn');
-function showShare(on) { shareBtn.hidden = !on; }
+let shareWanted = false;                            // a run just ended and is worth sharing
+function refreshShare() { shareBtn.hidden = !(shareWanted && !paused); }   // hidden behind the pause menu
+function showShare(on) { shareWanted = on; refreshShare(); }
 function flashShare(msg) {
   const span = shareBtn.querySelector('span'), old = 'Compartir';
   span.textContent = msg;

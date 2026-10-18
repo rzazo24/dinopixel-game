@@ -105,7 +105,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v28';   // -> 'dinopixel-v29', ...
+const CACHE = 'dinopixel-v29';   // -> 'dinopixel-v30', ...
 ```
 
 Notas de instalación:
