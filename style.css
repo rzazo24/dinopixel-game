@@ -411,3 +411,9 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
 .rank-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
 .rank-privacy { margin: 0; font-size: 7px; line-height: 1.6; opacity: .7; text-align: center; }
 @media (max-height: 500px) { .rank-privacy { font-size: 6px; } }
+
+/* destructive action: red button, brighter while waiting for the second click */
+#rank-del { --face: #c23b32; --light: rgba(255, 255, 255, .3); --dark: rgba(80, 0, 0, .45); color: #fff; }
+#rank-del:hover { --face: #d9473d; }
+#rank-del.confirm { --face: #ff5448; --edge: #fff; animation: blink-red .5s steps(2, end) infinite; }
+@keyframes blink-red { 50% { --face: #c23b32; } }

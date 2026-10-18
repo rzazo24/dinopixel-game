@@ -1041,9 +1041,14 @@ async function saveNick() {
   loadRank(rankBoard);
 }
 let delTimer = null;
-function resetDeleteLabel() { clearTimeout(delTimer); delTimer = null; $('rank-del').querySelector('span').textContent = 'Borrar mis datos'; }
+function resetDeleteLabel() {
+  clearTimeout(delTimer); delTimer = null;
+  $('rank-del').classList.remove('confirm');
+  $('rank-del').querySelector('span').textContent = 'Borrar mis datos';
+}
 async function deleteMyData() {
   if (!delTimer) {                                  // first click: ask for confirmation
+    $('rank-del').classList.add('confirm');
     $('rank-del').querySelector('span').textContent = '¿Seguro? Pulsa otra vez';
     delTimer = setTimeout(resetDeleteLabel, 4000);
     return;
