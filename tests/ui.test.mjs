@@ -135,6 +135,20 @@ try {
   t.check('frog: a plain jump is like the dino', Math.abs(hFrogPlain - hDino) < 15, [hFrogPlain, hDino]);
   t.check('frog: crouching first charges a much higher jump', hFrog > hDino * 1.3, [hFrog, hDino]);
 
+  // charge indicator: count yellow (#ffd23f) pixels in a box above the frog
+  const yellowAbove = () => ev(`(() => { const c = document.getElementById('game'), k = __dp.K, g = c.getContext('2d');
+    const d = g.getImageData(40 * k, (__dp.GROUND - 70) * k, 70 * k, 40 * k).data; let n = 0;
+    for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - 255) < 4 && Math.abs(d[i + 1] - 210) < 4 && Math.abs(d[i + 2] - 63) < 4) n++;
+    return n; })()`);
+  await ev('__dp.setJump(false)'); await grounded(); await sleep(400);
+  t.check('frog: no charge indicator while running normally', (await yellowAbove()) === 0);
+  await ev('__dp.setDuck(true)'); await sleep(80);
+  t.check('frog: a white bar starts filling while crouching (not ready yet)', (await ev('__dp.P.charge')) < 20 && (await yellowAbove()) === 0);
+  await sleep(700);
+  t.check('frog: the bar turns yellow when the super jump is ready', (await ev('__dp.P.charge')) >= 20 && (await yellowAbove()) > 0);
+  await ev('__dp.setDuck(false)'); await sleep(1200);
+  t.check('frog: the indicator goes away once the charge has faded', (await yellowAbove()) === 0);
+
   await fresh(ALL); await startRun('dino'); await ev(`window.__clr = setInterval(() => { __dp.o.splice(0, __dp.o.length, ...__dp.o.filter(o => o.injected)); }, 3)`); await grounded();
   await ev(birdOnPlayer.replace("f: 0 }", "f: 0, injected: true }")); await sleep(300);
   t.check('control: the dino dies to a bird on top of it', (await ev('__dp.state')) === 'over');

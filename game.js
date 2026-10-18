@@ -493,7 +493,8 @@ const ABILITY = {
   fox: ['Esquiva', 'Al levantarte, los pájaros no te tocan un instante'],
   turtle: ['Caparazón', 'Los pájaros no le hacen daño; va más despacio'],
 };
-const INVULN = 90;                                      // frames of invulnerability after the dog's shield breaks
+const INVULN = 90;
+const FROG_READY = 20;                                  // frames of crouching the frog needs for a super jump                                      // frames of invulnerability after the dog's shield breaks
 
 /* ---------- state ---------- */
 let animal = ANIMALS.find((a) => a.id === store.get('dp-animal', 'dino')) || ANIMALS[0];
@@ -558,7 +559,7 @@ function jump() {
   }
   stats.jumps++;
   checkAch();
-  const charged = animal.id === 'frog' && P.charge >= 20;          // frog: crouch ~1/3 s first for a super jump
+  const charged = animal.id === 'frog' && P.charge >= FROG_READY;          // frog: crouch ~1/3 s first for a super jump
   P.vy = charged ? JUMP_V * 1.22 : animal.id === 'bunny' ? JUMP_V * 1.1 : JUMP_V;
   P.charge = 0;
   sfx.jump();
@@ -807,10 +808,24 @@ function drawPlayer() {
     const up = P.h > 0 ? Math.floor(flapT / (gliding ? 7 : 4)) % 2 : Math.floor(animT / 20) % 2;
     if (up) { frames = animal.framesUp; duck = animal.duckUp; }
   }
+  // frog: charge bar while crouching; when the super jump is ready the bar turns yellow, sparkles appear and the frog trembles
+  const frogCharge = animal.id === 'frog' && state === 'running' && P.h === 0 && P.charge > 0;
+  const frogReady = frogCharge && P.charge >= FROG_READY;
+  const jx = frogReady ? (Math.floor(flapT / 2) % 2 ? 1 : -1) : 0;
   if (P.dodge > 0) ctx.globalAlpha = 0.55;                      // fox dodging: ghostly
-  if (P.duck) blit(duck[f], PX, GROUND - 36, 48, 36);
-  else blit(frames[f], PX, GROUND - P.h - SP * S, SP * S, SP * S);
+  if (P.duck) blit(duck[f], PX + jx, GROUND - 36, 48, 36);
+  else blit(frames[f], PX + jx, GROUND - P.h - SP * S, SP * S, SP * S);
   ctx.globalAlpha = 1;
+  if (frogCharge) {
+    const top = GROUND - (P.duck ? 36 : 48) - 12;
+    ctx.fillStyle = '#1b1b2b'; ctx.fillRect(PX + 11, top - 1, 26, 6);
+    ctx.fillStyle = frogReady ? '#ffd23f' : '#ffffff';
+    ctx.fillRect(PX + 12, top, Math.round(24 * Math.min(1, P.charge / FROG_READY)), 4);
+    if (frogReady && Math.floor(flapT / 6) % 2 === 0) {
+      ctx.fillStyle = '#ffd23f';
+      [[-6, 10], [52, 6], [-2, -8], [48, -10]].forEach(([dx, dy]) => ctx.fillRect(PX + dx, top + 12 + dy, 3, 3));
+    }
+  }
 }
 
 function drawObstacles() {
@@ -1647,7 +1662,7 @@ if (/[?&]test=1/.test(location.search)) {
     ANIMALS, ACH, stats, ach, music, sfx, get master() { return master; }, press, setScore: (v) => { score = v; },
      setJump: (v) => { jumpHeld = v; }, setDuck: (v) => { duckHeld = v; },
     get P() { return P; }, get o() { return obstacles; }, get state() { return state; }, get score() { return score; },
-    get biome() { return BIOMES[biome].id; }, get banner() { return banner; }, get K() { return K; }, get W() { return W; }, get insets() { return [insetL, insetR]; }, textBoxes, get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },
+    get biome() { return BIOMES[biome].id; }, get banner() { return banner; }, get K() { return K; }, get GROUND() { return GROUND; }, get W() { return W; }, get insets() { return [insetL, insetR]; }, textBoxes, get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },
   };
 }
 })();
