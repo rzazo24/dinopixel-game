@@ -60,11 +60,12 @@ const ANIMALS = [
     id: 'bunny', name: 'Conejo',
     pal: { a: '#d9c7f0', b: '#f4a6b8', c: '#e0607e', w: '#ffffff', k: '#1a1a1a' },
     body: [
-      '..........aa.aa.', '..........ab.ab.', '..........aaaaaa', '..........akaaka',
-      '..........aaacca', '...........aaaa.', '..aaaa.aaaaaaa..', '.aaaaaaaaaaaaa..',
-      'wwaaaaaaaaaaaa..', 'wwaaaaaaaaaaaa..', '..aabbbbbbbbaa..', '..aaaaaaaaaaaa..',
+      '..........aa.aa.', '..........ab.ab.', '..........ab.ab.', '..........aa.aa.',
+      '..........aaaaaa', '..........akaaka', '..........aaacca', '...........aaaa.',
+      '..aaaa.aaaaaaa..', '.aaaaaaaaaaaaa..', 'wwaaaaaaaaaaaa..', 'wwaabbbbbbbbaa..',
       '..aaaaaaaaaaaa..',
     ],
+    crouchDrop: [1, 2, 9, 10],        // crouching: shorter ears, tighter body
     legs: QUAD_LEGS,
   },
   {
