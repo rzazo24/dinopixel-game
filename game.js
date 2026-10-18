@@ -220,12 +220,21 @@ const sfx = {
   mile: () => { beep(660, 660, 0.08); setTimeout(() => beep(990, 990, 0.12), 90); },
 };
 
+/* ---------- unlocks: animals open up as your best score grows ---------- */
+const UNLOCK = { dino: 0, cat: 300, dog: 600, bunny: 1000, chick: 1500, peng: 2000 };
+ANIMALS.forEach((a) => { a.unlock = UNLOCK[a.id] || 0; });
+let best = Number(store.get('dp-best', '0')) || 0;      // best score reached with any animal
+const unlocked = (a) => best >= a.unlock;
+
 /* ---------- state ---------- */
 let animal = ANIMALS.find((a) => a.id === store.get('dp-animal', 'dino')) || ANIMALS[0];
+if (!unlocked(animal)) animal = ANIMALS[0];
 let state = 'ready';                                    // ready | running | over
 let paused = false;
 let score, speed, hi, night = 0, nightTarget = 0, scroll, distSince, gap, mile, flash, diedAt;
-let obstacles, dust, animT, duckHeld = false;
+let obstacles, dust, animT, duckHeld = false, jumpHeld = false;
+let banner = { text: '', t: 0 }, newlyUnlocked = [];
+const MIN_H = 75, CUT_V = 4;                           // variable jump: released early => cut once above MIN_H
 const P = { h: 0, vy: 0, duck: false };
 
 const specks = Array.from({ length: 110 }, () => ({ x: rnd(0, 1400), y: rnd(GROUND + 10, H - 4), w: Math.floor(rnd(1, 4)) * 2 }));
@@ -237,6 +246,7 @@ function reset() {
   night = 0; nightTarget = 0; animT = 0;
   obstacles = []; dust = [];
   P.h = 0; P.vy = 0; P.duck = false;
+  banner = { text: '', t: 0 }; newlyUnlocked = [];
   hi = Number(store.get('dp-hi-' + animal.id, '0'));
 }
 reset();
@@ -248,6 +258,7 @@ function die() {
   diedAt = performance.now();
   sfx.die();
   if (score > hi) { hi = Math.floor(score); store.set('dp-hi-' + animal.id, String(hi)); }
+  if (score > best) { best = Math.floor(score); store.set('dp-best', String(best)); }
 }
 
 function jump() {
@@ -306,6 +317,7 @@ function update(dt) {
   dust.forEach((d) => { d.x += d.vx * dt; d.y += d.vy * dt; d.life -= dt; });
   dust = dust.filter((d) => d.life > 0);
   if (flash > 0) flash -= dt;
+  if (banner.t > 0) banner.t -= dt;
   if (state !== 'running') return;
 
   speed = Math.min(MAX_SPEED, START_SPEED + score / 300);
@@ -316,10 +328,22 @@ function update(dt) {
   // physics
   P.duck = duckHeld && P.h === 0;
   if (P.h > 0 || P.vy > 0) {
+    if (!jumpHeld && P.vy > CUT_V && P.h >= MIN_H) P.vy = CUT_V;   // released early: shorter jump
     P.vy -= GRAV * (duckHeld ? 3 : 1) * dt;
     P.h += P.vy * dt;
     if (P.h <= 0) { P.h = 0; P.vy = 0; puff(5); }
   } else if (Math.floor(animT) % 18 === 0 && Math.random() < 0.15) puff(1);
+
+  // unlocks
+  for (const a of ANIMALS) {
+    if (a.unlock > best && score >= a.unlock) {
+      best = Math.floor(score);
+      store.set('dp-best', String(best));
+      newlyUnlocked.push(a.name);
+      banner = { text: a.name + ' desbloqueado!', t: 200 };
+      sfx.mile();
+    }
+  }
 
   // milestone
   const m = Math.floor(score / 100);
@@ -514,6 +538,7 @@ function draw() {
   });
   ctx.globalAlpha = 1;
   drawHUD();
+  if (banner.t > 0 && !paused) pixText(banner.text, W / 2, 44, 2, 'center', '#ffd23f');
 
   const ty = GROUND * 0.38;
   if (paused) {
@@ -525,6 +550,7 @@ function draw() {
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, 0, W, H);
     pixText('Game over', W / 2, ty - 14, 4, 'center', '#ffd23f');
     pixText('Toca o pulsa espacio para reintentar', W / 2, ty + 28, 2, 'center');
+    if (newlyUnlocked.length) pixText('Nuevo: ' + newlyUnlocked.join(', '), W / 2, ty + 56, 2, 'center', '#ffd23f');
   }
 }
 
@@ -543,6 +569,7 @@ const ICONS = {
   close: ['10000001', '01000010', '00100100', '00011000', '00011000', '00100100', '01000010', '10000001'],
   up: ['00011000', '00111100', '01111110', '11111111', '00011000', '00011000', '00011000', '00011000'],
   down: ['00011000', '00011000', '00011000', '00011000', '11111111', '01111110', '00111100', '00011000'],
+  lock: ['00111100', '01000010', '01000010', '11111111', '11111111', '11110111', '11110111', '11111111'],
   phone: ['1111111', '1000001', '1000001', '1000001', '1000001', '1000001', '1000001', '1000001', '1000001', '1111111', '0011100'],
 };
 function iconSvg(name) {
@@ -604,6 +631,7 @@ function leaveFs() {
 function setPaused(v) {
   paused = v && inGame;
   duckHeld = false;
+  jumpHeld = false;
   pauseEl.hidden = !paused;
   $('fs').hidden = inFs();
 }
@@ -624,7 +652,7 @@ function exitGame() {
   stage.hidden = true;
   menu.hidden = false;
   leaveFs();
-  refreshHi();
+  refreshPicker();
   $('play').focus();
 }
 const portraitTouch = window.matchMedia('(orientation: portrait) and (pointer: coarse)');
@@ -653,7 +681,7 @@ document.addEventListener('keydown', (e) => {
   switch (e.code) {
     case 'Space': case 'ArrowUp': case 'KeyW':
       e.preventDefault();
-      if (paused) { if (e.code === 'Space') setPaused(false); } else press();
+      if (paused) { if (e.code === 'Space') setPaused(false); } else { jumpHeld = true; press(); }
       break;
     case 'ArrowDown': case 'KeyS': e.preventDefault(); duckHeld = !paused; break;
     case 'KeyP': case 'Escape': setPaused(!paused); break;
@@ -663,6 +691,7 @@ document.addEventListener('keydown', (e) => {
 });
 document.addEventListener('keyup', (e) => {
   if (e.code === 'ArrowDown' || e.code === 'KeyS') duckHeld = false;
+  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') jumpHeld = false;
   if (inGame && e.code === 'Space') e.preventDefault();
 });
 
@@ -672,21 +701,32 @@ canvas.addEventListener('pointerdown', (e) => {
   const r = canvas.getBoundingClientRect();
   const lower = (e.clientY - r.top) / r.height > 0.68;
   if (state === 'running' && lower) duckHeld = true;
-  else press();
+  else { jumpHeld = true; press(); }
 });
-['pointerup', 'pointercancel', 'pointerleave'].forEach((n) => canvas.addEventListener(n, () => { duckHeld = false; }));
+['pointerup', 'pointercancel', 'pointerleave'].forEach((n) => canvas.addEventListener(n, () => { duckHeld = false; jumpHeld = false; }));
 document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'running') setPaused(true); });
-window.addEventListener('blur', () => { duckHeld = false; if (state === 'running') setPaused(true); });
+window.addEventListener('blur', () => { duckHeld = false; jumpHeld = false; if (state === 'running') setPaused(true); });
 
 /* ---------- UI: animal picker, sound, install ---------- */
 const picker = $('picker');
-function refreshHi() {
+function refreshPicker() {
   [...picker.children].forEach((b) => {
-    b.querySelector('small').innerHTML = iconSvg('star') + store.get('dp-hi-' + b.dataset.id, '0');
+    const a = ANIMALS.find((x) => x.id === b.dataset.id);
+    const open = unlocked(a);
+    b.classList.toggle('locked', !open);
+    b.setAttribute('aria-disabled', String(!open));
+    b.querySelector('span').textContent = open ? a.name : '???';
+    b.querySelector('small').innerHTML = open
+      ? iconSvg('star') + store.get('dp-hi-' + a.id, '0')
+      : iconSvg('lock') + a.unlock;
   });
+  const next = ANIMALS.filter((a) => !unlocked(a)).sort((x, y) => x.unlock - y.unlock)[0];
+  $('tag').textContent = next ? 'Próximo animal a los ' + next.unlock : 'Todos desbloqueados!';
 }
 function selectAnimal(id) {
-  animal = ANIMALS.find((a) => a.id === id) || ANIMALS[0];
+  const a = ANIMALS.find((x) => x.id === id) || ANIMALS[0];
+  if (!unlocked(a)) return;
+  animal = a;
   store.set('dp-animal', animal.id);
   [...picker.children].forEach((b) => b.classList.toggle('on', b.dataset.id === animal.id));
   hi = Number(store.get('dp-hi-' + animal.id, '0'));
@@ -709,7 +749,7 @@ ANIMALS.forEach((a) => {
   picker.appendChild(b);
 });
 selectAnimal(animal.id);
-refreshHi();
+refreshPicker();
 
 function setMuted(m) {
   muted = m;
