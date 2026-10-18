@@ -21,6 +21,7 @@ const BIPED_LEGS = (ch) => [
 const ANIMALS = [
   {
     id: 'dino', name: 'Dino',
+    crouchDrop: [4, 5, 9, 10],        // shorten neck + belly so the tail stays attached
     pal: { a: '#4caf50', b: '#b6e388', k: '#1a1a1a' },
     body: [
       '........aaaaaa..', '.......aaaaaaaa.', '.......aakaaaaa.', '.......aaaaaaaa.',
@@ -28,9 +29,9 @@ const ANIMALS = [
       'aaa.aaaaaaaaaa..', '.aaaaabbbbbbaa..', '..aaabbbbbbaa...', '...aaaaaaaa.....',
       '....aaaaaa......',
     ],
-    legs: [
-      ['....aa..aa......', '....aa..aa......', '....aaa.aaa.....'],
-      ['....aa..aa......', '....aaa..a......', '........aaa.....'],
+    legs: [      // a real stride: one leg planted, the other lifted, then swapped
+      ['....aa..aa......', '....aa..........', '....aaa.........'],
+      ['....aa..aa......', '........aa......', '........aaa.....'],
     ],
   },
   {
@@ -141,7 +142,8 @@ function blit(img, x, y, w, h) {
 
 ANIMALS.forEach((a) => {
   const mk = (body, legs) => sprite([...body, ...legs].map((r) => r.padEnd(SP, '.')), a.pal);
-  const crouch = a.body.filter((_, i) => i < 7 || i > 10);      // squat: drop the middle of the torso
+  const drop = a.crouchDrop || [7, 8, 9, 10];                   // squat: drop 4 rows (keeps the sprite 12 rows tall)
+  const crouch = a.body.filter((_, i) => !drop.includes(i));
   a.frames = a.legs.map((l) => mk(a.body, l));
   a.duck = a.legs.map((l) => mk(crouch, l));
 });
@@ -420,7 +422,7 @@ function tint(img, color) {
 }
 
 function drawPlayer() {
-  const run = Math.floor(animT / 9) % 2;
+  const run = Math.floor(animT / 40) % 2;   // one step every 40 px of travel: ~6 frames at start, ~3 at top speed
   const f = P.h > 0 || state !== 'running' ? 0 : run;
   if (P.duck) blit(animal.duck[f], PX, GROUND - 36, 48, 36);
   else blit(animal.frames[f], PX, GROUND - P.h - SP * S, SP * S, SP * S);
