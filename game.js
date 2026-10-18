@@ -226,6 +226,17 @@ ANIMALS.forEach((a) => { a.unlock = UNLOCK[a.id] || 0; });
 let best = Number(store.get('dp-best', '0')) || 0;      // best score reached with any animal
 const unlocked = (a) => best >= a.unlock;
 
+/* ---------- abilities: [name, how it works] ---------- */
+const ABILITY = {
+  dino: ['Clásico', 'Sin habilidad'],
+  cat: ['Salto doble', 'Toca otra vez en el aire'],
+  dog: ['Escudo', 'Sobrevive a un golpe'],
+  bunny: ['Salto alto', 'Salta mucho más'],
+  chick: ['Planeo', 'Mantén al caer para planear'],
+  peng: ['Deslizar', 'Agachado: puntos x2'],
+};
+const INVULN = 90;                                      // frames of invulnerability after the dog's shield breaks
+
 /* ---------- state ---------- */
 let animal = ANIMALS.find((a) => a.id === store.get('dp-animal', 'dino')) || ANIMALS[0];
 if (!unlocked(animal)) animal = ANIMALS[0];
@@ -235,7 +246,7 @@ let score, speed, hi, night = 0, nightTarget = 0, scroll, distSince, gap, mile, 
 let obstacles, dust, animT, duckHeld = false, jumpHeld = false;
 let banner = { text: '', t: 0 }, newlyUnlocked = [];
 const MIN_H = 75, CUT_V = 4;                           // variable jump: released early => cut once above MIN_H
-const P = { h: 0, vy: 0, duck: false };
+const P = { h: 0, vy: 0, duck: false, doubled: false, shield: 0, inv: 0 };
 
 const specks = Array.from({ length: 110 }, () => ({ x: rnd(0, 1400), y: rnd(GROUND + 10, H - 4), w: Math.floor(rnd(1, 4)) * 2 }));
 const clouds = Array.from({ length: 7 }, (_, i) => ({ x: i * 170 + rnd(0, 60), y: rnd(20, Math.max(40, GROUND - 110)), s: rnd(3, 5) | 0 }));
@@ -245,7 +256,8 @@ function reset() {
   score = 0; speed = START_SPEED; scroll = 0; distSince = 0; gap = 320; mile = 0; flash = 0;
   night = 0; nightTarget = 0; animT = 0;
   obstacles = []; dust = [];
-  P.h = 0; P.vy = 0; P.duck = false;
+  P.h = 0; P.vy = 0; P.duck = false; P.doubled = false; P.inv = 0;
+  P.shield = animal.id === 'dog' ? 1 : 0;
   banner = { text: '', t: 0 }; newlyUnlocked = [];
   hi = Number(store.get('dp-hi-' + animal.id, '0'));
 }
@@ -262,8 +274,12 @@ function die() {
 }
 
 function jump() {
-  if (P.h > 0) return;
-  P.vy = JUMP_V;
+  if (P.h > 0) {
+    // cat: one extra jump in mid-air
+    if (animal.id === 'cat' && !P.doubled) { P.doubled = true; P.vy = JUMP_V * 0.8; sfx.jump(); puff(4); }
+    return;
+  }
+  P.vy = animal.id === 'bunny' ? JUMP_V * 1.1 : JUMP_V;
   sfx.jump();
   puff(8);
 }
@@ -318,10 +334,11 @@ function update(dt) {
   dust = dust.filter((d) => d.life > 0);
   if (flash > 0) flash -= dt;
   if (banner.t > 0) banner.t -= dt;
+  if (P.inv > 0) P.inv -= dt;
   if (state !== 'running') return;
 
   speed = Math.min(MAX_SPEED, START_SPEED + score / 300);
-  score += speed * dt * 0.12;
+  score += speed * dt * 0.12 * (animal.id === 'peng' && P.duck ? 2 : 1);   // penguin: sliding doubles points
   scroll += speed * dt;
   animT += speed * dt;
 
@@ -329,9 +346,10 @@ function update(dt) {
   P.duck = duckHeld && P.h === 0;
   if (P.h > 0 || P.vy > 0) {
     if (!jumpHeld && P.vy > CUT_V && P.h >= MIN_H) P.vy = CUT_V;   // released early: shorter jump
-    P.vy -= GRAV * (duckHeld ? 3 : 1) * dt;
+    const glide = animal.id === 'chick' && jumpHeld && P.vy < 0;   // chicken: hold while falling to glide
+    P.vy -= GRAV * (duckHeld ? 3 : glide ? 0.3 : 1) * dt;
     P.h += P.vy * dt;
-    if (P.h <= 0) { P.h = 0; P.vy = 0; puff(5); }
+    if (P.h <= 0) { P.h = 0; P.vy = 0; P.doubled = false; puff(5); }
   } else if (Math.floor(animT) % 18 === 0 && Math.random() < 0.15) puff(1);
 
   // unlocks
@@ -356,7 +374,13 @@ function update(dt) {
   for (const o of obstacles) {
     o.x -= speed * dt;
     if (o.type === 'bird') o.f = ((animT / 14) | 0) % 2;
-    if (overlap(pb, hitbox(o))) { die(); break; }
+    if (P.inv <= 0 && overlap(pb, hitbox(o))) {
+      if (P.shield > 0) {
+        P.shield = 0; P.inv = INVULN;
+        banner = { text: 'Escudo roto!', t: 90 };
+        sfx.die();
+      } else { die(); break; }
+    }
   }
   obstacles = obstacles.filter((o) => o.x + o.w > -20);
 }
@@ -446,6 +470,7 @@ function tint(img, color) {
 }
 
 function drawPlayer() {
+  if (P.inv > 0 && Math.floor(P.inv / 5) % 2 === 0) return;     // blink while invulnerable
   const run = Math.floor(animT / 40) % 2;   // one step every 40 px of travel: ~6 frames at start, ~3 at top speed
   const f = P.h > 0 || state !== 'running' ? 0 : run;
   if (P.duck) blit(animal.duck[f], PX, GROUND - 36, 48, 36);
@@ -519,6 +544,8 @@ function drawHUD() {
   pixText('HI ' + pad(hi), W - 86 - insetR, 12, 2, 'right', c, false);
   ctx.globalAlpha = 1;
   if (!blink) pixText(pad(score), W - 12 - insetR, 12, 2, 'right', c, false);
+  if (P.shield > 0) pixText('Escudo', W - 212 - insetR, 12, 2, 'right', '#4fc3f7');
+  if (animal.id === 'peng' && P.duck && state === 'running') pixText('x2', W - 212 - insetR, 12, 2, 'right', '#ffd23f');
 }
 
 function draw() {
@@ -546,6 +573,7 @@ function draw() {
   } else if (state === 'ready') {
     pixText(animal.name, W / 2, ty - 14, 4, 'center');
     pixText('Toca la pantalla o pulsa espacio', W / 2, ty + 28, 2, 'center');
+    pixText(ABILITY[animal.id][0] + ': ' + ABILITY[animal.id][1], W / 2, ty + 54, 2, 'center', '#ffd23f');
   } else if (state === 'over') {
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, 0, W, H);
     pixText('Game over', W / 2, ty - 14, 4, 'center', '#ffd23f');
@@ -709,6 +737,10 @@ window.addEventListener('blur', () => { duckHeld = false; jumpHeld = false; if (
 
 /* ---------- UI: animal picker, sound, install ---------- */
 const picker = $('picker');
+function showAbility() {
+  const [n, d] = ABILITY[animal.id];
+  $('ability').textContent = animal.name + ': ' + n + ' - ' + d;
+}
 function refreshPicker() {
   [...picker.children].forEach((b) => {
     const a = ANIMALS.find((x) => x.id === b.dataset.id);
@@ -720,6 +752,7 @@ function refreshPicker() {
       ? iconSvg('star') + store.get('dp-hi-' + a.id, '0')
       : iconSvg('lock') + a.unlock;
   });
+  showAbility();
   const next = ANIMALS.filter((a) => !unlocked(a)).sort((x, y) => x.unlock - y.unlock)[0];
   $('tag').textContent = next ? 'Próximo animal a los ' + next.unlock : 'Todos desbloqueados!';
 }
@@ -730,6 +763,7 @@ function selectAnimal(id) {
   store.set('dp-animal', animal.id);
   [...picker.children].forEach((b) => b.classList.toggle('on', b.dataset.id === animal.id));
   hi = Number(store.get('dp-hi-' + animal.id, '0'));
+  showAbility();
 }
 ANIMALS.forEach((a) => {
   const b = document.createElement('button');

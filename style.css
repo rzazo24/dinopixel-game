@@ -249,3 +249,6 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
 .pick.locked { --face: #23264d; cursor: not-allowed; }
 .pick.locked canvas { filter: brightness(0); opacity: .55; }
 .pick.locked small { color: var(--ink); opacity: .7; }
+
+.ability { margin: 20px 0 0; color: var(--accent); font-size: 9px; line-height: 1.6; min-height: 1.6em; }
+@media (max-height: 500px) and (orientation: landscape) { .ability { margin: 12px 0 0; font-size: 8px; } }
