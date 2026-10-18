@@ -868,7 +868,7 @@ function newPid() {
 }
 let pid = store.get('dp-pid', '');
 if (!/^[a-f0-9]{32}$/.test(pid)) { pid = newPid(); store.set('dp-pid', pid); }
-let nick = store.get('dp-nick', '');
+let nick = store.get('dp-nick', '').toUpperCase();
 let rankBoard = 'all', rankReq = 0, nagged = false;
 
 async function api(path, body) {
@@ -997,7 +997,7 @@ function renderRank(d) {
   rankBody.append(tbl, foot);
 }
 async function saveNick() {
-  const v = nickInput.value.normalize('NFC').replace(/\s+/g, ' ').trim();
+  const v = nickInput.value.normalize('NFC').replace(/\s+/g, ' ').trim().toUpperCase();
   const len = [...v].length;
   if (!len || len > 10 || !NICK_RE.test(v)) { rankMsg.textContent = 'Apodo no válido: 1-10 letras o números (se permite . _ -).'; return; }
   rankMsg.textContent = 'Guardando...';
@@ -1014,6 +1014,11 @@ async function saveNick() {
   loadRank(rankBoard);
 }
 $('nick-save').addEventListener('click', saveNick);
+nickInput.addEventListener('input', () => {       // force capitals while typing, keeping the caret where it was
+  const a = nickInput.selectionStart, b = nickInput.selectionEnd;
+  nickInput.value = nickInput.value.toUpperCase();
+  try { nickInput.setSelectionRange(a, b); } catch { /* not supported */ }
+});
 nickInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveNick(); } });
 $('rank-close').addEventListener('click', closeRank);
 $('rank-btn').addEventListener('click', () => openRank());

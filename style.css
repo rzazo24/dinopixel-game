@@ -397,3 +397,5 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
   #nick-input { width: 150px; padding: 7px 8px; }
   .lb td { padding: 3px 8px; }
 }
+
+#nick-input, .lb td { text-transform: uppercase; }

@@ -59,7 +59,7 @@ const BANNED = ['puta', 'puto', 'mierda', 'joder', 'cabron', 'pendejo', 'gilipol
   'shit', 'bitch', 'nigger', 'nigga', 'faggot', 'cunt', 'nazi', 'hitler', 'porn'];
 function cleanNick(raw) {
   if (typeof raw !== 'string') return null;
-  const n = raw.normalize('NFC').replace(/\s+/g, ' ').trim();
+  const n = raw.normalize('NFC').replace(/\s+/g, ' ').trim().toUpperCase();   // nicknames are always stored in capitals
   const len = [...n].length;
   if (len < 1 || len > 10) return null;
   if (!/^[\p{L}\p{N}][\p{L}\p{N} ._-]*$/u.test(n)) return null;

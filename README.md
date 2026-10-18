@@ -53,7 +53,7 @@ Ranking online con **apodo** y tableros **global y por animal** (top 20 y tu pos
 *Ranking* del menú o de la pausa; al morir, el juego muestra tu puesto.
 
 - **Cómo funciona:** funciones de Vercel en [api/](api/) (sin dependencias) guardan las puntuaciones en
-  [Upstash Redis](https://upstash.com/) usando su API REST. Solo se guarda tu apodo, un id aleatorio y tu mejor
+  [Upstash Redis](https://upstash.com/) usando su API REST. Solo se guarda tu apodo (siempre en mayúsculas), un id aleatorio y tu mejor
   puntuación (la IP se usa un momento para limitar envíos y no se almacena).
 - **Sin conexión:** la puntuación se guarda y se envía cuando vuelva la red. Si el ranking no está configurado,
   el juego funciona igual y la pantalla de ranking avisa de que no está disponible.
@@ -94,7 +94,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v24';   // -> 'dinopixel-v25', ...
+const CACHE = 'dinopixel-v25';   // -> 'dinopixel-v26', ...
 ```
 
 Notas de instalación:
