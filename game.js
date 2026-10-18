@@ -99,6 +99,49 @@ const ANIMALS = [
       ['......cc.cc.....', '......cc.cc.....', '......ccc.ccc...'],
     ],
   },
+  {
+    id: 'frog', name: 'Rana',
+    pal: { a: '#5fbf4a', b: '#cdeb8b', d: '#2e6b2a', k: '#1a1a1a', w: '#ffffff' },
+    body: [
+      '................', '................', '................', '.........aa.aa..',
+      '........awkawka.', '........aaaaaaa.', '...aaaaaaaaaaaaa', '..aaaaaaaaaadddd',
+      '.aaaaaaaaaaaaaa.', '.aabbbbbbbbbbaa.', '.aabbbbbbbbbbaa.', '..aaaaaaaaaaaa..',
+      '..aaa......aaa..',
+    ],
+    legs: [
+      ['.aaa......aaa...', '.aa........aa...', 'aaaa......aaaa..'],
+      ['..aa.....aa.....', '..aa.....aa.....', '.aaaa...aaaa....'],
+    ],
+  },
+  {
+    id: 'fox', name: 'Zorro',
+    pal: { a: '#e8762c', w: '#fff3e0', d: '#4a2a14', k: '#1a1a1a' },
+    body: [
+      '...........a..a.', '..........aa.aa.', '..........aaaaa.', '..........akaaww',
+      '..........aaawwk', '...........aww..', 'ww.aaaaaaaaaa...', 'awaaaaaaaaaaa...',
+      'aaa.aaaaaaaaaa..', '....awwwwwwaa...', '....aaaaaaaaa...', '....aaaaaaaaa...',
+      '....aa.....aa...',
+    ],
+    legs: [
+      ['....dd.....dd...', '....dd.....dd...', '...ddd....ddd...'],
+      ['.....dd...dd....', '.....dd...dd....', '....ddd..ddd....'],
+    ],
+  },
+  {
+    id: 'turtle', name: 'Tortuga',
+    crouchDrop: [0, 1, 2, 3],          // already low: crouching just keeps the shell
+    pal: { s: '#3f8f4a', S: '#2a6a35', h: '#9ccf6e', k: '#1a1a1a', b: '#d8c78a' },
+    body: [
+      '................', '................', '................', '................',
+      '................', '.....ssssss.....', '....sSsSsSss....', '...sSSsSSsSss.hh',
+      '..sssssssssss.hk', '..ssSsssSsssshhh', '.bbbbbbbbbbbbb..', '..bbbbbbbbbbb...',
+      '...bbbbbbbbb....',
+    ],
+    legs: [
+      ['...hh.....hh....', '...hh.....hh....', '..hhh....hhh....'],
+      ['....hh...hh.....', '....hh...hh.....', '...hhh..hhh.....'],
+    ],
+  },
 ];
 
 const CACTUS = [
@@ -344,7 +387,7 @@ function musicTick() {
   if (!a || !music.playing) return;
   while (music.nextT < a.currentTime + 0.18) {              // schedule a little ahead of the clock for tight timing
     const sp = Math.min(MAX_SPEED, Math.max(START_SPEED, speed || START_SPEED));
-    music.bpm = (116 + ((sp - START_SPEED) / (MAX_SPEED - START_SPEED)) * 52) * pace * (music.theme === 'night' ? 0.88 : 1);
+    music.bpm = (116 + ((sp - START_SPEED) / (MAX_SPEED - START_SPEED)) * 52) * simPace() * (music.theme === 'night' ? 0.88 : 1);
     const d = 60 / music.bpm / 4;
     musicStep(a, music.step, music.nextT, d);
     music.nextT += d; music.step++;
@@ -386,7 +429,7 @@ const haptic = (pattern) => { if (canVibrate && vibeOn) { try { navigator.vibrat
 /* ---------- unlocks: animals open up as your best score grows ---------- */
 // Best score needed per animal. Points come at ~43/s at the start and ~94/s at top speed (reached at ~2100),
 // so 1000 is ~20 s of perfect play and 7000 is ~85 s without a single mistake.
-const UNLOCK = { dino: 0, cat: 1000, dog: 2500, bunny: 4000, chick: 5500, peng: 7000 };
+const UNLOCK = { dino: 0, cat: 1000, dog: 2500, bunny: 4000, chick: 5500, peng: 7000, frog: 8500, fox: 10000, turtle: 12000 };
 ANIMALS.forEach((a) => { a.unlock = UNLOCK[a.id] || 0; });
 let best = Number(store.get('dp-best', '0')) || 0;      // best score reached with any animal
 const unlocked = (a) => best >= a.unlock;
@@ -418,7 +461,7 @@ const ACH = [
   { id: 'glide20', name: 'Planeador', desc: 'Planea 20 segundos con la gallina', goal: 20, val: () => Math.floor(stats.glideSec) },
   { id: 'slide1000', name: 'Surfista', desc: '1000 puntos deslizando con el pingüino', goal: 1000, val: () => Math.floor(stats.slidePts) },
   { id: 'master', name: 'Maestro', desc: '1500 puntos con cada animal', goal: ANIMALS.length, val: () => ANIMALS.filter((a) => animalBest[a.id] >= 1500).length },
-  { id: 'collector', name: 'Coleccionista', desc: 'Desbloquea los 6 animales', goal: ANIMALS.length, val: () => ANIMALS.filter(unlocked).length },
+  { id: 'collector', name: 'Coleccionista', desc: 'Desbloquea los ' + ANIMALS.length + ' animales', goal: ANIMALS.length, val: () => ANIMALS.filter(unlocked).length },
   { id: 'podium', name: 'Podio', desc: 'Entra en el top 3 del ranking global', goal: 1, val: () => stats.podium },
   { id: 'weekwin', name: 'Campeón semanal', desc: 'Sé el número 1 del ranking semanal', goal: 1, val: () => stats.weekwin },
   { id: 'share', name: 'Embajador', desc: 'Comparte una puntuación', goal: 1, val: () => stats.shared },
@@ -445,6 +488,9 @@ const ABILITY = {
   bunny: ['Salto alto', 'Salta mucho más'],
   chick: ['Planeo', 'Mantén al caer para planear'],
   peng: ['Deslizar', 'Agachado: puntos x2'],
+  frog: ['Supersalto', 'Agáchate para cargar un salto altísimo'],
+  fox: ['Esquiva', 'Al levantarte, los pájaros no te tocan un instante'],
+  turtle: ['Caparazón', 'Los pájaros no le hacen daño; va más despacio'],
 };
 const INVULN = 90;                                      // frames of invulnerability after the dog's shield breaks
 
@@ -459,7 +505,7 @@ let banner = { text: '', t: 0 }, newlyUnlocked = [];
 let runToken = null, lastRank = null, pendingRun = null;
 let biome = 0, biomePrev = 0, biomeT = 1;   // online ranking (see the ranking section below)
 const MIN_H = 75, CUT_V = 4;                           // variable jump: released early => cut once above MIN_H
-const P = { h: 0, vy: 0, duck: false, doubled: false, shield: 0, inv: 0 };
+const P = { h: 0, vy: 0, duck: false, doubled: false, shield: 0, inv: 0, charge: 0, dodge: 0 };
 
 const specks = Array.from({ length: 110 }, () => ({ x: rnd(0, 1400), y: rnd(GROUND + 10, H - 4), w: Math.floor(rnd(1, 4)) * 2 }));
 const clouds = Array.from({ length: 7 }, (_, i) => ({ x: i * 170 + rnd(0, 60), y: rnd(20, Math.max(40, GROUND - 110)), s: rnd(3, 5) | 0 }));
@@ -469,7 +515,7 @@ function reset() {
   score = 0; speed = START_SPEED; scroll = 0; distSince = 0; gap = 320; mile = 0; flash = 0;
   night = 0; nightTarget = 0; animT = 0; flapT = 0;
   obstacles = []; dust = [];
-  P.h = 0; P.vy = 0; P.duck = false; P.doubled = false; P.inv = 0;
+  P.h = 0; P.vy = 0; P.duck = false; P.doubled = false; P.inv = 0; P.charge = 0; P.dodge = 0;
   P.shield = animal.id === 'dog' ? 1 : 0;
   banner = { text: '', t: 0 }; newlyUnlocked = [];
   newAch = []; achQ = []; achShow = { text: '', t: 0 }; runDucked = false;
@@ -511,7 +557,9 @@ function jump() {
   }
   stats.jumps++;
   checkAch();
-  P.vy = animal.id === 'bunny' ? JUMP_V * 1.1 : JUMP_V;
+  const charged = animal.id === 'frog' && P.charge >= 20;          // frog: crouch ~1/3 s first for a super jump
+  P.vy = charged ? JUMP_V * 1.22 : animal.id === 'bunny' ? JUMP_V * 1.1 : JUMP_V;
+  P.charge = 0;
   sfx.jump();
   puff(8);
 }
@@ -582,7 +630,11 @@ function update(dt) {
   flapT += dt;
 
   // physics
+  const wasDuck = P.duck;
   P.duck = duckHeld && P.h === 0;
+  if (animal.id === 'frog') P.charge = P.duck ? Math.min(60, P.charge + dt) : Math.max(0, P.charge - 2 * dt);   // the charge fades quickly once you stand up
+  if (animal.id === 'fox' && wasDuck && !P.duck && P.h === 0) P.dodge = 30;                                    // fox: half a second of bird immunity when you stand up
+  if (P.dodge > 0) P.dodge -= dt;
   if (P.h > 0 || P.vy > 0) {
     if (!jumpHeld && P.vy > CUT_V && P.h >= MIN_H) P.vy = CUT_V;   // released early: shorter jump
     const glide = animal.id === 'chick' && jumpHeld && P.vy < 0;   // chicken: hold while falling to glide
@@ -628,6 +680,7 @@ function update(dt) {
       o.counted = true;
       if (!o.hit) { stats.dodged++; if (o.type === 'bird') stats.birds++; checkAch(); }
     }
+    if (o.type === 'bird' && (animal.id === 'turtle' || (animal.id === 'fox' && P.dodge > 0)) && overlap(pb, hitbox(o))) { o.hit = true; continue; }
     if (P.inv <= 0 && overlap(pb, hitbox(o))) {
       if (P.shield > 0) {
         P.shield = 0; P.inv = INVULN; o.hit = true;
@@ -753,8 +806,10 @@ function drawPlayer() {
     const up = P.h > 0 ? Math.floor(flapT / (gliding ? 7 : 4)) % 2 : Math.floor(animT / 20) % 2;
     if (up) { frames = animal.framesUp; duck = animal.duckUp; }
   }
+  if (P.dodge > 0) ctx.globalAlpha = 0.55;                      // fox dodging: ghostly
   if (P.duck) blit(duck[f], PX, GROUND - 36, 48, 36);
   else blit(frames[f], PX, GROUND - P.h - SP * S, SP * S, SP * S);
+  ctx.globalAlpha = 1;
 }
 
 function drawObstacles() {
@@ -942,6 +997,7 @@ function cycleVol(e) {
 showVol();
 
 /* ---------- game speed ---------- */
+const simPace = () => pace * (animal.id === 'turtle' ? 0.85 : 1);   // the turtle plays 15% slower
 const PACES = [0.6, 0.7, 0.8, 0.9, 1];
 const fine = !window.matchMedia('(pointer: coarse)').matches;   // mouse/keyboard devices default to 80%
 let pace = Number(store.get('dp-pace', fine ? '0.8' : '1'));
@@ -962,7 +1018,7 @@ showPace();
 let inGame = false;
 let last = performance.now();
 function frame(t) {
-  const dt = Math.min((t - last) / 16.667, 3) * pace;   // pace < 1 slows the whole simulation evenly
+  const dt = Math.min((t - last) / 16.667, 3) * simPace();   // pace < 1 slows the whole simulation evenly
   last = t;
   if (inGame) {
     if (!paused) update(dt);

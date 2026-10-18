@@ -3,7 +3,7 @@
 // Storage: Upstash Redis through its REST API (connect it from Vercel -> Storage; it sets these env vars).
 const crypto = require('crypto');
 
-const ANIMALS = ['dino', 'cat', 'dog', 'bunny', 'chick', 'peng'];
+const ANIMALS = ['dino', 'cat', 'dog', 'bunny', 'chick', 'peng', 'frog', 'fox', 'turtle'];
 const PID_RE = /^[a-f0-9]{32}$/;
 const TOP = 20;
 const MAX_SCORE = 999999;

@@ -249,7 +249,7 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
   h1 { margin: 2px 0 6px; font-size: 22px; text-shadow: 3px 3px 0 var(--shadow); }
   .tag { margin: 0; font-size: 8px; }
   .label { margin: 10px 0 12px; font-size: 8px; }
-  .picker { grid-template-columns: repeat(6, 1fr); gap: 12px; }
+  .picker { grid-template-columns: repeat(9, 1fr); gap: 10px; }
   .pick { padding: 8px 2px; gap: 6px; font-size: 8px; }
   .pick canvas { width: 42px; height: 42px; }
   .pick small { font-size: 8px; }

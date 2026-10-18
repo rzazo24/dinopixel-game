@@ -2,7 +2,7 @@
 
 **[Juega ahora: dinopixel-game.vercel.app](https://dinopixel-game.vercel.app/)**
 
-Un juego de correr y saltar al estilo del dinosaurio de Chrome, en pixel art a color, con **6 animales
+Un juego de correr y saltar al estilo del dinosaurio de Chrome, en pixel art a color, con **9 animales
 desbloqueables**, cada uno con su propia habilidad. Se juega en el navegador y se puede instalar como **PWA**
 (funciona sin conexión). Sin dependencias ni paso de compilación: HTML, CSS y JavaScript puros.
 
@@ -41,6 +41,9 @@ Empiezas con el dino; el resto se desbloquea con tu **mejor puntuación** (con c
 | Conejo | 4000 | **Salto alto** |
 | Gallina | 5500 | **Planeo**: mantén pulsado al caer |
 | Pingüino | 7000 | **Deslizar**: agachado en el suelo, puntos x2 |
+| Rana | 8500 | **Supersalto**: agáchate un momento para cargar un salto mucho más alto |
+| Zorro | 10000 | **Esquiva**: al levantarte tras agacharte, medio segundo en que los pájaros no te tocan |
+| Tortuga | 12000 | **Caparazón**: los pájaros no le hacen daño, pero el juego va un 15 % más lento (y suma menos puntos) |
 
 Los récords se guardan por animal en el navegador (`localStorage`).
 
@@ -49,7 +52,7 @@ Los récords se guardan por animal en el navegador (`localStorage`).
 21 logros con aviso en pantalla al conseguirlos y una pantalla **Logros** (botón del menú) con el progreso de cada
 uno. Entre ellos: puntuaciones (500 a 7000), partidas jugadas, saltos, obstáculos y pájaros esquivados, 1000 puntos
 sin agacharte, uno por habilidad (doble salto del gato, escudo del perro, planeo de la gallina, deslizar del
-pingüino), 1500 con cada animal, desbloquear los 6, entrar en el top 3 del ranking, ser el número 1 de la semana y compartir. Se guardan en el
+pingüino), 1500 con cada animal, desbloquear los 9, entrar en el top 3 del ranking, ser el número 1 de la semana y compartir. Se guardan en el
 navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos, sin avisos.
 
 ## Ajustes
@@ -140,7 +143,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v42';   // -> 'dinopixel-v43', ...
+const CACHE = 'dinopixel-v43';   // -> 'dinopixel-v44', ...
 ```
 
 Notas de instalación:

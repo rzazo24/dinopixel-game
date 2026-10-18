@@ -46,7 +46,7 @@ try {
 
   /* ---- menu ---- */
   await fresh();
-  t.check('menu: 6 animal cards, 5 locked on a fresh profile', (await ev(`document.querySelectorAll('.pick').length`)) === 6 && (await ev(`document.querySelectorAll('.pick.locked').length`)) === 5);
+  t.check('menu: 9 animal cards, 8 locked on a fresh profile', (await ev(`document.querySelectorAll('.pick').length`)) === 9 && (await ev(`document.querySelectorAll('.pick.locked').length`)) === 8);
   t.check('menu: next unlock hint', (await ev(`document.getElementById('tag').textContent`)).includes('1000'));
   t.check('menu: pixel font loaded', await ev(`document.fonts.check('10px "Press Start 2P"')`));
   t.check('menu: play / speed / sound / ranking / achievements / help buttons', await ev(`['play','pace','mute','music','vol','rank-btn','ach-btn','help-btn'].every(id => document.getElementById(id))`));
@@ -64,7 +64,7 @@ try {
   await click('help-btn'); await sleep(200);
   t.check('help opens with 3 tabs', !(await hidden('help')) && (await ev(`document.querySelectorAll('#help .tab').length`)) === 3);
   await ev(`document.querySelector('[data-tab=animals]').click()`); await sleep(100);
-  t.check('help: animals tab lists the 6 animals', (await ev(`document.querySelectorAll('#help-body .row').length`)) === 6);
+  t.check('help: animals tab lists the 9 animals', (await ev(`document.querySelectorAll('#help-body .row').length`)) === 9);
   await esc(); await sleep(100);
   t.check('Esc closes help', await hidden('help'));
   await click('ach-btn'); await sleep(200);
@@ -123,6 +123,40 @@ try {
   t.check('dog: the first hit is survived', (await ev('__dp.state')) === 'running' && (await ev('__dp.stats.shields')) === 1);
   t.check('dog: an obstacle walked through while invulnerable is not a dodge', (await ev('__dp.stats.dodged')) === 0);
   t.check('dog: the second hit ends the run', await chrome.waitFor(`__dp.state === 'over'`, 25000));
+
+  /* ---- the three newer animals ---- */
+  // a mid-height bird right on top of the player: kills a normal animal standing up
+  const birdOnPlayer = `__dp.o.push({ type: 'bird', x: 52, dy: -58, w: 42, h: 27, f: 0 })`;
+  await fresh(ALL); await startRun('frog'); await noObstacles(); await grounded();
+  const hFrogPlain = await maxHeight(`__dp.setJump(true); __dp.press()`, 1100);
+  await ev('__dp.setJump(false)'); await grounded();
+  await ev('__dp.setDuck(true)'); await sleep(700);                         // crouch to charge
+  const hFrog = await maxHeight(`__dp.setJump(true); __dp.press(); __dp.setDuck(false)`, 1400);
+  t.check('frog: a plain jump is like the dino', Math.abs(hFrogPlain - hDino) < 15, [hFrogPlain, hDino]);
+  t.check('frog: crouching first charges a much higher jump', hFrog > hDino * 1.3, [hFrog, hDino]);
+
+  await fresh(ALL); await startRun('dino'); await ev(`window.__clr = setInterval(() => { __dp.o.splice(0, __dp.o.length, ...__dp.o.filter(o => o.injected)); }, 3)`); await grounded();
+  await ev(birdOnPlayer.replace("f: 0 }", "f: 0, injected: true }")); await sleep(300);
+  t.check('control: the dino dies to a bird on top of it', (await ev('__dp.state')) === 'over');
+
+  await fresh(ALL); await startRun('fox'); await noObstacles(); await grounded();
+  await ev('__dp.setDuck(true)'); await sleep(300); await ev('__dp.setDuck(false)'); await sleep(40);
+  await ev(`clearInterval(window.__clr); __dp.o.length = 0; ${birdOnPlayer}`); await sleep(250);
+  t.check('fox: right after standing up, a bird passes through', (await ev('__dp.state')) === 'running');
+  await ev(`__dp.o.length = 0`); await sleep(900);
+  await ev(birdOnPlayer); await sleep(300);
+  t.check('fox: the dodge only lasts a moment (a later bird hits)', (await ev('__dp.state')) === 'over');
+
+  await fresh(ALL); await startRun('turtle'); await noObstacles(); await grounded();
+  await ev(`clearInterval(window.__clr); __dp.o.length = 0; ${birdOnPlayer}`); await sleep(800);
+  t.check('turtle: birds do not hurt it', (await ev('__dp.state')) === 'running');
+  t.check('turtle: walking through a bird is not counted as a dodge', (await ev('__dp.stats.birds')) === 0);
+  await ev(`window.__clr = setInterval(() => { __dp.o.length = 0; }, 3)`);
+  const rt = async () => { const a = await ev('__dp.score'); await sleep(1500); return ((await ev('__dp.score')) - a) / 1.5; };
+  const rTurtle = await rt();
+  await fresh(ALL); await startRun('dino'); await noObstacles(); await grounded();
+  const rDino = await rt();
+  t.check('turtle: the game runs about 15% slower (points per second)', rTurtle / rDino > 0.75 && rTurtle / rDino < 0.95, [rTurtle, rDino]);
 
   /* ---- achievements: silent on load, banner in game ---- */
   await fresh(`localStorage.setItem('dp-best','600'); localStorage.setItem('dp-stats', JSON.stringify({jumps:199}))`);
