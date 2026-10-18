@@ -19,7 +19,8 @@ desbloqueables**, cada uno con su propia habilidad. Se juega en el navegador y s
 | Agacharse | `↓` / `S` | Mantén pulsada la parte baja |
 | Pausa | `P` / `Esc` | Botón ⏸ |
 | Pantalla completa | `F` | Se activa al pulsar JUGAR |
-| Sonido | `M` | Botón del menú |
+| Efectos de sonido | `M` | Botón del menú |
+| Música | `N` | Botón del menú |
 
 Esquiva cactus (salta) y pájaros (agáchate o salta, según la altura). Cada 700 puntos cambia entre día y noche,
 y la velocidad aumenta con la puntuación.
@@ -50,7 +51,11 @@ navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos
 ## Ajustes
 
 - **Velocidad** (60–100 %): ralentiza todo el juego por igual. Por defecto 100 % en móvil y 80 % en PC.
-- **Sonido**: efectos generados con WebAudio (no hay archivos de audio).
+- **Efectos** (`M`): sonidos generados con WebAudio (no hay archivos de audio).
+- **Música** (`N`): chiptune generado en directo, sin archivos de audio, así que funciona sin conexión. De día suena
+  en tono mayor y de noche en menor y algo más lenta. El tempo sube con la velocidad del juego (y con el ajuste de
+  velocidad), y al ir más rápido entran el charles y el bombo. Se pausa con la pausa y se corta al morir; el menú
+  es silencioso. Los efectos y la música se activan por separado y se recuerdan.
 - **Vibración**: solo en dispositivos que la soportan (Android).
 - **Ranking**: botón *Ranking* del menú y de la pausa (ver más abajo), con opción de borrar tus datos.
 - **Ayuda**: botón *Ayuda* del menú y de la pausa (o la tecla `H`), con controles, animales y consejos.
@@ -127,7 +132,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v36';   // -> 'dinopixel-v37', ...
+const CACHE = 'dinopixel-v37';   // -> 'dinopixel-v38', ...
 ```
 
 Notas de instalación:

@@ -49,7 +49,7 @@ try {
   t.check('menu: 6 animal cards, 5 locked on a fresh profile', (await ev(`document.querySelectorAll('.pick').length`)) === 6 && (await ev(`document.querySelectorAll('.pick.locked').length`)) === 5);
   t.check('menu: next unlock hint', (await ev(`document.getElementById('tag').textContent`)).includes('1000'));
   t.check('menu: pixel font loaded', await ev(`document.fonts.check('10px "Press Start 2P"')`));
-  t.check('menu: play / speed / sound / ranking / achievements / help buttons', await ev(`['play','pace','mute','rank-btn','ach-btn','help-btn'].every(id => document.getElementById(id))`));
+  t.check('menu: play / speed / sound / ranking / achievements / help buttons', await ev(`['play','pace','mute','music','rank-btn','ach-btn','help-btn'].every(id => document.getElementById(id))`));
   t.check('menu: install errors from Chrome = none', JSON.stringify((await chrome.send('Page.getInstallabilityErrors')).result.installabilityErrors) === '[]');
   const overflow = await (async () => {                       // phone in landscape (short screen): the menu must fit without scrolling
     await chrome.send('Emulation.setDeviceMetricsOverride', { width: 844, height: 340, deviceScaleFactor: 2, mobile: true });
@@ -129,6 +129,35 @@ try {
   t.check('already-earned achievements are marked silently on load', (await ev(`!!__dp.ach.s500`)) && (await ev('__dp.achShow.t')) === 0 && (await ev('__dp.newAch.length')) === 0);
   await startRun();
   t.check('the 200th jump earns "Saltarín" with an on-screen banner', (await ev(`!!__dp.ach.jumps200`)) && (await ev('__dp.achShow.text')) === 'Saltarín');
+
+  /* ---- music (procedural chiptune; autoplay is allowed by the test browser flags) ---- */
+  await fresh();
+  t.check('music: on by default, silent in the menu', (await ev('__dp.music.on')) === true && (await ev('__dp.music.playing')) === false);
+  await startRun('dino'); await noObstacles(); await grounded();
+  t.check('music: starts with the run', (await ev('__dp.music.playing')) === true);
+  await ev(`(() => { const a = __dp.music.gain.context; window.__an = a.createAnalyser(); window.__an.fftSize = 2048; __dp.music.gain.connect(window.__an); })()`);
+  const rms = () => ev(`(() => { const d = new Float32Array(window.__an.fftSize); window.__an.getFloatTimeDomainData(d); return Math.sqrt(d.reduce((s, x) => s + x * x, 0) / d.length); })()`);
+  const peakOf = async (n = 20) => { let p = 0; for (let i = 0; i < n; i++) { p = Math.max(p, await rms()); await sleep(60); } return p; };
+  const peak = await peakOf();
+  t.check('music: audible output on the music bus while playing', peak > 0.003, peak);
+  const n0 = await ev('__dp.music.notes'); await sleep(1000);
+  t.check('music: notes keep being scheduled', (await ev('__dp.music.notes')) - n0 > 8);
+  const bpmSlow = await ev('__dp.music.bpm');
+  await ev('__dp.setScore(2500)'); await sleep(700);
+  const bpmFast = await ev('__dp.music.bpm');
+  t.check('music: tempo rises with the game speed', bpmFast > bpmSlow * 1.3, [bpmSlow, bpmFast]);
+  await click('pause-btn'); await sleep(600);
+  t.check('music: stops when the game is paused (and goes silent)', (await ev('__dp.music.playing')) === false && (await peakOf(8)) < 0.001);
+  await click('resume'); await sleep(400);
+  t.check('music: resumes after the pause', (await ev('__dp.music.playing')) === true);
+  await ev(`document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyN', bubbles: true }))`); await sleep(500);
+  t.check('music: N turns it off (button label follows)', (await ev('__dp.music.playing')) === false && (await ev(`document.querySelector('#music span').textContent`)) === 'Sin música' && (await ev(`localStorage.getItem('dp-music')`)) === '0');
+  await ev(`document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyN', bubbles: true }))`); await sleep(400);
+  t.check('music: N turns it back on and it restarts mid-run', (await ev('__dp.music.playing')) === true);
+  await fresh(); await startRun('dino');
+  t.check('music: stops on game over', (await chrome.waitFor(`__dp.state === 'over'`, 25000)) && (await ev('__dp.music.playing')) === false);
+  await fresh(`localStorage.setItem('dp-music', '0')`); await startRun('dino');
+  t.check('music: a saved "off" is respected (no music, button says so)', (await ev('__dp.music.playing')) === false && (await ev(`document.querySelector('#music span').textContent`)) === 'Sin música');
 
   /* ---- ranking end to end (real API + mock Redis) ---- */
   await fresh(); await startRun();
