@@ -14,27 +14,42 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<main>
+<main id="menu">
   <h1>DINO<span>PIXEL</span></h1>
-  <div class="frame">
-    <canvas id="game" width="600" height="200" aria-label="Juego"></canvas>
-  </div>
+  <p class="tag">Corre, salta y esquiva</p>
   <p class="label">Elige tu animal</p>
   <div id="picker" class="picker"></div>
+  <button id="play" class="big" type="button">▶ JUGAR</button>
   <p class="hint kb">
     <b>Espacio</b> / <b>↑</b>: saltar &nbsp;·&nbsp;
     <b>↓</b>: agacharte &nbsp;·&nbsp;
-    <b>P</b>: pausa &nbsp;·&nbsp; <b>M</b>: sonido
+    <b>P</b>: pausa &nbsp;·&nbsp; <b>F</b>: pantalla completa &nbsp;·&nbsp; <b>M</b>: sonido
   </p>
   <p class="hint touch">
     <b>Toca</b> la pantalla: saltar &nbsp;·&nbsp;
-    <b>Mantén</b> la parte de abajo: agacharte
+    <b>Mantén</b> la parte de abajo: agacharte<br>
+    Se juega en horizontal 📱↔
   </p>
   <div class="actions">
     <button id="mute" class="small" type="button">🔊 Sonido</button>
     <button id="install" class="small" type="button" hidden>⬇ Instalar</button>
   </div>
 </main>
+
+<div id="stage" hidden>
+  <canvas id="game" width="600" height="200" aria-label="Juego"></canvas>
+  <button id="pause-btn" class="round" type="button" aria-label="Pausa">⏸</button>
+  <div id="pause" class="overlay" hidden>
+    <h2>PAUSA</h2>
+    <button id="resume" class="big" type="button">▶ Seguir</button>
+    <button id="fs" class="small" type="button">⛶ Pantalla completa</button>
+    <button id="home" class="small" type="button">🏠 Menú</button>
+  </div>
+  <div id="rotate" class="overlay">
+    <div class="phone">📱</div>
+    <p>Gira el móvil para jugar en horizontal</p>
+  </div>
+</div>
 <div id="update" class="toast" role="status" hidden>
   <span>🎮 ¡Nueva versión disponible!</span>
   <button id="update-now" class="small" type="button">Actualizar</button>

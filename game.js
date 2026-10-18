@@ -2,7 +2,8 @@
 'use strict';
 
 /* ---------- constants ---------- */
-const W = 600, H = 200, GROUND = 160, S = 3;           // logical size, ground line, sprite scale
+let W = 600, H = 200, GROUND = 160;                     // logical size (adapts to the screen), ground line
+const S = 3;                                            // sprite scale
 const GRAV = 0.6, JUMP_V = 12, START_SPEED = 6, MAX_SPEED = 13;
 const PX = 50;                                          // player x
 const SP = 16;                                          // animal sprite size in cells
@@ -156,6 +157,18 @@ const canvas = $('game');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
+// The world is about 530-600 logical px wide and 200..300 tall, matching the screen's aspect ratio
+// so the canvas can fill the whole window without distortion.
+function resize() {
+  const a = (window.innerWidth || 600) / (window.innerHeight || 200);
+  if (a >= 3) { H = 200; W = Math.round(200 * a); }
+  else { W = 600; H = Math.round(600 / a); if (H > 300) { H = 300; W = Math.round(300 * a); } }
+  canvas.width = W; canvas.height = H;
+  ctx.imageSmoothingEnabled = false;
+  GROUND = H - 40;
+}
+resize();
+
 /* ---------- audio ---------- */
 let audio = null, muted = store.get('dp-muted', '0') === '1';
 function beep(f0, f1, dur, type = 'square', vol = 0.08) {
@@ -187,9 +200,9 @@ let score, speed, hi, night = 0, nightTarget = 0, scroll, distSince, gap, mile, 
 let obstacles, dust, animT, duckHeld = false;
 const P = { h: 0, vy: 0, duck: false };
 
-const specks = Array.from({ length: 50 }, () => ({ x: rnd(0, W), y: rnd(GROUND + 10, H - 4), w: Math.floor(rnd(1, 4)) * 2 }));
-const clouds = Array.from({ length: 4 }, (_, i) => ({ x: i * 170 + rnd(0, 60), y: rnd(20, 70), s: rnd(3, 5) | 0 }));
-const stars = Array.from({ length: 36 }, () => ({ x: rnd(0, W), y: rnd(4, 100), p: rnd(0, 6) }));
+const specks = Array.from({ length: 110 }, () => ({ x: rnd(0, 1400), y: rnd(GROUND + 10, H - 4), w: Math.floor(rnd(1, 4)) * 2 }));
+const clouds = Array.from({ length: 7 }, (_, i) => ({ x: i * 170 + rnd(0, 60), y: rnd(20, Math.max(40, GROUND - 110)), s: rnd(3, 5) | 0 }));
+const stars = Array.from({ length: 70 }, () => ({ x: rnd(0, 1400), y: rnd(4, 220), p: rnd(0, 6) }));
 
 function reset() {
   score = 0; speed = START_SPEED; scroll = 0; distSince = 0; gap = 320; mile = 0; flash = 0;
@@ -226,8 +239,8 @@ function puff(n) {
 function spawn() {
   const birdOK = score > 300 && Math.random() < 0.3;
   if (birdOK) {
-    const tops = [GROUND - 100, GROUND - 58, GROUND - 34];
-    obstacles.push({ type: 'bird', x: W + 20, y: tops[(Math.random() * 3) | 0], w: 14 * S, h: 9 * S });
+    const tops = [-100, -58, -34];
+    obstacles.push({ type: 'bird', x: W + 20, dy: tops[(Math.random() * 3) | 0], w: 14 * S, h: 9 * S });
   } else {
     const n = 1 + ((Math.random() * (score > 150 ? 3 : 2)) | 0);
     const parts = [];
@@ -239,7 +252,7 @@ function spawn() {
       w += 10 * k + 6;
       h = Math.max(h, 13 * k);
     }
-    obstacles.push({ type: 'cactus', x: W + 20, y: GROUND + 2 - h, w: w - 6, h, parts });
+    obstacles.push({ type: 'cactus', x: W + 20, dy: 2 - h, w: w - 6, h, parts });
   }
   gap = speed * 30 + 120 + rnd(0, 260);
   distSince = 0;
@@ -247,9 +260,10 @@ function spawn() {
 
 /* ---------- update ---------- */
 function hitbox(o) {
+  const y = GROUND + o.dy;
   return o.type === 'bird'
-    ? { x: o.x + 6, y: o.y + 6, w: o.w - 12, h: o.h - 12 }
-    : { x: o.x + 4, y: o.y + 4, w: o.w - 8, h: o.h - 4 };
+    ? { x: o.x + 6, y: y + 6, w: o.w - 12, h: o.h - 12 }
+    : { x: o.x + 4, y: y + 4, w: o.w - 8, h: o.h - 4 };
 }
 function playerBox() {
   return P.duck
@@ -338,10 +352,10 @@ function drawBackground() {
   }
   // sun / moon
   ctx.globalAlpha = 1 - night;
-  if (night < 1) pixelDisc(500, 44, 5, '#ffd23f');
+  if (night < 1) pixelDisc(W - 100, 44, 5, '#ffd23f');
   ctx.globalAlpha = night;
   if (night > 0) {
-    pixelDisc(500, 44, 5, '#f4f1c8', [3, -2, 4]);
+    pixelDisc(W - 100, 44, 5, '#f4f1c8', [3, -2, 4]);
   }
   ctx.globalAlpha = 1;
   // clouds
@@ -396,7 +410,7 @@ function drawPlayer() {
 function drawObstacles() {
   obstacles.forEach((o) => {
     if (o.type === 'bird') {
-      ctx.drawImage(birdImgs[o.f || 0], Math.round(o.x), o.y, o.w, o.h);
+      ctx.drawImage(birdImgs[o.f || 0], Math.round(o.x), GROUND + o.dy, o.w, o.h);
     } else {
       o.parts.forEach((p) => {
         const w = 10 * p.k, h = 13 * p.k;
@@ -418,22 +432,22 @@ function text(str, x, y, size, align = 'center', color = '#fff') {
 
 function drawHUD() {
   const c = col('hud');
-  ctx.font = 'bold 20px ui-monospace, "Courier New", monospace';
+  ctx.font = 'bold 16px ui-monospace, "Courier New", monospace';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = c;
   const blink = flash > 0 && Math.floor(flash / 7) % 2 === 0;
   ctx.globalAlpha = 0.6;
-  ctx.fillText('HI ' + pad(hi), W - 108, 20);
+  ctx.fillText('HI ' + pad(hi), W - 92, 18);
   ctx.globalAlpha = 1;
-  if (!blink) ctx.fillText(pad(score), W - 12, 20);
+  if (!blink) ctx.fillText(pad(score), W - 12, 18);
 }
 
 function draw() {
   // scroll specks/clouds
   const v = state === 'running' ? speed : 0;
   specks.forEach((s) => { s.x -= v; if (s.x < -8) { s.x = W + rnd(0, 40); s.y = rnd(GROUND + 10, H - 4); } });
-  clouds.forEach((c) => { c.x -= v * 0.2 + (state === 'running' ? 0 : 0.1); if (c.x < -80) { c.x = W + rnd(0, 80); c.y = rnd(20, 70); } });
+  clouds.forEach((c) => { c.x -= v * 0.2 + (state === 'running' ? 0 : 0.1); if (c.x < -80) { c.x = W + rnd(0, 80); c.y = rnd(20, Math.max(40, GROUND - 110)); } });
 
   drawBackground();
   drawObstacles();
@@ -447,73 +461,137 @@ function draw() {
   ctx.globalAlpha = 1;
   drawHUD();
 
+  const ty = GROUND * 0.38;
   if (paused) {
-    ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(0, 0, W, H);
-    text('PAUSA', W / 2, 80, 32);
-    text('Pulsa P o toca para seguir', W / 2, 120, 14);
+    // the pause menu is a DOM overlay
   } else if (state === 'ready') {
-    text(animal.name.toUpperCase(), W / 2, 62, 28);
-    text('Pulsa ESPACIO o toca para jugar', W / 2, 98, 14);
+    text(animal.name.toUpperCase(), W / 2, ty, 28);
+    text('Toca la pantalla o pulsa ESPACIO', W / 2, ty + 36, 14);
   } else if (state === 'over') {
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, 0, W, H);
-    text('GAME OVER', W / 2, 62, 32, 'center', '#ffd23f');
-    text('Espacio o toca para reintentar', W / 2, 98, 14);
+    text('GAME OVER', W / 2, ty, 32, 'center', '#ffd23f');
+    text('Toca o pulsa ESPACIO para reintentar', W / 2, ty + 36, 14);
   }
 }
 
 /* ---------- loop ---------- */
+let inGame = false;
 let last = performance.now();
 function frame(t) {
   const dt = Math.min((t - last) / 16.667, 3);
   last = t;
-  if (!paused) update(dt);
-  draw();
+  if (inGame) {
+    if (!paused) update(dt);
+    draw();
+  }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 
+/* ---------- screens, fullscreen, pause ---------- */
+const menu = $('menu'), stage = $('stage'), pauseEl = $('pause');
+const inFs = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+async function goFs() {
+  const el = document.documentElement;
+  try {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) await req.call(el, { navigationUI: 'hide' });
+  } catch { /* not allowed or unsupported (iOS Safari): the stage still fills the window */ }
+  try { await screen.orientation.lock('landscape'); } catch { /* only works in fullscreen / installed PWA on Android */ }
+}
+function leaveFs() {
+  try { if (inFs()) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch { /* ignore */ }
+  try { screen.orientation.unlock(); } catch { /* ignore */ }
+}
+function setPaused(v) {
+  paused = v && inGame;
+  duckHeld = false;
+  pauseEl.hidden = !paused;
+  $('fs').hidden = inFs();
+}
+function enterGame() {
+  inGame = true;
+  menu.hidden = true;
+  stage.hidden = false;
+  goFs().then(resize);
+  resize();
+  reset();
+  state = 'ready';
+  setPaused(false);
+  if (isPortraitTouch()) setPaused(true);
+}
+function exitGame() {
+  inGame = false;
+  setPaused(false);
+  stage.hidden = true;
+  menu.hidden = false;
+  leaveFs();
+  refreshHi();
+  $('play').focus();
+}
+const portraitTouch = window.matchMedia('(orientation: portrait) and (pointer: coarse)');
+const isPortraitTouch = () => portraitTouch.matches;
+portraitTouch.addEventListener('change', () => { if (inGame && portraitTouch.matches) setPaused(true); });
+window.addEventListener('resize', resize);
+document.addEventListener('fullscreenchange', () => { resize(); if (inGame && !inFs()) setPaused(true); });
+document.addEventListener('webkitfullscreenchange', () => { resize(); if (inGame && !inFs()) setPaused(true); });
+stage.addEventListener('contextmenu', (e) => e.preventDefault());
+$('play').addEventListener('click', enterGame);
+$('pause-btn').addEventListener('click', () => setPaused(true));
+$('resume').addEventListener('click', () => setPaused(false));
+$('fs').addEventListener('click', async () => { await goFs(); setPaused(true); });
+$('home').addEventListener('click', exitGame);
+
 /* ---------- input ---------- */
 function press() {
-  if (paused) { paused = false; return; }
   if (state === 'ready') { start(); jump(); }
   else if (state === 'over') { if (performance.now() - diedAt > 350) start(); }
   else jump();
 }
-function togglePause() { if (state === 'running') paused = !paused; }
 
 document.addEventListener('keydown', (e) => {
+  if (!inGame) { if (e.code === 'KeyM') setMuted(!muted); return; }
   if (e.repeat) { if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'ArrowDown') e.preventDefault(); return; }
   switch (e.code) {
-    case 'Space': case 'ArrowUp': case 'KeyW': e.preventDefault(); press(); break;
-    case 'ArrowDown': case 'KeyS': e.preventDefault(); duckHeld = true; break;
-    case 'KeyP': togglePause(); break;
+    case 'Space': case 'ArrowUp': case 'KeyW':
+      e.preventDefault();
+      if (paused) { if (e.code === 'Space') setPaused(false); } else press();
+      break;
+    case 'ArrowDown': case 'KeyS': e.preventDefault(); duckHeld = !paused; break;
+    case 'KeyP': case 'Escape': setPaused(!paused); break;
+    case 'KeyF': if (inFs()) leaveFs(); else goFs(); break;
     case 'KeyM': setMuted(!muted); break;
   }
 });
 document.addEventListener('keyup', (e) => {
   if (e.code === 'ArrowDown' || e.code === 'KeyS') duckHeld = false;
-  if (e.code === 'Space') e.preventDefault();
+  if (inGame && e.code === 'Space') e.preventDefault();
 });
 
 canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
+  if (paused) return;
   const r = canvas.getBoundingClientRect();
   const lower = (e.clientY - r.top) / r.height > 0.68;
-  if (state === 'running' && !paused && lower) duckHeld = true;
+  if (state === 'running' && lower) duckHeld = true;
   else press();
 });
 ['pointerup', 'pointercancel', 'pointerleave'].forEach((n) => canvas.addEventListener(n, () => { duckHeld = false; }));
-document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'running') paused = true; });
-window.addEventListener('blur', () => { duckHeld = false; if (state === 'running') paused = true; });
+document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'running') setPaused(true); });
+window.addEventListener('blur', () => { duckHeld = false; if (state === 'running') setPaused(true); });
 
 /* ---------- UI: animal picker, sound, install ---------- */
 const picker = $('picker');
+function refreshHi() {
+  [...picker.children].forEach((b) => {
+    b.querySelector('small').textContent = '★ ' + store.get('dp-hi-' + b.dataset.id, '0');
+  });
+}
 function selectAnimal(id) {
   animal = ANIMALS.find((a) => a.id === id) || ANIMALS[0];
   store.set('dp-animal', animal.id);
   [...picker.children].forEach((b) => b.classList.toggle('on', b.dataset.id === animal.id));
   hi = Number(store.get('dp-hi-' + animal.id, '0'));
-  if (state === 'over') { reset(); state = 'ready'; }
 }
 ANIMALS.forEach((a) => {
   const b = document.createElement('button');
@@ -527,11 +605,13 @@ ANIMALS.forEach((a) => {
   g.drawImage(a.frames[0], 0, 0, SP * S, SP * S);
   const s = document.createElement('span');
   s.textContent = a.name;
-  b.append(c, s);
-  b.addEventListener('click', () => { if (state !== 'running') selectAnimal(a.id); b.blur(); });
+  const best = document.createElement('small');
+  b.append(c, s, best);
+  b.addEventListener('click', () => selectAnimal(a.id));
   picker.appendChild(b);
 });
 selectAnimal(animal.id);
+refreshHi();
 
 function setMuted(m) {
   muted = m;
