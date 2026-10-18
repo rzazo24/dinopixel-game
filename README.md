@@ -66,12 +66,12 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v19';   // -> 'dinopixel-v20', ...
+const CACHE = 'dinopixel-v20';   // -> 'dinopixel-v21', ...
 ```
 
 Notas de instalación:
 
-- **Android (Chrome):** menú ⋮ → *Instalar aplicación*. Se abre en horizontal y a pantalla completa.
+- **Android (Chrome):** menú ⋮ → *Instalar aplicación*. Se abre en horizontal y sin barras del navegador.
 - **iPhone/iPad:** Safari → Compartir → *Añadir a pantalla de inicio*. iOS no permite fijar la orientación ni
   vibrar; si el móvil está en vertical, el juego pide girarlo.
 - Si ya habías instalado una versión antigua como acceso directo, bórrala y vuelve a instalarla.

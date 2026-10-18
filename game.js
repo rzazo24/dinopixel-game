@@ -652,12 +652,16 @@ requestAnimationFrame(frame);
 
 /* ---------- screens, fullscreen, pause ---------- */
 const menu = $('menu'), stage = $('stage'), pauseEl = $('pause');
+// Installed PWA (standalone / fullscreen): already chrome-less, so never ask for fullscreen again.
+// On Android every fullscreen request shows a system "swipe to exit" notice.
+const installed = ['fullscreen', 'standalone', 'minimal-ui'].some((m) => window.matchMedia('(display-mode: ' + m + ')').matches)
+  || navigator.standalone === true;
 const inFs = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
 async function goFs() {
   const el = document.documentElement;
   try {
     const req = el.requestFullscreen || el.webkitRequestFullscreen;
-    if (req) await req.call(el, { navigationUI: 'hide' });
+    if (req && !installed && !inFs()) await req.call(el, { navigationUI: 'hide' });
   } catch { /* not allowed or unsupported (iOS Safari): the stage still fills the window */ }
   try { await screen.orientation.lock('landscape'); } catch { /* only works in fullscreen / installed PWA on Android */ }
 }
@@ -670,7 +674,7 @@ function setPaused(v) {
   duckHeld = false;
   jumpHeld = false;
   pauseEl.hidden = !paused;
-  $('fs').hidden = inFs();
+  $('fs').hidden = inFs() || installed;
 }
 function enterGame() {
   inGame = true;
@@ -688,7 +692,6 @@ function exitGame() {
   setPaused(false);
   stage.hidden = true;
   menu.hidden = false;
-  leaveFs();
   refreshPicker();
   $('play').focus();
 }
@@ -713,7 +716,11 @@ function press() {
 }
 
 document.addEventListener('keydown', (e) => {
-  if (!inGame) { if (e.code === 'KeyM') setMuted(!muted); return; }
+  if (!inGame) {
+    if (e.code === 'KeyM') setMuted(!muted);
+    if (e.code === 'KeyF') { if (inFs()) leaveFs(); else goFs(); }
+    return;
+  }
   if (e.repeat) { if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'ArrowDown') e.preventDefault(); return; }
   switch (e.code) {
     case 'Space': case 'ArrowUp': case 'KeyW':
