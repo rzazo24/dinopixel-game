@@ -528,13 +528,40 @@ function draw() {
   }
 }
 
+/* ---------- pixel icons ---------- */
+// '1' = filled cell. Rendered as inline SVG (crisp edges, colored with currentColor).
+const ICONS = {
+  play: ['10000000', '11000000', '11100000', '11110000', '11110000', '11100000', '11000000', '10000000'],
+  pause: ['01100110', '01100110', '01100110', '01100110', '01100110', '01100110', '01100110', '01100110'],
+  sound: ['00001000', '00011010', '11111001', '11111001', '11111001', '00011010', '00001000', '00000000'],
+  mute: ['00001000', '00011000', '11111101', '11111010', '11111101', '00011000', '00001000', '00000000'],
+  bolt: ['00001100', '00011000', '00110000', '01111110', '00001100', '00011000', '00110000', '00100000'],
+  fullscreen: ['11100111', '10000001', '10000001', '00000000', '00000000', '10000001', '10000001', '11100111'],
+  home: ['00011000', '00111100', '01111110', '11111111', '01111110', '01100110', '01100110', '01100110'],
+  download: ['00011000', '00011000', '00011000', '01111110', '00111100', '00011000', '00000000', '11111111'],
+  star: ['00011000', '00011000', '11111111', '01111110', '00111100', '00111100', '01100110', '01000010'],
+  close: ['10000001', '01000010', '00100100', '00011000', '00011000', '00100100', '01000010', '10000001'],
+  up: ['00011000', '00111100', '01111110', '11111111', '00011000', '00011000', '00011000', '00011000'],
+  down: ['00011000', '00011000', '00011000', '00011000', '11111111', '01111110', '00111100', '00011000'],
+  phone: ['1111111', '1000001', '1000001', '1000001', '1000001', '1000001', '1000001', '1000001', '1000001', '1111111', '0011100'],
+};
+function iconSvg(name) {
+  const rows = ICONS[name];
+  const w = rows[0].length, h = rows.length;
+  let d = '';
+  rows.forEach((r, y) => { for (let x = 0; x < w; x++) if (r[x] === '1') d += `M${x} ${y}h1v1h-1z`; });
+  return `<svg class="ic" style="--w:${w};--h:${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path d="${d}"/></svg>`;
+}
+const setIcon = (el, name) => { el.innerHTML = iconSvg(name); };
+document.querySelectorAll('i[data-icon]').forEach((el) => setIcon(el, el.dataset.icon));
+
 /* ---------- game speed ---------- */
 const PACES = [0.6, 0.7, 0.8, 0.9, 1];
 const fine = !window.matchMedia('(pointer: coarse)').matches;   // mouse/keyboard devices default to 80%
 let pace = Number(store.get('dp-pace', fine ? '0.8' : '1'));
 if (!PACES.includes(pace)) pace = fine ? 0.8 : 1;
 function showPace() {
-  ['pace', 'pace2'].forEach((id) => { $(id).textContent = '⏱ Velocidad: ' + Math.round(pace * 100) + '%'; });
+  ['pace', 'pace2'].forEach((id) => { $(id).querySelector('span').textContent = 'Velocidad ' + Math.round(pace * 100) + '%'; });
 }
 function cyclePace(e) {
   pace = PACES[(PACES.indexOf(pace) + 1) % PACES.length];
@@ -655,7 +682,7 @@ window.addEventListener('blur', () => { duckHeld = false; if (state === 'running
 const picker = $('picker');
 function refreshHi() {
   [...picker.children].forEach((b) => {
-    b.querySelector('small').textContent = '★ ' + store.get('dp-hi-' + b.dataset.id, '0');
+    b.querySelector('small').innerHTML = iconSvg('star') + store.get('dp-hi-' + b.dataset.id, '0');
   });
 }
 function selectAnimal(id) {
@@ -687,7 +714,8 @@ refreshHi();
 function setMuted(m) {
   muted = m;
   store.set('dp-muted', m ? '1' : '0');
-  $('mute').textContent = m ? '🔇 Sonido' : '🔊 Sonido';
+  setIcon($('mute').querySelector('i'), m ? 'mute' : 'sound');
+  $('mute').querySelector('span').textContent = m ? 'Sin sonido' : 'Sonido';
 }
 $('mute').addEventListener('click', (e) => { setMuted(!muted); e.currentTarget.blur(); });
 setMuted(muted);

@@ -9,6 +9,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preload" href="fonts/press-start-2p.woff2" as="font" type="font/woff2" crossorigin>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="stylesheet" href="style.css">
@@ -19,43 +20,42 @@
   <p class="tag">Corre, salta y esquiva</p>
   <p class="label">Elige tu animal</p>
   <div id="picker" class="picker"></div>
-  <button id="play" class="big" type="button">▶ JUGAR</button>
+  <button id="play" class="big" type="button"><i data-icon="play"></i><span>JUGAR</span></button>
   <p class="hint kb">
-    <b>Espacio</b> / <b>↑</b>: saltar &nbsp;·&nbsp;
-    <b>↓</b>: agacharte &nbsp;·&nbsp;
-    <b>P</b>: pausa &nbsp;·&nbsp; <b>F</b>: pantalla completa &nbsp;·&nbsp; <b>M</b>: sonido
+    <b>ESPACIO</b> <b><i data-icon="up"></i></b> saltar &nbsp;
+    <b><i data-icon="down"></i></b> agacharte &nbsp;
+    <b>P</b> pausa &nbsp; <b>F</b> pantalla completa &nbsp; <b>M</b> sonido
   </p>
   <p class="hint touch">
-    <b>Toca</b> la pantalla: saltar &nbsp;·&nbsp;
-    <b>Mantén</b> la parte de abajo: agacharte<br>
-    Se juega en horizontal 📱↔
+    <b>TOCA</b> saltar &nbsp; <b>MANTÉN ABAJO</b> agacharte<br>
+    <i data-icon="phone"></i> Juega en horizontal
   </p>
   <div class="actions">
-    <button id="pace" class="small" type="button">⏱ Velocidad</button>
-    <button id="mute" class="small" type="button">🔊 Sonido</button>
-    <button id="install" class="small" type="button" hidden>⬇ Instalar</button>
+    <button id="pace" class="small" type="button"><i data-icon="bolt"></i><span>Velocidad</span></button>
+    <button id="mute" class="small" type="button"><i data-icon="sound"></i><span>Sonido</span></button>
+    <button id="install" class="small" type="button" hidden><i data-icon="download"></i><span>Instalar</span></button>
   </div>
 </main>
 
 <div id="stage" hidden>
   <canvas id="game" width="600" height="200" aria-label="Juego"></canvas>
-  <button id="pause-btn" class="round" type="button" aria-label="Pausa">⏸</button>
+  <button id="pause-btn" class="round" type="button" aria-label="Pausa"><i data-icon="pause"></i></button>
   <div id="pause" class="overlay" hidden>
     <h2>PAUSA</h2>
-    <button id="resume" class="big" type="button">▶ Seguir</button>
-    <button id="pace2" class="small" type="button">⏱ Velocidad</button>
-    <button id="fs" class="small" type="button">⛶ Pantalla completa</button>
-    <button id="home" class="small" type="button">🏠 Menú</button>
+    <button id="resume" class="big" type="button"><i data-icon="play"></i><span>SEGUIR</span></button>
+    <button id="pace2" class="small" type="button"><i data-icon="bolt"></i><span>Velocidad</span></button>
+    <button id="fs" class="small" type="button"><i data-icon="fullscreen"></i><span>Pantalla completa</span></button>
+    <button id="home" class="small" type="button"><i data-icon="home"></i><span>Menú</span></button>
   </div>
   <div id="rotate" class="overlay">
-    <div class="phone">📱</div>
+    <div class="phone"><i data-icon="phone"></i></div>
     <p>Gira el móvil para jugar en horizontal</p>
   </div>
 </div>
 <div id="update" class="toast" role="status" hidden>
-  <span>🎮 ¡Nueva versión disponible!</span>
+  <span><i data-icon="star"></i> Nueva versión</span>
   <button id="update-now" class="small" type="button">Actualizar</button>
-  <button id="update-later" class="small" type="button" aria-label="Más tarde">✕</button>
+  <button id="update-later" class="small" type="button" aria-label="Más tarde"><i data-icon="close"></i></button>
 </div>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>

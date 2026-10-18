@@ -1,5 +1,5 @@
 // Bump this on every release: it is what makes browsers see a "new version".
-const CACHE = 'dinopixel-v10';
+const CACHE = 'dinopixel-v11';
 const ASSETS = [
   './',
   'index.html',
@@ -10,6 +10,7 @@ const ASSETS = [
   'icons/icon-512.png',
   'icons/icon-maskable-512.png',
   'icons/apple-touch-icon.png',
+  'fonts/press-start-2p.woff2',
 ];
 
 // Safari (and Chrome) refuse to serve a response whose `redirected` flag is set to a navigation
