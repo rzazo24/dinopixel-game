@@ -22,8 +22,12 @@ desbloqueables**, cada uno con su propia habilidad. Se juega en el navegador y s
 | Efectos de sonido | `M` | Botón del menú |
 | Música | `N` | Botón del menú |
 
-Esquiva cactus (salta) y pájaros (agáchate o salta, según la altura). Cada 700 puntos cambia entre día y noche,
-y la velocidad aumenta con la puntuación.
+Esquiva los obstáculos del suelo (salta) y los pájaros (agáchate o salta, según la altura). Cada 700 puntos cambia
+entre día y noche, y la velocidad aumenta con la puntuación.
+
+**Zonas:** cada 1500 puntos cambias de escenario, con transición de colores y aviso: **Desierto** (cactus),
+**Nieve** (muñecos de nieve y pinos) y **Ciudad** (conos y bocas de incendio, con edificios al fondo). Después vuelve
+al desierto. Todos los obstáculos del suelo tienen el mismo tamaño, así que cambia el paisaje, no la dificultad.
 
 ## Animales y habilidades
 
@@ -136,7 +140,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v41';   // -> 'dinopixel-v42', ...
+const CACHE = 'dinopixel-v42';   // -> 'dinopixel-v43', ...
 ```
 
 Notas de instalación:

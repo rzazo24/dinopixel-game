@@ -159,6 +159,25 @@ ANIMALS.forEach((a) => {
   }
 });
 const cactusImg = sprite(CACTUS, CACTUS_PAL);
+const OBST = {
+  cactus: cactusImg,
+  snowman: sprite([
+    '...hhhh...', '...hhhh...', '..hhhhhh..', '...wwww...', '..wkwwkw..', '..wwccww..', '...wwww...',
+    '..wwwwww..', '.wwwkwwww.', 'swwwwwwwws', 'swwwkwwwws', 'swwwwwwwws', '.ssssssss.',
+  ], { h: '#2c2c3a', w: '#f8fbff', s: '#b9cbe0', k: '#1a1a1a', c: '#f08a24' }),
+  pine: sprite([
+    '....ww....', '...wggw...', '...gggg...', '..wggggw..', '..gggggg..', '.wggggggw.', '.gggggggg.',
+    'wggggggggw', 'gggggggggg', '....tt....', '....tt....', '....tt....', '...tttt...',
+  ], { w: '#f8fbff', g: '#2f7a55', t: '#6b4426' }),
+  cone: sprite([
+    '....oo....', '....oo....', '...oooo...', '...wwww...', '...oooo...', '..oooooo..', '..wwwwww..',
+    '..oooooo..', '.oooooooo.', '.oooooooo.', '.oooooooo.', 'dddddddddd', 'dddddddddd',
+  ], { o: '#f26a1b', w: '#ffffff', d: '#3a3a44' }),
+  hydrant: sprite([
+    '....rr....', '...rrrr...', '..RRRRRR..', '.rrrrrrrr.', 'rrrrrrrrrr', '.rrrrrrrr.', '..rrrrrr..',
+    '..rrRrrr..', '..rrrrrr..', '..rrrrrr..', '..rrrrrr..', '.RRRRRRRR.', '.RRRRRRRR.',
+  ], { r: '#d8322a', R: '#9b1f1a' }),
+};
 const birdImgs = BIRD.map((b) => sprite(b, BIRD_PAL));
 const cloudImg = sprite(CLOUD, { w: '#ffffff' }, null);
 
@@ -178,6 +197,17 @@ const store = {
 const pad = (n) => String(Math.floor(n)).padStart(5, '0');
 
 const DAY = { skyT: '#6ec6f0', skyB: '#d4f1fc', hill1: '#a8dba0', hill2: '#7cc47a', ground: '#e0c48a', lip: '#8a6a3a', speck: '#b89860', cloud: '#ffffff', hud: '#2c2c2c' };
+// Zones: the scenery and obstacles change every BIOME_LEN points (colors blend over ~2 s)
+const BIOME_LEN = 1500;
+const BIOMES = [
+  { id: 'desert', name: 'Desierto', obs: ['cactus'], day: {}, night: {} },
+  { id: 'snow', name: 'Nieve', obs: ['snowman', 'pine'],
+    day: { skyB: '#e8f6fc', hill1: '#cfe0ee', hill2: '#a3bfd6', ground: '#f4f8fb', lip: '#9fb6c9', speck: '#cfdde8' },
+    night: { hill1: '#3a4a73', hill2: '#2c3a5e', ground: '#4f5d84', lip: '#28304d', speck: '#6a78a0' } },
+  { id: 'city', name: 'Ciudad', obs: ['cone', 'hydrant'], skyline: true,
+    day: { hill1: '#9aa7b8', hill2: '#6f7d91', ground: '#7a7a82', lip: '#4a4a52', speck: '#c9c9cf' },
+    night: { hill1: '#2a2f4a', hill2: '#1e2238', ground: '#2c2c38', lip: '#15151d', speck: '#8a8060' } },
+];
 const NIGHT = { skyT: '#0d0f2b', skyB: '#2a2d5c', hill1: '#2d3a63', hill2: '#212b4d', ground: '#3b3452', lip: '#1c1830', speck: '#554c72', cloud: '#4a5080', hud: '#e8e8ff' };
 
 /* ---------- canvas ---------- */
@@ -426,7 +456,8 @@ let paused = false;
 let score, speed, hi, night = 0, nightTarget = 0, scroll, distSince, gap, mile, flash, diedAt;
 let obstacles, dust, animT, flapT = 0, duckHeld = false, jumpHeld = false;
 let banner = { text: '', t: 0 }, newlyUnlocked = [];
-let runToken = null, lastRank = null, pendingRun = null;   // online ranking (see the ranking section below)
+let runToken = null, lastRank = null, pendingRun = null;
+let biome = 0, biomePrev = 0, biomeT = 1;   // online ranking (see the ranking section below)
 const MIN_H = 75, CUT_V = 4;                           // variable jump: released early => cut once above MIN_H
 const P = { h: 0, vy: 0, duck: false, doubled: false, shield: 0, inv: 0 };
 
@@ -442,6 +473,7 @@ function reset() {
   P.shield = animal.id === 'dog' ? 1 : 0;
   banner = { text: '', t: 0 }; newlyUnlocked = [];
   newAch = []; achQ = []; achShow = { text: '', t: 0 }; runDucked = false;
+  biome = 0; biomePrev = 0; biomeT = 1;
   hi = Number(store.get('dp-hi-' + animal.id, '0'));
 }
 reset();
@@ -503,11 +535,12 @@ function spawn() {
     for (let i = 0; i < n; i++) {
       const big = n < 3 && Math.random() < 0.4;   // 3-cactus groups stay small so they remain jumpable
       const k = big ? 4 : 3;
-      parts.push({ k, dx: w });
+      const kinds = BIOMES[biome].obs, kind = kinds[(Math.random() * kinds.length) | 0];
+      parts.push({ k, dx: w, kind });
       w += 10 * k + 6;
       h = Math.max(h, 13 * k);
     }
-    obstacles.push({ type: 'cactus', x: W + 20, dy: 2 - h, w: w - 6, h, parts });
+    obstacles.push({ type: 'cactus', x: W + 20, dy: 2 - h, w: w - 6, h, parts, zone: BIOMES[biome].id });
   }
   gap = speed * 30 + 120 + rnd(0, 260);
   distSince = 0;
@@ -571,6 +604,11 @@ function update(dt) {
     }
   }
 
+  // zones
+  const bi = Math.floor(score / BIOME_LEN) % BIOMES.length;
+  if (bi !== biome) { biomePrev = biome; biome = bi; biomeT = 0; banner = { text: 'Zona: ' + BIOMES[bi].name, t: 150 }; }
+  if (biomeT < 1) biomeT = Math.min(1, biomeT + dt / 120);
+
   // milestone
   const m = Math.floor(score / 100);
   if (m > mile) {
@@ -604,7 +642,10 @@ function update(dt) {
 }
 
 /* ---------- draw ---------- */
-const col = (k) => mix(DAY[k], NIGHT[k], night);
+const bpal = (i, which, k) => BIOMES[i][which][k] || (which === 'day' ? DAY : NIGHT)[k];
+const col = (k) => mix(
+  mix(bpal(biomePrev, 'day', k), bpal(biome, 'day', k), biomeT),
+  mix(bpal(biomePrev, 'night', k), bpal(biome, 'night', k), biomeT), night);
 
 // pixel disc; with `cut` ([dx, dy, r] in cells) the cut-out disc is skipped, giving a crescent
 function pixelDisc(cx, cy, r, c, cut) {
@@ -616,6 +657,18 @@ function pixelDisc(cx, cy, r, c, cut) {
   }
 }
 
+const col0 = (k, which) => mix(bpal(biomePrev, which, k), bpal(biome, which, k), biomeT);
+// city skyline: blocky buildings instead of hills (heights are a fixed hash of the block index, so they scroll steadily)
+function drawSkyline(base, amp, par, color, bw) {
+  ctx.fillStyle = color;
+  const off = scroll * par;
+  for (let x = -((off % bw) + bw) % bw - bw; x < W + bw; x += bw) {
+    const i = Math.floor((x + off) / bw + 0.5);
+    const hsh = Math.abs(Math.sin(i * 12.9898) * 43758.5453) % 1;
+    const top = Math.round((GROUND - base - hsh * amp) / 4) * 4;
+    ctx.fillRect(Math.round(x), top, bw - 4, GROUND - top);
+  }
+}
 function drawHills(base, amp, freq, par, color) {
   ctx.fillStyle = color;
   const off = scroll * par;
@@ -632,7 +685,7 @@ function drawBackground() {
   const bands = 10, bh = Math.ceil(GROUND / bands);
   for (let i = 0; i < bands; i++) {
     const f = i / (bands - 1);
-    ctx.fillStyle = mix(mix(DAY.skyT, DAY.skyB, f), mix(NIGHT.skyT, NIGHT.skyB, f), night);
+    ctx.fillStyle = mix(mix(col0('skyT', 'day'), col0('skyB', 'day'), f), mix(col0('skyT', 'night'), col0('skyB', 'night'), f), night);
     ctx.fillRect(0, i * bh, W, bh + 1);
   }
   // stars
@@ -659,8 +712,9 @@ function drawBackground() {
   ctx.globalAlpha = 0.9;
   clouds.forEach((c) => blit(tint(cloudImg, cc), Math.round(c.x), Math.round(c.y), 14 * c.s, 4 * c.s));
   ctx.globalAlpha = 1;
-  drawHills(34, 14, 0.012, 0.15, col('hill1'));
-  drawHills(18, 10, 0.02, 0.4, col('hill2'));
+  const shapeB = BIOMES[biomeT < 0.5 ? biomePrev : biome];    // the silhouette swaps halfway through the color blend
+  if (shapeB.skyline) { drawSkyline(30, 40, 0.15, col('hill1'), 32); drawSkyline(14, 28, 0.4, col('hill2'), 44); }
+  else { drawHills(34, 14, 0.012, 0.15, col('hill1')); drawHills(18, 10, 0.02, 0.4, col('hill2')); }
   // ground
   ctx.fillStyle = col('ground');
   ctx.fillRect(0, GROUND, W, H - GROUND);
@@ -710,7 +764,7 @@ function drawObstacles() {
     } else {
       o.parts.forEach((p) => {
         const w = 10 * p.k, h = 13 * p.k;
-        blit(cactusImg, Math.round(o.x + p.dx), GROUND + 2 - h, w, h);
+        blit(OBST[p.kind] || cactusImg, Math.round(o.x + p.dx), GROUND + 2 - h, w, h);
       });
     }
   });
@@ -1076,6 +1130,7 @@ const HELP = {
       'Tu <em>mejor puntuación</em> con cualquier animal desbloquea a los demás.',
       'Cada <em>700 puntos</em> cambia entre día y noche, y el juego va cada vez más rápido.',
       'Los <em>pájaros</em> aparecen a partir de 300 puntos.',
+      'Cada <em>1500 puntos</em> cambias de zona: desierto, nieve y ciudad, cada una con sus obstáculos.',
       'Cada animal guarda su <em>propio récord</em>.',
       'Si el juego te va muy rápido, baja la <em>velocidad</em> en el menú o en la pausa.',
       '<em>Gato:</em> guarda el segundo salto para corregir un salto corto.',
@@ -1509,7 +1564,7 @@ if (/[?&]test=1/.test(location.search)) {
     ANIMALS, ACH, stats, ach, music, sfx, get master() { return master; }, press, setScore: (v) => { score = v; },
      setJump: (v) => { jumpHeld = v; }, setDuck: (v) => { duckHeld = v; },
     get P() { return P; }, get o() { return obstacles; }, get state() { return state; }, get score() { return score; },
-    get K() { return K; }, get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },
+    get biome() { return BIOMES[biome].id; }, get banner() { return banner; }, get K() { return K; }, get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },
   };
 }
 })();

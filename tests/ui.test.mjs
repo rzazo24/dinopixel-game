@@ -190,6 +190,24 @@ try {
   t.check('banner: it is not drawn on top of the game over screen (the "Logros:" line lists it instead)', bannerStillActive && green === 0, { bannerStillActive, green });
   t.check('game over lists the achievement of the run', (await ev('JSON.stringify(__dp.newAch)')).includes('Saltarín'));
 
+  /* ---- zones: desert -> snow -> city every 1500 points, each with its own obstacles ---- */
+  await fresh(); await startRun();
+  await ev(`setInterval(() => { __dp.P.inv = 2; }, 5); window.__seen = {}; setInterval(() => __dp.o.forEach(o => (o.parts || []).forEach(p => { __seen[o.zone + ':' + p.kind] = 1; })), 30)`);
+  t.check('zones: a run starts in the desert', (await ev('__dp.biome')) === 'desert');
+  await ev('__dp.setScore(1495)'); await sleep(500);
+  t.check('zones: snow from 1500, with a "Zona: Nieve" notice', (await ev('__dp.biome')) === 'snow' && (await ev('__dp.banner.text')) === 'Zona: Nieve');
+  await sleep(5000);
+  await ev('__dp.setScore(2995)'); await sleep(500);
+  t.check('zones: city from 3000', (await ev('__dp.biome')) === 'city');
+  await sleep(5000);
+  await ev('__dp.setScore(4495)'); await sleep(500);
+  t.check('zones: back to the desert at 4500 (it loops)', (await ev('__dp.biome')) === 'desert');
+  const seen = Object.keys(await ev('window.__seen'));
+  const allowed = { desert: ['cactus'], snow: ['snowman', 'pine'], city: ['cone', 'hydrant'] };
+  t.check('zones: snow and city spawned their own obstacles', seen.some((k) => k.startsWith('snow:')) && seen.some((k) => k.startsWith('city:')), seen);
+  // obstacles already on screen keep scrolling into the next zone; what matters is the zone they were spawned in
+  t.check('zones: every obstacle uses the sprites of the zone it was spawned in', seen.every((k) => { const [z, kind] = k.split(':'); return allowed[z].includes(kind); }), seen);
+
   /* ---- volume + pause menu ---- */
   await fresh();
   const volLabel = () => ev(`document.querySelector('#vol span').textContent`);
