@@ -49,7 +49,7 @@ try {
   t.check('menu: 6 animal cards, 5 locked on a fresh profile', (await ev(`document.querySelectorAll('.pick').length`)) === 6 && (await ev(`document.querySelectorAll('.pick.locked').length`)) === 5);
   t.check('menu: next unlock hint', (await ev(`document.getElementById('tag').textContent`)).includes('1000'));
   t.check('menu: pixel font loaded', await ev(`document.fonts.check('10px "Press Start 2P"')`));
-  t.check('menu: play / speed / sound / ranking / achievements / help buttons', await ev(`['play','pace','mute','music','rank-btn','ach-btn','help-btn'].every(id => document.getElementById(id))`));
+  t.check('menu: play / speed / sound / ranking / achievements / help buttons', await ev(`['play','pace','mute','music','vol','rank-btn','ach-btn','help-btn'].every(id => document.getElementById(id))`));
   t.check('menu: install errors from Chrome = none', JSON.stringify((await chrome.send('Page.getInstallabilityErrors')).result.installabilityErrors) === '[]');
   const overflow = await (async () => {                       // phone in landscape (short screen): the menu must fit without scrolling
     await chrome.send('Emulation.setDeviceMetricsOverride', { width: 844, height: 340, deviceScaleFactor: 2, mobile: true });
@@ -158,6 +158,34 @@ try {
   t.check('music: stops on game over', (await chrome.waitFor(`__dp.state === 'over'`, 25000)) && (await ev('__dp.music.playing')) === false);
   await fresh(`localStorage.setItem('dp-music', '0')`); await startRun('dino');
   t.check('music: a saved "off" is respected (no music, button says so)', (await ev('__dp.music.playing')) === false && (await ev(`document.querySelector('#music span').textContent`)) === 'Sin música');
+
+  /* ---- volume + pause menu ---- */
+  await fresh();
+  const volLabel = () => ev(`document.querySelector('#vol span').textContent`);
+  t.check('volume: starts at 100%', (await volLabel()) === 'Volumen 100%');
+  await click('vol'); await sleep(150);
+  t.check('volume: one click goes to 25% and the master gain follows (squared taper)', (await volLabel()) === 'Volumen 25%' && Math.abs((await ev('__dp.master.gain.value')) - 0.0625) < 0.01, await ev('__dp.master && __dp.master.gain.value'));
+  await click('vol'); await sleep(150);
+  t.check('volume: 50% -> gain 0.25', (await volLabel()) === 'Volumen 50%' && Math.abs((await ev('__dp.master.gain.value')) - 0.25) < 0.02);
+  await click('vol'); await click('vol'); await sleep(150);
+  t.check('volume: wraps back to 100% -> gain 1', (await volLabel()) === 'Volumen 100%' && Math.abs((await ev('__dp.master.gain.value')) - 1) < 0.02);
+  await click('vol'); await sleep(100);
+  await chrome.goto(base + '/manifest.json', 300); await chrome.goto(url, 1400);
+  t.check('volume: the level is remembered after a reload', (await volLabel()) === 'Volumen 25%' && (await ev(`localStorage.getItem('dp-vol')`)) === '0.25');
+  await click('play'); await sleep(300); await tap(); await sleep(300);
+  await click('pause-btn'); await sleep(150);
+  t.check('pause menu has its own volume button that stays in sync', (await ev(`document.querySelector('#vol2 span').textContent`)) === 'Volumen 25%');
+  await click('vol2'); await sleep(100);
+  t.check('changing volume from the pause menu updates the gain', (await ev(`document.querySelector('#vol2 span').textContent`)) === 'Volumen 50%' && Math.abs((await ev('__dp.master.gain.value')) - 0.25) < 0.02);
+  await click('ach-btn2'); await sleep(200);
+  t.check('pause menu: Logros opens the achievements screen over the pause', !(await hidden('ach')) && !(await hidden('pause')));
+  await esc(); await sleep(150);
+  t.check('closing Logros returns to the pause menu (game still paused)', (await hidden('ach')) && !(await hidden('pause')));
+  await chrome.send('Emulation.setDeviceMetricsOverride', { width: 844, height: 340, deviceScaleFactor: 2, mobile: true });
+  await sleep(500);
+  const pauseFits = await ev(`(() => { const h = innerHeight, b = [...document.querySelectorAll('#pause button')].filter(x => x.offsetParent); const r = b.map(x => x.getBoundingClientRect()); return { buttons: b.length, top: Math.min(...r.map(x => x.top)), bottom: Math.max(...r.map(x => x.bottom)), h }; })()`);
+  t.check('pause menu (all buttons) fits a 844x340 landscape phone', pauseFits.top >= 0 && pauseFits.bottom <= pauseFits.h, pauseFits);
+  await chrome.send('Emulation.setDeviceMetricsOverride', { width: 1000, height: 560, deviceScaleFactor: 1, mobile: false });
 
   /* ---- ranking end to end (real API + mock Redis) ---- */
   await fresh(); await startRun();

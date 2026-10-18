@@ -50,7 +50,10 @@ navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos
 
 ## Ajustes
 
+- **Pausa**: Seguir, velocidad, volumen, pantalla completa, ranking, logros, ayuda y volver al menú.
 - **Velocidad** (60–100 %): ralentiza todo el juego por igual. Por defecto 100 % en móvil y 80 % en PC.
+- **Volumen** (botón del menú y de la pausa): 25, 50, 75 o 100 %, para música y efectos a la vez, con un pitido para
+  oír el nivel. Se recuerda.
 - **Efectos** (`M`): sonidos generados con WebAudio (no hay archivos de audio).
 - **Música** (`N`): chiptune generado en directo, sin archivos de audio, así que funciona sin conexión. De día suena
   en tono mayor y de noche en menor y algo más lenta. El tempo sube con la velocidad del juego (y con el ajuste de
@@ -132,7 +135,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v37';   // -> 'dinopixel-v38', ...
+const CACHE = 'dinopixel-v38';   // -> 'dinopixel-v39', ...
 ```
 
 Notas de instalación:

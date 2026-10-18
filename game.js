@@ -209,25 +209,30 @@ function resize() {
 resize();
 
 /* ---------- audio ---------- */
-let audio = null, muted = store.get('dp-muted', '0') === '1';
+let audio = null, master = null, muted = store.get('dp-muted', '0') === '1';
 function getAudio() {
   try {
-    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    if (!audio) {
+      audio = new (window.AudioContext || window.webkitAudioContext)();
+      master = audio.createGain();                      // master volume: music and effects both go through it
+      master.gain.value = vol * vol;
+      master.connect(audio.destination);
+    }
     if (audio.state === 'suspended') audio.resume();
     return audio;
   } catch { return null; }                              // audio unavailable
 }
-function beep(f0, f1, dur, type = 'square', vol = 0.08) {
-  if (muted) return;
+function beep(f0, f1, dur, type = 'square', level = 0.08, force = false) {
+  if (muted && !force) return;
   try {
     if (!getAudio()) return;
     const o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime;
     o.type = type;
     o.frequency.setValueAtTime(f0, t);
     o.frequency.exponentialRampToValueAtTime(f1, t + dur);
-    g.gain.setValueAtTime(vol, t);
+    g.gain.setValueAtTime(level, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    o.connect(g).connect(audio.destination);
+    o.connect(g).connect(master);
     o.start(t); o.stop(t + dur);
   } catch { /* audio unavailable */ }
 }
@@ -314,7 +319,7 @@ function startMusic(fromStart) {
   if (!music.on || music.playing) return;
   const a = getAudio();
   if (!a) return;
-  if (!music.gain) { music.gain = a.createGain(); music.gain.connect(a.destination); }
+  if (!music.gain) { music.gain = a.createGain(); music.gain.connect(master); }
   if (!music.noise) {
     music.noise = a.createBuffer(1, Math.floor(a.sampleRate * 0.1), a.sampleRate);
     const ch = music.noise.getChannelData(0);
@@ -839,6 +844,7 @@ const ICONS = {
   trash: ['00111100', '11111111', '01000010', '01011010', '01011010', '01011010', '01000010', '01111110'],
   medal: ['01100110', '00111100', '00011000', '00111100', '01111110', '01111110', '01111110', '00111100'],
   note: ['00001100', '00001110', '00001011', '00001001', '00001000', '01111000', '11111000', '01110000'],
+  volume: ['00000010', '00000010', '00001010', '00001010', '00101010', '00101010', '10101010', '10101010'],
   phone: [                                       // a phone: thin bezel, big screen, speaker slit, home button
     '011111110', '111111111', '111000111', '111111111', '100000001', '100000001', '100000001', '100000001',
     '100000001', '100000001', '100000001', '111111111', '111101111', '111111111', '011111110',
@@ -853,6 +859,23 @@ function iconSvg(name) {
 }
 const setIcon = (el, name) => { el.innerHTML = iconSvg(name); };
 document.querySelectorAll('i[data-icon]').forEach((el) => setIcon(el, el.dataset.icon));
+
+/* ---------- volume ---------- */
+const VOLS = [0.25, 0.5, 0.75, 1];
+let vol = Number(store.get('dp-vol', '1'));
+if (!VOLS.includes(vol)) vol = 1;
+function showVol() { ['vol', 'vol2'].forEach((id) => { $(id).querySelector('span').textContent = 'Volumen ' + Math.round(vol * 100) + '%'; }); }
+function cycleVol(e) {
+  vol = VOLS[(VOLS.indexOf(vol) + 1) % VOLS.length];
+  store.set('dp-vol', String(vol));
+  const a = getAudio();
+  if (a && master) master.gain.setTargetAtTime(vol * vol, a.currentTime, 0.02);   // squared: a gentler, more natural taper
+  beep(660, 660, 0.09, 'square', 0.07, true);                                   // a blip so you can hear the new level, even in the menu
+  showVol();
+  e.currentTarget.blur();
+}
+['vol', 'vol2'].forEach((id) => $(id).addEventListener('click', cycleVol));
+showVol();
 
 /* ---------- game speed ---------- */
 const PACES = [0.6, 0.7, 0.8, 0.9, 1];
@@ -1121,8 +1144,9 @@ function renderAch() {
   achBody.appendChild(grid);
 }
 function openAch() { renderAch(); achEl.hidden = false; $('ach-close').focus(); }
-function closeAch() { achEl.hidden = true; $('ach-btn').focus(); }
+function closeAch() { achEl.hidden = true; (inGame ? $('resume') : $('ach-btn')).focus(); }
 $('ach-btn').addEventListener('click', openAch);
+$('ach-btn2').addEventListener('click', openAch);
 $('ach-close').addEventListener('click', closeAch);
 checkAch(true);                                       // mark what you already earned (no banners on load)
 document.addEventListener('visibilitychange', () => { if (document.hidden) saveStats(); });
@@ -1472,7 +1496,7 @@ if ('serviceWorker' in navigator) {
 /* ---------- test hook: only when the URL has ?test=1 (used by tests/, harmless otherwise) ---------- */
 if (/[?&]test=1/.test(location.search)) {
   window.__dp = {
-    ANIMALS, ACH, stats, ach, music, press, setScore: (v) => { score = v; },
+    ANIMALS, ACH, stats, ach, music, get master() { return master; }, press, setScore: (v) => { score = v; },
      setJump: (v) => { jumpHeld = v; }, setDuck: (v) => { duckHeld = v; },
     get P() { return P; }, get o() { return obstacles; }, get state() { return state; }, get score() { return score; },
     get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },

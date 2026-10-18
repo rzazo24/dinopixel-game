@@ -449,3 +449,7 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
   .hint { display: none !important; }
   .actions { gap: 12px; margin-top: 10px; }
 }
+
+/* pause menu: options flow in rows (7 buttons would be a very tall column otherwise) */
+.pause-opts { display: flex; flex-wrap: wrap; gap: 16px 18px; justify-content: center; max-width: 640px; padding: 0 16px; }
+@media (max-height: 460px) { .pause-opts { gap: 12px 14px; } }
