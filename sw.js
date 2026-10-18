@@ -1,4 +1,5 @@
-const CACHE = 'dinopixel-v1';
+// Bump this on every release: it is what makes browsers see a "new version".
+const CACHE = 'dinopixel-v2';
 const ASSETS = [
   './',
   'index.html',
@@ -12,7 +13,12 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // No skipWaiting here: the page asks the user first (see SKIP_WAITING below).
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
+});
+
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {

@@ -554,7 +554,41 @@ $('install').addEventListener('click', async () => {
 });
 window.addEventListener('appinstalled', () => { $('install').hidden = true; });
 
+/* ---------- PWA: service worker + "new version" notice ---------- */
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  const toast = $('update');
+  let reloading = false;
+
+  const offer = (worker) => {
+    toast.hidden = false;
+    $('update-now').onclick = () => worker.postMessage({ type: 'SKIP_WAITING' });
+    $('update-later').onclick = () => { toast.hidden = true; };
+  };
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloading) return;
+    reloading = true;
+    location.reload();
+  });
+
+  window.addEventListener('load', async () => {
+    let reg;
+    try { reg = await navigator.serviceWorker.register('sw.js'); } catch { return; }
+
+    if (reg.waiting && navigator.serviceWorker.controller) offer(reg.waiting);
+    reg.addEventListener('updatefound', () => {
+      const w = reg.installing;
+      if (!w) return;
+      w.addEventListener('statechange', () => {
+        // "installed" with an existing controller = an update, not the first install
+        if (w.state === 'installed' && navigator.serviceWorker.controller) offer(w);
+      });
+    });
+
+    // look for updates when the app comes back to the foreground and hourly
+    const check = () => reg.update().catch(() => {});
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+    setInterval(check, 60 * 60 * 1000);
+  });
 }
 })();
