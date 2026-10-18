@@ -622,6 +622,7 @@ const ICONS = {
   down: ['00011000', '00011000', '00011000', '00011000', '11111111', '01111110', '00111100', '00011000'],
   lock: ['00111100', '01000010', '01000010', '11111111', '11111111', '11110111', '11110111', '11111111'],
   vibrate: ['00011000', '10011001', '10011001', '10011001', '10011001', '10011001', '00011000', '00000000'],
+  help: ['00111100', '01100110', '00000110', '00001100', '00011000', '00000000', '00011000', '00011000'],
   phone: ['1111111', '1000001', '1000001', '1000001', '1000001', '1000001', '1000001', '1000001', '1000001', '1111111', '0011100'],
 };
 function iconSvg(name) {
@@ -731,6 +732,8 @@ function press() {
 }
 
 document.addEventListener('keydown', (e) => {
+  if (!help.hidden) { if (e.code === 'Escape' || e.code === 'KeyH') { e.preventDefault(); closeHelp(); } return; }
+  if (e.code === 'KeyH') { e.preventDefault(); if (inGame) setPaused(true); openHelp(); return; }
   if (!inGame) {
     if (e.code === 'KeyM') setMuted(!muted);
     if (e.code === 'KeyF') { if (inFs()) leaveFs(); else goFs(); }
@@ -765,6 +768,81 @@ canvas.addEventListener('pointerdown', (e) => {
 ['pointerup', 'pointercancel', 'pointerleave'].forEach((n) => canvas.addEventListener(n, () => { duckHeld = false; jumpHeld = false; }));
 document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'running') setPaused(true); });
 window.addEventListener('blur', () => { duckHeld = false; jumpHeld = false; if (state === 'running') setPaused(true); });
+
+/* ---------- help screen ---------- */
+const help = $('help'), helpBody = $('help-body');
+const bullet = '<i data-icon="play" class="bullet"></i>';
+function spriteCanvas(img, cell) {
+  const c = document.createElement('canvas');
+  c.width = img.width * cell; c.height = img.height * cell;
+  const g = c.getContext('2d');
+  g.imageSmoothingEnabled = false;
+  g.drawImage(img, 0, 0, c.width, c.height);
+  return c;
+}
+const HELP = {
+  controls() {
+    const keys = (...k) => k.map((x) => '<b>' + x + '</b>').join(' ');
+    return `
+      <table class="keys">
+        <tr><th></th><th>Teclado</th><th>Táctil</th></tr>
+        <tr><td>Saltar</td><td>${keys('ESPACIO', '<i data-icon="up"></i>', 'W')}</td><td>Toca</td></tr>
+        <tr><td>Agacharte</td><td>${keys('<i data-icon="down"></i>', 'S')}</td><td>Mantén abajo</td></tr>
+        <tr><td>Pausa</td><td>${keys('P', 'ESC')}</td><td>Botón arriba</td></tr>
+        <tr><td>Pantalla completa</td><td>${keys('F')}</td><td></td></tr>
+        <tr><td>Sonido</td><td>${keys('M')}</td><td>Botón del menú</td></tr>
+        <tr><td>Ayuda</td><td>${keys('H')}</td><td>Botón del menú</td></tr>
+      </table>
+      <p class="note">Mantén pulsado para saltar más alto; suelta pronto para un salto corto.</p>
+      <h3>Obstáculos</h3>
+      <div class="obs"><span data-sprite="cactus"></span><p><em>Cactus:</em> salta por encima.</p></div>
+      <div class="obs"><span data-sprite="bird"></span><p><em>Pájaro alto:</em> pasa por debajo sin hacer nada.<br>
+        <em>Pájaro medio:</em> agáchate.<br><em>Pájaro bajo:</em> salta.</p></div>`;
+  },
+  animals() {
+    return '<div class="ani">' + ANIMALS.map((a) => {
+      const open = unlocked(a);
+      const [n, d] = ABILITY[a.id];
+      return `<div class="row${open ? '' : ' locked'}" data-animal="${a.id}">
+        <span class="face"></span>
+        <p><em>${a.name}</em> - ${n}<br>${d}<br>
+        <span class="req">${a.unlock ? (open ? 'Desbloqueado' : '<i data-icon="lock"></i> Con ' + a.unlock + ' puntos') : 'Desde el principio'}</span></p>
+      </div>`;
+    }).join('') + '</div>';
+  },
+  tips() {
+    const t = [
+      'Tu <em>mejor puntuación</em> con cualquier animal desbloquea a los demás.',
+      'Cada <em>700 puntos</em> cambia entre día y noche, y el juego va cada vez más rápido.',
+      'Los <em>pájaros</em> aparecen a partir de 300 puntos.',
+      'Cada animal guarda su <em>propio récord</em>.',
+      'Si el juego te va muy rápido, baja la <em>velocidad</em> en el menú o en la pausa.',
+      '<em>Gato:</em> guarda el segundo salto para corregir un salto corto.',
+      '<em>Pingüino:</em> desliza cuando no haya cactus cerca; los puntos valen el doble.',
+      '<em>Gallina:</em> mantén pulsado al caer para planear sobre grupos de cactus.',
+    ];
+    return '<ul class="tips">' + t.map((x) => '<li>' + bullet + '<p>' + x + '</p></li>').join('') + '</ul>';
+  },
+};
+function renderHelp(tab) {
+  helpBody.innerHTML = HELP[tab]();
+  helpBody.scrollTop = 0;
+  help.querySelectorAll('.tab').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
+  helpBody.querySelectorAll('i[data-icon]').forEach((el) => setIcon(el, el.dataset.icon));
+  helpBody.querySelectorAll('[data-sprite]').forEach((el) => {
+    el.appendChild(spriteCanvas(el.dataset.sprite === 'cactus' ? cactusImg : birdImgs[0], 2));
+  });
+  helpBody.querySelectorAll('[data-animal]').forEach((el) => {
+    const a = ANIMALS.find((x) => x.id === el.dataset.animal);
+    el.querySelector('.face').appendChild(spriteCanvas(a.frames[0], 3));
+  });
+}
+function openHelp() { renderHelp('controls'); help.hidden = false; $('help-close').focus(); }
+function closeHelp() { help.hidden = true; if (inGame) $('resume').focus(); else $('help-btn').focus(); }
+help.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => renderHelp(b.dataset.tab)));
+$('help-close').addEventListener('click', closeHelp);
+$('help-btn').addEventListener('click', openHelp);
+$('help-btn2').addEventListener('click', openHelp);
 
 /* ---------- UI: animal picker, sound, install ---------- */
 const picker = $('picker');

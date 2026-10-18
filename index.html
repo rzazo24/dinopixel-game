@@ -34,6 +34,7 @@
     <button id="pace" class="small" type="button"><i data-icon="bolt"></i><span>Velocidad</span></button>
     <button id="mute" class="small" type="button"><i data-icon="sound"></i><span>Sonido</span></button>
     <button id="vibe" class="small" type="button" hidden><i data-icon="vibrate"></i><span>Vibración</span></button>
+    <button id="help-btn" class="small" type="button"><i data-icon="help"></i><span>Ayuda</span></button>
     <button id="install" class="small" type="button" hidden><i data-icon="download"></i><span>Instalar</span></button>
   </div>
 </main>
@@ -46,11 +47,24 @@
     <button id="resume" class="big" type="button"><i data-icon="play"></i><span>SEGUIR</span></button>
     <button id="pace2" class="small" type="button"><i data-icon="bolt"></i><span>Velocidad</span></button>
     <button id="fs" class="small" type="button"><i data-icon="fullscreen"></i><span>Pantalla completa</span></button>
+    <button id="help-btn2" class="small" type="button"><i data-icon="help"></i><span>Ayuda</span></button>
     <button id="home" class="small" type="button"><i data-icon="home"></i><span>Menú</span></button>
   </div>
   <div id="rotate" class="overlay">
     <div class="phone"><i data-icon="phone"></i></div>
     <p>Gira el móvil para jugar en horizontal</p>
+  </div>
+</div>
+<div id="help" class="help" hidden role="dialog" aria-modal="true" aria-label="Ayuda">
+  <div class="help-box">
+    <h2>AYUDA</h2>
+    <div class="tabs" role="tablist">
+      <button class="small tab on" type="button" data-tab="controls" role="tab">Controles</button>
+      <button class="small tab" type="button" data-tab="animals" role="tab">Animales</button>
+      <button class="small tab" type="button" data-tab="tips" role="tab">Consejos</button>
+    </div>
+    <div class="help-body" id="help-body" tabindex="0"></div>
+    <button id="help-close" class="small" type="button"><i data-icon="close"></i><span>Cerrar</span></button>
   </div>
 </div>
 <div id="update" class="toast" role="status" hidden>

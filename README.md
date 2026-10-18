@@ -44,6 +44,7 @@ Los récords se guardan por animal en el navegador (`localStorage`).
 - **Velocidad** (60–100 %): ralentiza todo el juego por igual. Por defecto 100 % en móvil y 80 % en PC.
 - **Sonido**: efectos generados con WebAudio (no hay archivos de audio).
 - **Vibración**: solo en dispositivos que la soportan (Android).
+- **Ayuda**: botón *Ayuda* del menú y de la pausa (o la tecla `H`), con controles, animales y consejos.
 
 ## Ejecutarlo en local
 
@@ -66,7 +67,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v21';   // -> 'dinopixel-v22', ...
+const CACHE = 'dinopixel-v22';   // -> 'dinopixel-v23', ...
 ```
 
 Notas de instalación:
