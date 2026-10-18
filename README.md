@@ -33,9 +33,9 @@ Empiezas con el dino; el resto se desbloquea con tu **mejor puntuación** (con c
 | Dino | 0 | Clásico, sin habilidad |
 | Gato | 1000 | **Salto doble**: un segundo salto en el aire |
 | Perro | 2500 | **Escudo**: sobrevive a un golpe por partida |
-| Conejo | 5000 | **Salto alto** |
-| Gallina | 8000 | **Planeo**: mantén pulsado al caer |
-| Pingüino | 12000 | **Deslizar**: agachado en el suelo, puntos x2 |
+| Conejo | 4000 | **Salto alto** |
+| Gallina | 5500 | **Planeo**: mantén pulsado al caer |
+| Pingüino | 7000 | **Deslizar**: agachado en el suelo, puntos x2 |
 
 Los récords se guardan por animal en el navegador (`localStorage`).
 
@@ -105,7 +105,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v31';   // -> 'dinopixel-v32', ...
+const CACHE = 'dinopixel-v32';   // -> 'dinopixel-v33', ...
 ```
 
 Notas de instalación:
