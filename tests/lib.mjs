@@ -163,6 +163,12 @@ export async function launchChrome({ width = 1000, height = 560, mobile = false 
       return false;
     },
     async screenshot(file) { const r = await send('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(file, Buffer.from(r.result.data, 'base64')); },
-    close() { try { ws.close(); } catch { /* ignore */ } proc.kill('SIGKILL'); fs.rmSync(dir, { recursive: true, force: true }); },
+    async close() {
+      try { ws.close(); } catch { /* ignore */ }
+      const exited = new Promise((r) => { proc.once('exit', r); setTimeout(r, 3000); });
+      proc.kill('SIGKILL');
+      await exited;                                     // Chrome may still be writing its profile: wait before deleting it
+      try { fs.rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 150 }); } catch { /* temp dir: leaving it is harmless */ }
+    },
   };
 }

@@ -164,5 +164,5 @@ try {
 } catch (e) {
   t.check('suite crashed: ' + e.message, false);
 }
-chrome.close(); site.close(); redis.close();
+await chrome.close(); site.close(); redis.close();
 process.exit(t.done() ? 1 : 0);
