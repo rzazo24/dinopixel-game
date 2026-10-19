@@ -165,7 +165,8 @@ function update(dt) {
   if (state !== 'running') return;
   stats.timeSec += dt / 60 / simPace();                       // real seconds played (dt is scaled by the pace)
 
-  speed = Math.min(MAX_SPEED, START_SPEED + score / 300);
+  // speed rises fast at first and then more and more slowly towards the maximum (it used to hit it at 2100 points)
+  speed = START_SPEED + (MAX_SPEED - START_SPEED) * (1 - Math.exp(-score / SPEED_RAMP));
   const slide = animal.id === 'peng' && P.duck;
   score += speed * dt * 0.12 * (slide ? 2 : 1);   // penguin: sliding doubles points
   if (slide) stats.slidePts += speed * dt * 0.12;

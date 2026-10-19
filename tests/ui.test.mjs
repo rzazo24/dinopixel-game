@@ -271,7 +271,7 @@ try {
   const n0 = await ev('__dp.music.notes'); await sleep(1000);
   t.check('music: notes keep being scheduled', (await ev('__dp.music.notes')) - n0 > 8);
   const bpmSlow = await ev('__dp.music.bpm');
-  await ev('__dp.setScore(2500)'); await sleep(700);
+  await ev('__dp.setScore(7000)'); await sleep(700);
   const bpmFast = await ev('__dp.music.bpm');
   t.check('music: tempo rises with the game speed', bpmFast > bpmSlow * 1.3, [bpmSlow, bpmFast]);
   await click('pause-btn'); await sleep(600);

@@ -23,7 +23,8 @@ desbloqueables**, cada uno con su propia habilidad. Se juega en el navegador y s
 | Música | `N` | Botón del menú |
 
 Esquiva los obstáculos del suelo (salta) y los pájaros (agáchate o salta, según la altura). Cada 700 puntos cambia
-entre día y noche, y la velocidad aumenta con la puntuación.
+entre día y noche, y la velocidad aumenta con la puntuación: rápido al principio y cada vez más despacio, acercándose al máximo hacia
+los dos minutos de partida.
 
 **Monedas y objetos:** las monedas dan 10 puntos y salen en arco sobre algunos cactus (se cogen al saltarlos) o en
 fila tras un obstáculo, a ras de suelo o en alto. Desde 400 puntos aparecen, de vez en cuando, un **escudo** (aguanta
@@ -157,7 +158,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v51';   // -> 'dinopixel-v52', ...
+const CACHE = 'dinopixel-v52';   // -> 'dinopixel-v53', ...
 ```
 
 Notas de instalación:
