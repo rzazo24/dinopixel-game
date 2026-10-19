@@ -44,15 +44,29 @@ const sfx = {
 /* ---------- music: procedural chiptune generated live (square lead, triangle bass, noise hats, sine kick) ---------- */
 // Day = C major pentatonic, Am-F-C-G feel replaced by C-Am-F-G; night = A minor, a bit slower and mellower.
 // Tempo follows the game speed (and the speed setting); hats and kick join in as the run gets faster.
-const music = { on: store.get('dp-music', '1') === '1', playing: false, timer: null, gain: null, noise: null, nextT: 0, step: 0, theme: 'day', bpm: 0, notes: 0 };
+const music = { on: store.get('dp-music', '1') === '1', playing: false, timer: null, gain: null, noise: null, nextT: 0, step: 0, theme: 'day', zone: 'desert', bpm: 0, notes: 0, lastLead: '' };
 const MUSIC_VOL = 1.2;                                   // music bus level: top-speed peaks stay around 0.4 (clipping starts at 1.0)
 const midi = (m) => 440 * Math.pow(2, (m - 69) / 12);
-const PENT = { day: [0, 2, 4, 7, 9, 12, 14, 16, 19, 21], night: [0, 3, 5, 7, 10, 12, 15, 17, 19, 22] };
-const BASE_NOTE = { day: 60, night: 57 };
-const CHORDS = {                                         // [root, chord tones]
-  day: [[48, [0, 4, 7]], [45, [0, 3, 7]], [41, [0, 4, 7]], [43, [0, 4, 7]]],
-  night: [[45, [0, 3, 7]], [41, [0, 4, 7]], [48, [0, 4, 7]], [43, [0, 4, 7]]],
+const PENT_MAJ = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21], PENT_MIN = [0, 3, 5, 7, 10, 12, 15, 17, 19, 22];
+const MAJ = [0, 4, 7], MIN = [0, 3, 7];
+// One song per zone, each with a day and a night version.
+//   base/scale: melody key; chords: [root, tones] per bar; lead/arp: [waveform, volume(, octave shift)];
+//   bass: 'long' (held notes) or 'pump' (octave eighths); drums: 'build' (joins in with speed), 'soft' or 'city'.
+const SONGS = {
+  desert: {
+    day: { base: 60, scale: PENT_MAJ, chords: [[48, MAJ], [45, MIN], [41, MAJ], [43, MAJ]], lead: ['square', 0.05], arp: ['square', 0.02, 12], bass: 'long', drums: 'build', tempo: 1 },
+    night: { base: 57, scale: PENT_MIN, chords: [[45, MIN], [41, MAJ], [48, MAJ], [43, MAJ]], lead: ['triangle', 0.1], arp: ['square', 0.02, 12], bass: 'long', drums: 'build', tempo: 0.88 },
+  },
+  snow: {                                                // calm, bell-like, sparkly; no kick
+    day: { base: 65, scale: PENT_MAJ, chords: [[41, MAJ], [48, MAJ], [50, MIN], [46, MAJ]], lead: ['triangle', 0.1], arp: ['sine', 0.03, 24], bass: 'long', drums: 'soft', tempo: 0.92, sparse: true },
+    night: { base: 62, scale: PENT_MIN, chords: [[50, MIN], [46, MAJ], [41, MAJ], [48, MAJ]], lead: ['triangle', 0.1], arp: ['sine', 0.03, 24], bass: 'long', drums: 'soft', tempo: 0.8, sparse: true },
+  },
+  city: {                                                // driving: pumping bass, four-on-the-floor, offbeat hats
+    day: { base: 64, scale: PENT_MIN, chords: [[40, MIN], [45, MAJ], [40, MIN], [50, MAJ]], lead: ['sawtooth', 0.03], arp: ['square', 0.016, 12], bass: 'pump', drums: 'city', tempo: 1.08 },
+    night: { base: 60, scale: PENT_MIN, chords: [[48, MIN], [44, MAJ], [51, MAJ], [46, MAJ]], lead: ['square', 0.045], arp: ['square', 0.016, 12], bass: 'pump', drums: 'city', tempo: 1 },
+  },
 };
+const curSong = () => SONGS[music.zone][music.theme];
 const MEL = [                                            // 16 steps per bar; numbers index PENT, -1 is a rest
   [4, -1, 5, -1, 4, -1, 2, -1, 3, -1, 2, -1, 0, -1, -1, -1],
   [2, -1, 4, -1, 5, -1, 6, -1, 5, -1, 4, -1, 2, -1, -1, 2],
@@ -80,6 +94,13 @@ function mHat(a, t, vol) {
   src.connect(f).connect(g).connect(music.gain); src.start(t); src.stop(t + 0.06);
   music.notes++;
 }
+function mClap(a, t) {
+  const src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+  src.buffer = music.noise; f.type = 'bandpass'; f.frequency.value = 1500;
+  g.gain.setValueAtTime(0.09, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+  src.connect(f).connect(g).connect(music.gain); src.start(t); src.stop(t + 0.13);
+  music.notes++;
+}
 function mKick(a, t) {
   const o = a.createOscillator(), g = a.createGain();
   o.type = 'sine'; o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.12);
@@ -89,26 +110,42 @@ function mKick(a, t) {
 }
 function musicStep(a, step, t, d) {
   const s = step % 16, bar = Math.floor(step / 16);
-  if (s === 0) music.theme = night > 0.5 ? 'night' : 'day';      // the theme changes on a bar line
-  const th = music.theme, [root, tones] = CHORDS[th][bar % 4];
+  if (s === 0) {                                                     // day/night and zone change on a bar line
+    music.theme = night > 0.5 ? 'night' : 'day';
+    music.zone = BIOMES[biome].id;
+  }
+  const song = curSong(), [root, tones] = song.chords[bar % 4];
   const sp = Math.max(START_SPEED, speed || START_SPEED);
   const mel = MEL[MEL_SEQ[bar % MEL_SEQ.length]][s];
-  if (mel >= 0) mTone(a, th === 'night' ? 'triangle' : 'square', midi(BASE_NOTE[th] + PENT[th][mel]), t, d * 1.7, th === 'night' ? 0.1 : 0.05);
-  mTone(a, 'square', midi(root + 12 + tones[[0, 1, 2, 1][s % 4]]), t, d * 0.8, 0.02);          // chord arpeggio
-  if (s === 0 || s === 8) mTone(a, 'triangle', midi(root - 12), t, d * 6, 0.11);                // bass
+  if (mel >= 0 && !(song.sparse && s % 2)) {                         // sparse songs: only the notes on the beat, held longer
+    mTone(a, song.lead[0], midi(song.base + song.scale[mel]), t, d * (song.sparse ? 3 : 1.7), song.lead[1]);
+    music.lastLead = song.lead[0];
+  }
+  mTone(a, song.arp[0], midi(root + song.arp[2] + tones[[0, 1, 2, 1][s % 4]]), t, d * 0.8, song.arp[1]);   // chord arpeggio
+  if (song.bass === 'pump') {                                       // octave eighths
+    if (s % 2 === 0) mTone(a, 'triangle', midi(root - 12 + (s % 4 === 2 ? 12 : 0)), t, d * 1.2, 0.09);
+  } else if (s === 0 || s === 8) mTone(a, 'triangle', midi(root - 12), t, d * 6, 0.11);
   else if (s === 12) mTone(a, 'triangle', midi(root - 5), t, d * 2.4, 0.09);
   else if (sp > 9 && (s === 4 || s === 10)) mTone(a, 'triangle', midi(root), t, d * 1.6, 0.07);
-  if (sp > 7 && s % 4 === 2) mHat(a, t, 0.03);                                                   // hats join in as you speed up
-  if (sp > 10 && s % 4 === 0) mHat(a, t, 0.02);
-  if (sp > 9 && (s === 0 || s === 8)) mKick(a, t);
-  if (sp > 11 && (s === 4 || s === 12)) mKick(a, t);
+  if (song.drums === 'build') {                                     // hats and kick join in as you speed up
+    if (sp > 7 && s % 4 === 2) mHat(a, t, 0.03);
+    if (sp > 10 && s % 4 === 0) mHat(a, t, 0.02);
+    if (sp > 9 && (s === 0 || s === 8)) mKick(a, t);
+    if (sp > 11 && (s === 4 || s === 12)) mKick(a, t);
+  } else if (song.drums === 'soft') {
+    if (sp > 7 && s % 8 === 4) mHat(a, t, 0.02);
+  } else {                                                          // city
+    if (s % 4 === 0) mKick(a, t);
+    if (s % 4 === 2) mHat(a, t, 0.03);
+    if (sp > 9 && (s === 4 || s === 12)) mClap(a, t);
+  }
 }
 function musicTick() {
   const a = audio;
   if (!a || !music.playing) return;
   while (music.nextT < a.currentTime + 0.18) {              // schedule a little ahead of the clock for tight timing
     const sp = Math.min(MAX_SPEED, Math.max(START_SPEED, speed || START_SPEED));
-    music.bpm = (116 + ((sp - START_SPEED) / (MAX_SPEED - START_SPEED)) * 52) * simPace() * (music.theme === 'night' ? 0.88 : 1);
+    music.bpm = (116 + ((sp - START_SPEED) / (MAX_SPEED - START_SPEED)) * 52) * simPace() * curSong().tempo;
     const d = 60 / music.bpm / 4;
     musicStep(a, music.step, music.nextT, d);
     music.nextT += d; music.step++;
@@ -126,7 +163,7 @@ function startMusic(fromStart) {
   }
   const g = music.gain.gain;
   g.cancelScheduledValues(a.currentTime); g.setValueAtTime(0.0001, a.currentTime); g.linearRampToValueAtTime(MUSIC_VOL, a.currentTime + 0.15);
-  if (fromStart) { music.step = 0; music.theme = night > 0.5 ? 'night' : 'day'; }
+  if (fromStart) { music.step = 0; music.theme = night > 0.5 ? 'night' : 'day'; music.zone = BIOMES[biome].id; }
   music.nextT = a.currentTime + 0.06;
   music.playing = true;
   clearInterval(music.timer);

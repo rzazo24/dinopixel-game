@@ -63,8 +63,9 @@ navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos
   oír el nivel. Se recuerda.
 - **Efectos** (`M`): sonidos generados con WebAudio (no hay archivos de audio). Un tic suave cada 500 puntos (el
   contador parpadea cada 100, en silencio), un arpegio al conseguir un logro y una fanfarria al desbloquear un animal.
-- **Música** (`N`): chiptune generado en directo, sin archivos de audio, así que funciona sin conexión. De día suena
-  en tono mayor y de noche en menor y algo más lenta. El tempo sube con la velocidad del juego (y con el ajuste de
+- **Música** (`N`): chiptune generado en directo, sin archivos de audio, así que funciona sin conexión. Cada zona tiene su canción,
+  con versión de día y de noche: el desierto en tono mayor (menor de noche), la nieve tranquila y con melodía de
+  campanita, y la ciudad más rápida, con bajo en corcheas y bombo en cada tiempo. El tempo sube con la velocidad del juego (y con el ajuste de
   velocidad), y al ir más rápido entran el charles y el bombo. Se pausa con la pausa y se corta al morir; el menú
   es silencioso. Los efectos y la música se activan por separado y se recuerdan.
 - **Vibración**: solo en dispositivos que la soportan (Android).
@@ -143,7 +144,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v47';   // -> 'dinopixel-v48', ...
+const CACHE = 'dinopixel-v48';   // -> 'dinopixel-v49', ...
 ```
 
 Notas de instalación:

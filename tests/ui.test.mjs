@@ -196,6 +196,14 @@ try {
   t.check('music: N turns it off (button label follows)', (await ev('__dp.music.playing')) === false && (await ev(`document.querySelector('#music span').textContent`)) === 'Sin música' && (await ev(`localStorage.getItem('dp-music')`)) === '0');
   await ev(`document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyN', bubbles: true }))`); await sleep(400);
   t.check('music: N turns it back on and it restarts mid-run', (await ev('__dp.music.playing')) === true);
+  /* music follows the zone (desert -> snow -> city), switching on the next bar line */
+  await fresh(); await startRun('dino'); await ev(`setInterval(() => { __dp.P.inv = 2; }, 5)`); await sleep(1200);
+  t.check('music: the desert song plays first (square lead)', (await ev('__dp.music.zone')) === 'desert' && (await ev('__dp.music.lastLead')) === 'square', [await ev('__dp.music.zone'), await ev('__dp.music.lastLead')]);
+  await ev('__dp.setScore(1495)');
+  t.check('music: entering the snow switches to the snow song (bell-like triangle lead)', (await chrome.waitFor(`__dp.music.zone === 'snow'`, 6000)) && (await chrome.waitFor(`__dp.music.lastLead === 'triangle'`, 4000)));
+  await ev('__dp.setScore(2995)');
+  t.check('music: entering the city switches to the city song (sawtooth lead)', (await chrome.waitFor(`__dp.music.zone === 'city'`, 6000)) && (await chrome.waitFor(`__dp.music.lastLead === 'sawtooth'`, 4000)));
+
   await fresh(); await startRun('dino');
   t.check('music: stops on game over', (await chrome.waitFor(`__dp.state === 'over'`, 25000)) && (await ev('__dp.music.playing')) === false);
   await fresh(`localStorage.setItem('dp-music', '0')`); await startRun('dino');
