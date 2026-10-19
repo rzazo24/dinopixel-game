@@ -1,10 +1,20 @@
 // Bump this on every release: it is what makes browsers see a "new version".
-const CACHE = 'dinopixel-v46';
+const CACHE = 'dinopixel-v47';
 const ASSETS = [
   './',
   'index.html',
   'style.css',
-  'game.js',
+  'js/sprites.js',
+  'js/helpers.js',
+  'js/canvas.js',
+  'js/audio.js',
+  'js/progress.js',
+  'js/engine.js',
+  'js/render.js',
+  'js/controls.js',
+  'js/screens.js',
+  'js/ranking.js',
+  'js/menu.js',
   'manifest.json',
   'icons/icon-192.png',
   'icons/icon-512.png',

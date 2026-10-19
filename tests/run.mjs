@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT } from './lib.mjs';
 
-const files = ['game.js', 'sw.js', ...fs.readdirSync(path.join(ROOT, 'api')).map((f) => 'api/' + f), ...fs.readdirSync(path.join(ROOT, 'tests')).map((f) => 'tests/' + f)]
+const files = ['sw.js', ...fs.readdirSync(path.join(ROOT, 'js')).map((f) => 'js/' + f), ...fs.readdirSync(path.join(ROOT, 'api')).map((f) => 'api/' + f), ...fs.readdirSync(path.join(ROOT, 'tests')).map((f) => 'tests/' + f)]
   .filter((f) => /\.(m?js)$/.test(f));
 let failed = 0;
 console.log('== Syntax');

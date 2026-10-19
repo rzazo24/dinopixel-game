@@ -143,7 +143,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v46';   // -> 'dinopixel-v47', ...
+const CACHE = 'dinopixel-v47';   // -> 'dinopixel-v48', ...
 ```
 
 Notas de instalación:
@@ -158,7 +158,18 @@ Notas de instalación:
 ```
 index.html      menú, escenario del juego, overlays y etiquetas de vista previa (Open Graph)
 style.css       interfaz pixel (botones biselados, iconos, adaptación a móvil/notch)
-game.js         motor: física, obstáculos, sprites, fuente pixel, iconos, desbloqueos, PWA
+js/             el juego, dividido por temas y cargado en este orden:
+  sprites.js      constantes, sprites de animales y obstáculos
+  helpers.js      utilidades, paletas de día/noche y zonas
+  canvas.js       canvas a resolución nativa y márgenes del notch
+  audio.js        efectos, música chiptune y vibración
+  progress.js     desbloqueos, logros y habilidades
+  engine.js       estado, obstáculos, física y colisiones
+  render.js       dibujo del juego y fuente pixel
+  controls.js     iconos, volumen, velocidad, bucle, pausa y entrada
+  screens.js      ayuda, compartir y logros
+  ranking.js      ranking online
+  menu.js         menú, ajustes, instalación, PWA y gancho de tests
 sw.js           service worker (caché, aviso de nueva versión)
 api/            funciones del ranking (Vercel Functions + Upstash Redis)
 tests/          tests automáticos (API y navegador)
@@ -171,7 +182,7 @@ og-image.png    imagen de vista previa al compartir el enlace (1200x630)
 
 Cómo está hecho, por si quieres tocarlo:
 
-- **Sprites** definidos como texto en [game.js](game.js) (`ANIMALS`), con contorno automático y un sprite agachado
+- **Sprites** definidos como texto en [js/sprites.js](js/sprites.js) (`ANIMALS`), con contorno automático y un sprite agachado
   por animal. Para añadir un animal, copia una entrada y define su cuerpo, patas y habilidad.
 - **Resolución nativa**: el canvas usa los píxeles reales de la pantalla con escala entera, así que el pixel art
   se ve nítido en cualquier densidad.
