@@ -127,27 +127,21 @@ try {
   /* ---- the three newer animals ---- */
   // a mid-height bird right on top of the player: kills a normal animal standing up
   const birdOnPlayer = `__dp.o.push({ type: 'bird', x: 52, dy: -58, w: 42, h: 27, f: 0 })`;
-  await fresh(ALL); await startRun('frog'); await noObstacles(); await grounded();
-  const hFrogPlain = await maxHeight(`__dp.setJump(true); __dp.press()`, 1100);
-  await ev('__dp.setJump(false)'); await grounded();
-  await ev('__dp.setDuck(true)'); await sleep(700);                         // crouch to charge
-  const hFrog = await maxHeight(`__dp.setJump(true); __dp.press(); __dp.setDuck(false)`, 1400);
-  t.check('frog: a plain jump is like the dino', Math.abs(hFrogPlain - hDino) < 15, [hFrogPlain, hDino]);
-  t.check('frog: crouching first charges a much higher jump', hFrog > hDino * 1.3, [hFrog, hDino]);
-
-  // charge indicator: count yellow (#ffd23f) pixels in a box above the frog
+  // frog: charges by itself while on the ground (~3/4 s), shown by a yellow bar (#ffd23f) above it
   const yellowAbove = () => ev(`(() => { const c = document.getElementById('game'), k = __dp.K, g = c.getContext('2d');
     const d = g.getImageData(40 * k, (__dp.GROUND - 70) * k, 70 * k, 40 * k).data; let n = 0;
     for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - 255) < 4 && Math.abs(d[i + 1] - 210) < 4 && Math.abs(d[i + 2] - 63) < 4) n++;
     return n; })()`);
-  await ev('__dp.setJump(false)'); await grounded(); await sleep(400);
-  t.check('frog: no charge indicator while running normally', (await yellowAbove()) === 0);
-  await ev('__dp.setDuck(true)'); await sleep(80);
-  t.check('frog: a white bar starts filling while crouching (not ready yet)', (await ev('__dp.P.charge')) < 20 && (await yellowAbove()) === 0);
-  await sleep(700);
-  t.check('frog: the bar turns yellow when the super jump is ready', (await ev('__dp.P.charge')) >= 20 && (await yellowAbove()) > 0);
-  await ev('__dp.setDuck(false)'); await sleep(1200);
-  t.check('frog: the indicator goes away once the charge has faded', (await yellowAbove()) === 0);
+  await fresh(ALL); await startRun('frog'); await noObstacles(); await grounded();
+  t.check('frog: no indicator right after landing', (await yellowAbove()) === 0);
+  const hFrogPlain = await maxHeight(`__dp.setJump(true); __dp.press()`, 1100);       // jumps straight away: normal jump
+  await ev('__dp.setJump(false)'); await grounded();
+  t.check('frog: a jump right after landing is a normal one', Math.abs(hFrogPlain - hDino) < 15, [hFrogPlain, hDino]);
+  await sleep(1100);                                                                     // stay on the ground: charges by itself
+  t.check('frog: after a moment on the ground the yellow "ready" bar shows', (await ev('__dp.P.charge')) >= 45 && (await yellowAbove()) > 0);
+  const hFrog = await maxHeight(`__dp.setJump(true); __dp.press()`, 1400);
+  t.check('frog: that jump is a super jump (one tap, no crouching)', hFrog > hDino * 1.3, [hFrog, hDino]);
+  t.check('frog: the charge is spent by the jump', (await ev('__dp.P.charge')) < 45);
 
   await fresh(ALL); await startRun('dino'); await ev(`window.__clr = setInterval(() => { __dp.o.splice(0, __dp.o.length, ...__dp.o.filter(o => o.injected)); }, 3)`); await grounded();
   await ev(birdOnPlayer.replace("f: 0 }", "f: 0, injected: true }")); await sleep(300);
@@ -271,7 +265,7 @@ try {
   }
   t.check('notch: every animal\'s start screen text fits between the notches (long ones wrap)', spill.length === 0, spill);
   await ev(`document.querySelector('[data-id=frog]').click()`); await click('play'); await sleep(250);
-  t.check('notch: the frog ability text is wrapped onto two lines', (await ev(`__dp.textBoxes.filter(b => /CARGAR|SUPERSALTO|SALTO/i.test(b.t)).length`)) === 2, await ev('__dp.textBoxes.map(b => b.t)'));
+  t.check('notch: the frog ability text is wrapped onto two lines', (await ev(`__dp.textBoxes.filter(b => /ESPERA|SUPERSALTO|SALTA|SUELO/i.test(b.t)).length`)) === 2, await ev('__dp.textBoxes.map(b => b.t)'));
   await click('pause-btn'); await click('home'); await sleep(150);
   await chrome.send('Emulation.setSafeAreaInsetsOverride', { insets: { left: 0, right: 0, top: 0, bottom: 0 } });
   await chrome.send('Emulation.setDeviceMetricsOverride', { width: 1000, height: 560, deviceScaleFactor: 1, mobile: false });

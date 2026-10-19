@@ -489,12 +489,12 @@ const ABILITY = {
   bunny: ['Salto alto', 'Salta mucho más'],
   chick: ['Planeo', 'Mantén al caer para planear'],
   peng: ['Deslizar', 'Agachado: puntos x2'],
-  frog: ['Supersalto', 'Agáchate para cargar un salto altísimo'],
+  frog: ['Supersalto', 'Espera un momento en el suelo y salta altísimo'],
   fox: ['Esquiva', 'Al levantarte, los pájaros no te tocan un instante'],
   turtle: ['Caparazón', 'Los pájaros no le hacen daño; va más despacio'],
 };
 const INVULN = 90;
-const FROG_READY = 20;                                  // frames of crouching the frog needs for a super jump                                      // frames of invulnerability after the dog's shield breaks
+const FROG_READY = 45;                                  // frames on the ground (~3/4 s) the frog needs before a super jump                                      // frames of invulnerability after the dog's shield breaks
 
 /* ---------- state ---------- */
 let animal = ANIMALS.find((a) => a.id === store.get('dp-animal', 'dino')) || ANIMALS[0];
@@ -559,7 +559,7 @@ function jump() {
   }
   stats.jumps++;
   checkAch();
-  const charged = animal.id === 'frog' && P.charge >= FROG_READY;          // frog: crouch ~1/3 s first for a super jump
+  const charged = animal.id === 'frog' && P.charge >= FROG_READY;          // frog: ~3/4 s on the ground since the last jump -> super jump
   P.vy = charged ? JUMP_V * 1.22 : animal.id === 'bunny' ? JUMP_V * 1.1 : JUMP_V;
   P.charge = 0;
   sfx.jump();
@@ -634,7 +634,7 @@ function update(dt) {
   // physics
   const wasDuck = P.duck;
   P.duck = duckHeld && P.h === 0;
-  if (animal.id === 'frog') P.charge = P.duck ? Math.min(60, P.charge + dt) : Math.max(0, P.charge - 2 * dt);   // the charge fades quickly once you stand up
+  if (animal.id === 'frog' && P.h === 0) P.charge = Math.min(60, P.charge + dt);   // frog: charges by itself while running on the ground
   if (animal.id === 'fox' && wasDuck && !P.duck && P.h === 0) P.dodge = 30;                                    // fox: half a second of bird immunity when you stand up
   if (P.dodge > 0) P.dodge -= dt;
   if (P.h > 0 || P.vy > 0) {
@@ -808,20 +808,18 @@ function drawPlayer() {
     const up = P.h > 0 ? Math.floor(flapT / (gliding ? 7 : 4)) % 2 : Math.floor(animT / 20) % 2;
     if (up) { frames = animal.framesUp; duck = animal.duckUp; }
   }
-  // frog: charge bar while crouching; when the super jump is ready the bar turns yellow, sparkles appear and the frog trembles
-  const frogCharge = animal.id === 'frog' && state === 'running' && P.h === 0 && P.charge > 0;
-  const frogReady = frogCharge && P.charge >= FROG_READY;
-  const jx = frogReady ? (Math.floor(flapT / 2) % 2 ? 1 : -1) : 0;
+  // frog: when the super jump is ready, a yellow bar and sparkles appear above it
+  const frogReady = animal.id === 'frog' && state === 'running' && P.h === 0 && P.charge >= FROG_READY;
+  const jx = 0;
   if (P.dodge > 0) ctx.globalAlpha = 0.55;                      // fox dodging: ghostly
   if (P.duck) blit(duck[f], PX + jx, GROUND - 36, 48, 36);
   else blit(frames[f], PX + jx, GROUND - P.h - SP * S, SP * S, SP * S);
   ctx.globalAlpha = 1;
-  if (frogCharge) {
+  if (frogReady) {                                                // super jump ready: yellow bar + blinking sparkles
     const top = GROUND - (P.duck ? 36 : 48) - 12;
     ctx.fillStyle = '#1b1b2b'; ctx.fillRect(PX + 11, top - 1, 26, 6);
-    ctx.fillStyle = frogReady ? '#ffd23f' : '#ffffff';
-    ctx.fillRect(PX + 12, top, Math.round(24 * Math.min(1, P.charge / FROG_READY)), 4);
-    if (frogReady && Math.floor(flapT / 6) % 2 === 0) {
+    ctx.fillStyle = '#ffd23f'; ctx.fillRect(PX + 12, top, 24, 4);
+    if (Math.floor(flapT / 6) % 2 === 0) {
       ctx.fillStyle = '#ffd23f';
       [[-6, 10], [52, 6], [-2, -8], [48, -10]].forEach(([dx, dy]) => ctx.fillRect(PX + dx, top + 12 + dy, 3, 3));
     }

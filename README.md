@@ -41,7 +41,7 @@ Empiezas con el dino; el resto se desbloquea con tu **mejor puntuación** (con c
 | Conejo | 4000 | **Salto alto** |
 | Gallina | 5500 | **Planeo**: mantén pulsado al caer |
 | Pingüino | 7000 | **Deslizar**: agachado en el suelo, puntos x2 |
-| Rana | 8500 | **Supersalto**: agáchate un momento para cargar un salto mucho más alto (una barra encima se pone amarilla cuando está listo) |
+| Rana | 8500 | **Supersalto**: se carga sola mientras corre por el suelo; tras ~¾ s sin saltar, el siguiente salto es mucho más alto (una barra amarilla encima avisa) |
 | Zorro | 10000 | **Esquiva**: al levantarte tras agacharte, medio segundo en que los pájaros no te tocan |
 | Tortuga | 12000 | **Caparazón**: los pájaros no le hacen daño, pero el juego va un 15 % más lento (y suma menos puntos) |
 
@@ -143,7 +143,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v45';   // -> 'dinopixel-v46', ...
+const CACHE = 'dinopixel-v46';   // -> 'dinopixel-v47', ...
 ```
 
 Notas de instalación:
