@@ -68,7 +68,7 @@ try {
   await esc(); await sleep(100);
   t.check('Esc closes help', await hidden('help'));
   await click('ach-btn'); await sleep(200);
-  t.check('achievements screen: 0/21 on a fresh profile', (await ev(`document.getElementById('ach-count').textContent`)) === '0/21' && (await ev(`document.querySelectorAll('.ach').length`)) === 21);
+  t.check('achievements screen: 0/23 on a fresh profile', (await ev(`document.getElementById('ach-count').textContent`)) === '0/23' && (await ev(`document.querySelectorAll('.ach').length`)) === 23);
   await esc(); await sleep(100);
   t.check('Esc closes achievements', await hidden('ach'));
 
@@ -165,6 +165,34 @@ try {
   await fresh(ALL); await startRun('dino'); await noObstacles(); await grounded();
   const rDino = await rt();
   t.check('turtle: the game runs about 15% slower (points per second)', rTurtle / rDino > 0.75 && rTurtle / rDino < 0.95, [rTurtle, rDino]);
+
+  /* ---- pickups: coins, shield, magnet ---- */
+  await fresh(`localStorage.setItem('dp-stats', JSON.stringify({coins:99}))`); await startRun(); await noObstacles(); await grounded();
+  await ev(`clearInterval(window.__clr); window.__clr = setInterval(() => { __dp.o.length = 0; }, 3)`);
+  const coinAt = (x, dy) => ev(`__dp.items.push({ kind: 'coin', x: ${x}, dy: ${dy}, w: 14, h: 14 })`);
+  const s0 = await ev('__dp.score');
+  await coinAt(56, -30); await sleep(250);
+  t.check('coin: running into a low coin collects it', (await ev('__dp.coinsRun')) === 1 && (await ev('__dp.items.length')) === 0);
+  t.check('coin: it is worth 10 points', (await ev('__dp.score')) - s0 >= 10);
+  t.check('coin: the 100th coin earns "Hucha"', await ev('!!__dp.ach.coins100'));
+  await coinAt(56, -140); await sleep(300);
+  t.check('coin: a coin high in the air is not collected while running', (await ev('__dp.coinsRun')) === 1);
+  await ev('__dp.items.length = 0');
+  await ev(`__dp.items.push({ kind: 'shield', x: 56, dy: -30, w: 18, h: 18 })`); await sleep(250);
+  t.check('shield pickup: gives a shield to any animal', (await ev('__dp.P.shield')) === 1);
+  await ev(`clearInterval(window.__clr); __dp.o.length = 0; __dp.o.push({ type: 'bird', x: 52, dy: -58, w: 42, h: 27, f: 0 })`); await sleep(300);
+  t.check('shield pickup: it absorbs one hit', (await ev('__dp.state')) === 'running' && (await ev('__dp.P.shield')) === 0);
+  await ev(`window.__clr = setInterval(() => { __dp.o.length = 0; }, 3)`); await sleep(1700);
+  await ev(`__dp.items.push({ kind: 'magnet', x: 56, dy: -30, w: 18, h: 18 })`); await sleep(250);
+  t.check('magnet pickup: starts a 6 s magnet', (await ev('__dp.magnetT')) > 300);
+  const c1 = await ev('__dp.coinsRun');
+  await coinAt(150, -140); await sleep(1200);
+  t.check('magnet: pulls in a coin that would be out of reach', (await ev('__dp.coinsRun')) === c1 + 1);
+  // pickups appear by themselves during a run
+  await fresh(); await startRun();
+  await ev(`setInterval(() => { __dp.P.inv = 2; }, 5); window.__kinds = {}; setInterval(() => __dp.items.forEach(i => { __kinds[i.kind] = 1; }), 30)`);
+  await ev('__dp.setScore(600)');
+  t.check('pickups: coins (and power-ups) show up during a run', await chrome.waitFor(`!!window.__kinds.coin`, 15000), await ev('window.__kinds'));
 
   /* ---- achievements: silent on load, banner in game ---- */
   await fresh(`localStorage.setItem('dp-best','600'); localStorage.setItem('dp-stats', JSON.stringify({jumps:199}))`);

@@ -9,6 +9,7 @@ let state = 'ready';                                    // ready | running | ove
 let paused = false;
 let score, speed, hi, night = 0, nightTarget = 0, worldX, distSince, gap, mile, flash, diedAt;
 let obstacles, dust, animT, flapT = 0, duckHeld = false, jumpHeld = false;
+let items = [], coinsRun = 0, magnetT = 0;                // pickups (see addItems)
 let banner = { text: '', t: 0 }, newlyUnlocked = [];
 let runToken = null, lastRank = null, pendingRun = null;
 let biome = 0, biomePrev = 0, biomeT = 1;   // online ranking (see the ranking section below)
@@ -23,6 +24,7 @@ function reset() {
   score = 0; speed = START_SPEED; worldX = 0; distSince = 0; gap = 320; mile = 0; flash = 0;
   night = 0; nightTarget = 0; animT = 0; flapT = 0;
   obstacles = []; dust = [];
+  items = []; coinsRun = 0; magnetT = 0;
   P.h = 0; P.vy = 0; P.duck = false; P.doubled = false; P.inv = 0; P.charge = 0; P.dodge = 0;
   P.shield = animal.id === 'dog' ? 1 : 0;
   banner = { text: '', t: 0 }; newlyUnlocked = [];
@@ -79,11 +81,44 @@ function puff(n) {
 }
 
 /* ---------- obstacles ---------- */
+// Pickups. Coins (+10 points) come in an arc over a cactus (collected by jumping it) or in a row after an obstacle
+// (low: just run through; high: jump). Rarely, a shield or a magnet floats at jump height.
+const COIN_POINTS = 10, MAGNET_TIME = 360;
+function addItems(o) {
+  const r = Math.random();
+  if (score > 400 && r < 0.07) {
+    items.push({ kind: Math.random() < 0.5 ? 'shield' : 'magnet', x: o.x + o.w + 120, dy: -80, w: 18, h: 18 });
+    return;
+  }
+  if (score < 50 || r > 0.5) return;
+  if (o.type === 'cactus' && Math.random() < 0.6) {
+    const n = 5, cx = o.x + o.w / 2, span = 150;
+    for (let i = 0; i < n; i++) {
+      const u = i / (n - 1) - 0.5;
+      items.push({ kind: 'coin', x: cx + u * span - 7, dy: -(o.h + 30 + 50 * (1 - 4 * u * u)), w: 14, h: 14 });
+    }
+  } else {
+    const high = Math.random() < 0.5, n = 3 + ((Math.random() * 3) | 0), x0 = o.x + o.w + 60;
+    for (let i = 0; i < n; i++) items.push({ kind: 'coin', x: x0 + i * 24, dy: high ? -95 : -36, w: 14, h: 14 });
+  }
+}
+function collect(it) {
+  if (it.kind === 'coin') {
+    score += COIN_POINTS; coinsRun++; stats.coins++;
+    sfx.coin(); checkAch();
+  } else if (it.kind === 'shield') {
+    P.shield = 1; sfx.power(); banner = { text: 'Escudo!', t: 90 };
+  } else {
+    magnetT = MAGNET_TIME; sfx.power(); banner = { text: 'Imán!', t: 90 };
+  }
+  for (let i = 0; i < 6; i++) dust.push({ x: it.x + it.w / 2, y: GROUND + it.dy + it.h / 2, vx: rnd(-1.5, 1.5), vy: rnd(-1.5, 1), life: rnd(10, 18) });
+}
 function spawn() {
   const birdOK = score > 300 && Math.random() < 0.3;
   if (birdOK) {
     const tops = [-100, -58, -34];
     obstacles.push({ type: 'bird', x: W + 20, dy: tops[(Math.random() * 3) | 0], w: 14 * S, h: 9 * S });
+    addItems(obstacles[obstacles.length - 1]);
   } else {
     const n = 1 + ((Math.random() * (score > 150 ? 3 : 2)) | 0);
     const parts = [];
@@ -97,6 +132,7 @@ function spawn() {
       h = Math.max(h, 13 * k);
     }
     obstacles.push({ type: 'cactus', x: W + 20, dy: 2 - h, w: w - 6, h, parts, zone: BIOMES[biome].id });
+    addItems(obstacles[obstacles.length - 1]);
   }
   gap = speed * 30 + 120 + rnd(0, 260);
   distSince = 0;
@@ -192,7 +228,7 @@ function update(dt) {
     if (P.inv <= 0 && overlap(pb, hitbox(o))) {
       if (P.shield > 0) {
         P.shield = 0; P.inv = INVULN; o.hit = true;
-        stats.shields++; checkAch();
+        if (animal.id === 'dog') { stats.shields++; checkAch(); }   // the achievement is about the dog's own shield
         banner = { text: 'Escudo roto!', t: 90 };
         sfx.die();
         haptic(60);
@@ -200,4 +236,17 @@ function update(dt) {
     }
   }
   obstacles = obstacles.filter((o) => o.x + o.w > -20);
+
+  // pickups: scroll with the world; the magnet pulls nearby coins towards the player
+  if (magnetT > 0) magnetT -= dt;
+  const pcx = PX + 24, pcy = -(P.h + 24);
+  for (const it of items) {
+    it.x -= speed * dt;
+    if (magnetT > 0 && it.kind === 'coin' && Math.abs(it.x + 7 - pcx) < 170) {
+      const k = Math.min(1, 0.15 * dt);
+      it.x += (pcx - 7 - it.x) * k; it.dy += (pcy - 7 - it.dy) * k;
+    }
+    if (!it.got && state === 'running' && overlap(pb, { x: it.x, y: GROUND + it.dy, w: it.w, h: it.h })) { it.got = true; collect(it); }
+  }
+  items = items.filter((it) => !it.got && it.x + it.w > -20);
 }

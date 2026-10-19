@@ -203,6 +203,18 @@ ANIMALS.forEach((a) => {
   }
 });
 const cactusImg = sprite(CACTUS, CACTUS_PAL);
+// pickups: a spinning coin (face / edge), the shield bubble and the magnet
+const COIN_PAL = { o: '#b8860b', y: '#ffd23f', w: '#fff6b0' };
+const COIN_IMGS = [
+  sprite(['..ooo..', '.oyyyo.', 'oywyyyo', 'oywyyyo', 'oyyyyyo', '.oyyyo.', '..ooo..'], COIN_PAL),
+  sprite(['...o...', '..oyo..', '..owo..', '..owo..', '..oyo..', '..oyo..', '...o...'], COIN_PAL),
+];
+const SHIELD_IMG = sprite([
+  '..ccccc..', '.cwwbbbc.', 'cwbbbbbbc', 'cbbbbbbbc', 'cbbbbbbbc', 'cbbbbbbbc', 'cbbbbbbbc', '.cbbbbbc.', '..ccccc..',
+], { c: '#1f6fb2', b: '#4fc3f7', w: '#ffffff' });
+const MAGNET_IMG = sprite([
+  'ss.....ss', 'ss.....ss', 'rr.....rr', 'rr.....rr', 'rr.....rr', 'rrr...rrr', '.rrrrrrr.', '..rrrrr..',
+], { r: '#e53935', s: '#cfd8dc' });
 const OBST = {
   cactus: cactusImg,
   snowman: sprite([

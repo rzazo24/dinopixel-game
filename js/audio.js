@@ -31,6 +31,8 @@ function beep(f0, f1, dur, type = 'square', level = 0.08, force = false) {
   } catch { /* audio unavailable */ }
 }
 const sfx = {
+  coin: () => { beep(1319, 1319, 0.05, 'square', 0.045); setTimeout(() => beep(1760, 1760, 0.08, 'square', 0.045), 50); },
+  power: () => [523, 784, 1047, 1568].forEach((f, i) => setTimeout(() => beep(f, f, 0.08, 'square', 0.06), i * 60)),
   jump: () => beep(300, 650, 0.12),
   die: () => beep(260, 40, 0.4, 'sawtooth', 0.1),
   // every 500 points: a soft two-note tick (the score blinks every 100 points, silently)

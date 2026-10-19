@@ -25,6 +25,11 @@ desbloqueables**, cada uno con su propia habilidad. Se juega en el navegador y s
 Esquiva los obstáculos del suelo (salta) y los pájaros (agáchate o salta, según la altura). Cada 700 puntos cambia
 entre día y noche, y la velocidad aumenta con la puntuación.
 
+**Monedas y objetos:** las monedas dan 10 puntos y salen en arco sobre algunos cactus (se cogen al saltarlos) o en
+fila tras un obstáculo, a ras de suelo o en alto. Desde 400 puntos aparecen, de vez en cuando, un **escudo** (aguanta
+un golpe, con cualquier animal) y un **imán** (atrae las monedas cercanas durante 6 s). Un contador bajo la
+puntuación muestra las monedas de la partida.
+
 **Zonas:** cada 1500 puntos cambias de escenario, con transición de colores y aviso: **Desierto** (cactus),
 **Nieve** (muñecos de nieve y pinos) y **Ciudad** (conos y bocas de incendio, con edificios al fondo). Después vuelve
 al desierto. Todos los obstáculos del suelo tienen el mismo tamaño, así que cambia el paisaje, no la dificultad.
@@ -49,8 +54,8 @@ Los récords se guardan por animal en el navegador (`localStorage`).
 
 ## Logros
 
-21 logros con aviso en pantalla al conseguirlos y una pantalla **Logros** (botón del menú) con el progreso de cada
-uno. Entre ellos: puntuaciones (500 a 7000), partidas jugadas, saltos, obstáculos y pájaros esquivados, 1000 puntos
+23 logros con aviso en pantalla al conseguirlos y una pantalla **Logros** (botón del menú) con el progreso de cada
+uno. Entre ellos: puntuaciones (500 a 7000), partidas jugadas, saltos, obstáculos y pájaros esquivados, monedas (100 y 1000), 1000 puntos
 sin agacharte, uno por habilidad (doble salto del gato, escudo del perro, planeo de la gallina, deslizar del
 pingüino), 1500 con cada animal, desbloquear los 9, entrar en el top 3 del ranking, ser el número 1 de la semana y compartir. Se guardan en el
 navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos, sin avisos.
@@ -144,7 +149,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v48';   // -> 'dinopixel-v49', ...
+const CACHE = 'dinopixel-v49';   // -> 'dinopixel-v50', ...
 ```
 
 Notas de instalación:

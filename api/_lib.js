@@ -8,8 +8,8 @@ const PID_RE = /^[a-f0-9]{32}$/;
 const TOP = 20;
 const MAX_SCORE = 999999;
 // Anti-cheat: no animal can earn more than this many points per second (penguin sliding at top speed is ~190).
-const MAX_RATE = 190;
-const SLACK = 60;
+const MAX_RATE = 230;                                   // coins (+10 each) add short bursts on top
+const SLACK = 100;
 const TOKEN_TTL_MS = 24 * 3600 * 1000;
 
 const REST_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;

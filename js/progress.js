@@ -12,7 +12,7 @@ const unlocked = (a) => best >= a.unlock;
 
 /* ---------- achievements ---------- */
 const jsonStore = (k, d) => { try { return Object.assign(d, JSON.parse(store.get(k, '{}'))); } catch { return d; } };
-const stats = jsonStore('dp-stats', { runs: 0, jumps: 0, dodged: 0, birds: 0, doubles: 0, shields: 0, glideSec: 0, slidePts: 0, noDuckBest: 0, podium: 0, weekwin: 0, shared: 0 });
+const stats = jsonStore('dp-stats', { runs: 0, jumps: 0, dodged: 0, birds: 0, doubles: 0, shields: 0, glideSec: 0, slidePts: 0, noDuckBest: 0, podium: 0, weekwin: 0, shared: 0, coins: 0 });
 const ach = jsonStore('dp-ach', {});                    // { id: unlock timestamp }
 const animalBest = {};                                  // best score per animal (kept in memory, saved with the record)
 ANIMALS.forEach((a) => { animalBest[a.id] = Number(store.get('dp-hi-' + a.id, '0')) || 0; });
@@ -31,6 +31,8 @@ const ACH = [
   { id: 'jumps2000', name: 'Resorte', desc: 'Salta 2000 veces', goal: 2000, val: () => stats.jumps },
   { id: 'dodge100', name: 'Esquivador', desc: 'Esquiva 100 obstáculos', goal: 100, val: () => stats.dodged },
   { id: 'birds30', name: 'Cazapájaros', desc: 'Esquiva 30 pájaros', goal: 30, val: () => stats.birds },
+  { id: 'coins100', name: 'Hucha', desc: 'Recoge 100 monedas', goal: 100, val: () => stats.coins },
+  { id: 'coins1000', name: 'Tesoro', desc: 'Recoge 1000 monedas', goal: 1000, val: () => stats.coins },
   { id: 'noduck', name: 'Pie plano', desc: '1000 puntos sin agacharte', goal: 1000, val: () => stats.noDuckBest },
   { id: 'double50', name: 'Rebote', desc: '50 dobles saltos con el gato', goal: 50, val: () => stats.doubles },
   { id: 'shield5', name: 'Escudo de hierro', desc: 'Salva 5 golpes con el perro', goal: 5, val: () => stats.shields },

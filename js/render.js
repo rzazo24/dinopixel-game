@@ -41,6 +41,7 @@ function drawHills(base, amp, freq, par, color) {
 }
 
 const SKY_BODY_Y = 66;                                  // vertical position of the sun / moon (it used to sit right under the score)
+const SKY_BODY_DX = 170;                                // sun / moon distance from the right edge: keeps the HUD column (score, coins, magnet) clear
 function drawBackground() {
   // stepped sky bands
   const bands = 10, bh = Math.ceil(GROUND / bands);
@@ -61,10 +62,10 @@ function drawBackground() {
   }
   // sun / moon
   ctx.globalAlpha = 1 - night;
-  if (night < 1) pixelDisc(W - 100, SKY_BODY_Y, 5, '#ffd23f');
+  if (night < 1) pixelDisc(W - SKY_BODY_DX, SKY_BODY_Y, 5, '#ffd23f');
   ctx.globalAlpha = night;
   if (night > 0) {
-    pixelDisc(W - 100, SKY_BODY_Y, 5, '#f4f1c8', [3, -2, 4]);
+    pixelDisc(W - SKY_BODY_DX, SKY_BODY_Y, 5, '#f4f1c8', [3, -2, 4]);
   }
   ctx.globalAlpha = 1;
   // clouds
@@ -132,6 +133,23 @@ function drawPlayer() {
   }
 }
 
+function drawItems() {
+  items.forEach((it) => {
+    const y = GROUND + it.dy;
+    if (it.kind === 'coin') blit(COIN_IMGS[Math.floor(flapT / 10) % 2], Math.round(it.x), Math.round(y), it.w, it.h);
+    else {
+      const bob = Math.round(Math.sin(flapT / 10) * 3);            // power-ups float up and down
+      blit(it.kind === 'shield' ? SHIELD_IMG : MAGNET_IMG, Math.round(it.x), Math.round(y) + bob, it.w, it.h);
+    }
+  });
+}
+function drawShieldBubble() {
+  if (P.shield <= 0 || state !== 'running') return;
+  const cx = PX + 24, cy = GROUND - P.h - (P.duck ? 18 : 24), r = P.duck ? 30 : 34;
+  ctx.globalAlpha = 0.45; ctx.fillStyle = '#4fc3f7';
+  for (let a = 0; a < Math.PI * 2; a += 0.16) ctx.fillRect(Math.round(cx + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r), 3, 3);
+  ctx.globalAlpha = 1;
+}
 function drawObstacles() {
   obstacles.forEach((o) => {
     if (o.type === 'bird') {
@@ -239,6 +257,12 @@ function drawHUD() {
   ctx.globalAlpha = 1;
   if (!blink) pixText(pad(score), W - 12 - insetR, 12, 2, 'right', c, false);
   if (P.shield > 0) pixText('Escudo', W - 212 - insetR, 12, 2, 'right', '#4fc3f7');
+  if (state === 'running' || state === 'over') {                   // coins this run, under the score
+    const t = String(coinsRun), w = t.length * 12 - 2;
+    pixText(t, W - 12 - insetR, 32, 2, 'right', '#ffd23f', false);
+    blit(COIN_IMGS[0], W - 12 - insetR - w - 18, 32, 14, 14);
+  }
+  if (magnetT > 0 && state === 'running') pixText('Imán ' + Math.ceil(magnetT / 60), W - 12 - insetR, 52, 2, 'right', '#e53935');
   if (animal.id === 'peng' && P.duck && state === 'running') pixText('x2', W - 212 - insetR, 12, 2, 'right', '#ffd23f');
 }
 
@@ -251,7 +275,9 @@ function draw() {
 
   drawBackground();
   drawObstacles();
+  drawItems();
   drawPlayer();
+  drawShieldBubble();
   ctx.fillStyle = '#fff';
   dust.forEach((d) => {
     ctx.globalAlpha = Math.min(1, d.life / 14) * 0.8;
@@ -277,6 +303,7 @@ function draw() {
     let y = ty - 14;                                   // lines stack, so a wrapped line never runs into the next one
     y += pixFit('Game over', y, 4, '#ffd23f') + 4;
     y += pixFit('Toca o pulsa espacio para reintentar', y, 2) + 6;
+    if (coinsRun) y += pixFit('Monedas: ' + coinsRun, y, 2, '#ffd23f');
     if (newlyUnlocked.length) y += pixFit('Nuevo: ' + newlyUnlocked.join(', '), y, 2, '#ffd23f');
     if (lastRank) {
       const wk = lastRank.week ? 'Semana #' + lastRank.week.all.rank + ' - ' : '';
