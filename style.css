@@ -503,11 +503,16 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
 @media (max-height: 500px) { .shop { gap: 10px 18px; } .stats td { padding: 2px 8px 2px 0; } }
 
 /* ---------- daily challenge ---------- */
-.daily-chip {
+.corner-left {                                         /* Reto + Guardado, pinned top-left (mirror of the wallet) */
   position: fixed;
   top: max(12px, env(safe-area-inset-top));
   left: calc(16px + env(safe-area-inset-left));
   z-index: 2;
+  display: flex;
+  gap: 14px;
+}
+#menu[hidden] .corner-left { display: none; }
+.daily-chip {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -531,3 +536,23 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
 #daily-body .state.ok { color: var(--accent); }
 #daily-body p { margin: 0 0 6px; }
 @media (max-height: 500px) and (orientation: landscape) { .daily-chip { padding: 5px 8px; font-size: 8px; } #daily-body .goal { font-size: 9px; } }
+
+/* ---------- cloud save ---------- */
+.cloud-chip { color: #b8c4ff; }
+.cloud-chip.on { color: #7fd0ff; }
+#cloud-body { text-align: center; font-size: 9px; line-height: 2; }
+#cloud-body p { margin: 0 0 8px; }
+#cloud-body h3 { margin: 16px 0 8px; }
+#cloud-body .code { font-size: 18px; color: var(--accent); letter-spacing: 2px; margin: 4px 0 12px; -webkit-user-select: all; user-select: all; }
+#cloud-body .row { display: flex; gap: 14px; justify-content: center; margin-bottom: 10px; }
+#cloud-body .big { margin: 8px 0 4px; }
+#cloud-danger { margin-top: 16px; }
+#cloud-del { --face: #c23b32; --light: rgba(255, 255, 255, .3); --dark: rgba(80, 0, 0, .45); color: #fff; }
+#cloud-del.confirm { --face: #ff5448; --edge: #fff; }
+#cloud-input {
+  font-family: var(--pixel); font-size: 10px; width: 190px; padding: 10px; color: var(--ink); background: #151837; border: 0; border-radius: 0;
+  text-transform: uppercase; -webkit-user-select: text; user-select: text; outline: 0;
+  box-shadow: 0 -4px 0 0 var(--shadow), -4px 0 0 0 var(--shadow), 4px 0 0 0 var(--shadow), 0 4px 0 0 var(--shadow);
+}
+#cloud-input:focus { box-shadow: 0 -4px 0 0 var(--accent), -4px 0 0 0 var(--accent), 4px 0 0 0 var(--accent), 0 4px 0 0 var(--accent); }
+@media (max-height: 500px) { #cloud-body .code { font-size: 14px; margin-bottom: 8px; } #cloud-body h3 { margin: 10px 0 6px; } }

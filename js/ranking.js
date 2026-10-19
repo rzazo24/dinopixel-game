@@ -167,6 +167,7 @@ async function saveNick() {
   if (r.status === 400) { rankMsg.textContent = r.data.error === 'banned' ? 'Ese apodo no está permitido.' : 'Apodo no válido.'; return; }
   nick = v;
   store.set('dp-nick', nick);
+  cloudSaveSoon();
   rankMsg.textContent = 'Apodo guardado.';
   if (pendingRun) {
     const run = pendingRun; pendingRun = null;

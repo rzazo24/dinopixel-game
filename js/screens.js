@@ -199,6 +199,7 @@ function shopRow(img, title, sub, btn) {
       if (btn.price && !spend(btn.price)) { shopMsg.textContent = 'Te faltan ' + (btn.price - balance()).toLocaleString('es-ES') + ' monedas.'; return; }
       if (btn.price) sfx.power();
       shopMsg.textContent = btn.action() || '';
+      cloudSaveSoon();
       renderShop();
     });
     row.appendChild(b);

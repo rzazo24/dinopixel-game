@@ -31,7 +31,10 @@
 </head>
 <body>
 <main id="menu">
-  <div class="daily-chip" id="daily-chip" role="button" tabindex="0" title="Reto del día"><i data-icon="target"></i><span>Reto</span></div>
+  <div class="corner-left">
+    <div class="daily-chip" id="daily-chip" role="button" tabindex="0" title="Reto del día"><i data-icon="target"></i><span>Reto</span></div>
+    <div class="daily-chip cloud-chip" id="cloud-chip" role="button" tabindex="0" title="Guardado en el servidor"><i data-icon="cloud"></i><span>Guardado</span></div>
+  </div>
   <div class="wallet" id="wallet" title="Tus monedas: toca para ir a la tienda" role="button" tabindex="0"><i data-icon="coin"></i><span id="coins-total">0</span></div>
   <h1>DINO<span>PIXEL</span></h1>
   <p class="tag" id="tag">Corre, salta y esquiva</p>
@@ -101,6 +104,29 @@
     <button id="daily-close" class="small" type="button"><i data-icon="close"></i><span>Cerrar</span></button>
   </div>
 </div>
+<div id="cloud" class="help" hidden role="dialog" aria-modal="true" aria-label="Guardado">
+  <div class="help-box daily-box">
+    <h2>GUARDADO</h2>
+    <div class="help-body" id="cloud-body" tabindex="0">
+      <div id="cloud-off">
+        <p>Guarda tu partida en el servidor para no perderla y poder pasarla a otro móvil: récords, monedas, compras, logros y racha. Te daremos un código: anótalo.</p>
+        <button id="cloud-on" class="big" type="button"><i data-icon="cloud"></i><span>ACTIVAR</span></button>
+      </div>
+      <div id="cloud-active" hidden>
+        <p>Tu código de recuperación:</p>
+        <p class="code" id="cloud-code"></p>
+        <div class="row"><button id="cloud-copy" class="small" type="button">Copiar</button><button id="cloud-now" class="small" type="button">Guardar ahora</button></div>
+        <p class="note" id="cloud-when"></p>
+        <p class="note">Se guarda solo al terminar cada partida. Si juegas en dos móviles con el mismo código, vale la última partida guardada.</p>
+      </div>
+      <h3>¿Tienes un código?</h3>
+      <div class="nickrow"><input id="cloud-input" type="text" maxlength="11" placeholder="XXXXX-XXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Código de recuperación"><button id="cloud-restore" class="small" type="button">Recuperar</button></div>
+      <div id="cloud-danger" hidden><button id="cloud-del" class="small" type="button"><i data-icon="trash"></i><span>Borrar copia del servidor</span></button></div>
+    </div>
+    <p class="rank-msg" id="cloud-msg" role="status"></p>
+    <button id="cloud-close" class="small" type="button"><i data-icon="close"></i><span>Cerrar</span></button>
+  </div>
+</div>
 <div id="shop" class="help" hidden role="dialog" aria-modal="true" aria-label="Tienda">
   <div class="help-box">
     <h2>TIENDA <span class="shop-balance"><i data-icon="coin"></i><span id="shop-balance">0</span></span></h2>
@@ -165,6 +191,7 @@
 <script src="js/screens.js"></script>
 <script src="js/ranking.js"></script>
 <script src="js/daily.js"></script>
+<script src="js/cloud.js"></script>
 <script src="js/menu.js"></script>
 </body>
 </html>

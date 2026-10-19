@@ -46,6 +46,8 @@ export async function startMockRedis(port) {
     const [op, ...a] = c; const O = String(op).toUpperCase();
     switch (O) {
       case 'SET': { const nx = a.slice(2).map(String).includes('NX'); if (nx && kv.has(a[0])) return null; kv.set(a[0], String(a[1])); return 'OK'; }
+      case 'GET': return kv.has(a[0]) ? kv.get(a[0]) : null;
+      case 'DEL': return kv.delete(a[0]) ? 1 : 0;
       case 'INCR': { const v = Number(kv.get(a[0]) || 0) + 1; kv.set(a[0], String(v)); return v; }
       case 'EXPIRE': return 1;
       case 'ZADD': {

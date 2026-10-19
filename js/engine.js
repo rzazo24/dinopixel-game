@@ -55,6 +55,7 @@ function die() {
   if (score > best) { best = Math.floor(score); store.set('dp-best', String(best)); }
   dailyEnd();
   stats.runs++;
+  cloudSaveSoon();                                      // cloud copy (if enabled) a moment after each run
   checkAch();
   saveStats();
   submitRun();

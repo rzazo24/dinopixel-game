@@ -91,6 +91,24 @@ navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos
 - **Ranking**: botón *Ranking* del menú y de la pausa (ver más abajo), con opción de borrar tus datos.
 - **Ayuda**: botón *Ayuda* del menú y de la pausa (o la tecla `H`), con controles, animales y consejos.
 
+## Guardado en el servidor
+
+Botón **Guardado** (nube) en el menú. Al activarlo, el servidor da un **código de recuperación** (`XXXXX-XXXXX`):
+con él recuperas tu partida en otro móvil o después de borrar los datos del navegador. Sin cuentas ni contraseñas.
+
+- **Qué se guarda:** récords, monedas, compras, colores, logros, estadísticas, la racha del reto diario, el apodo y
+  tu identidad en el ranking. No se guardan los ajustes del dispositivo (velocidad, volumen, música, efectos, vibración).
+- **Cuándo:** solo, al terminar cada partida, al comprar en la tienda, al cambiar de apodo y al cerrar la app; y con
+  *Guardar ahora*.
+- **Recuperar** sustituye el progreso del dispositivo (con doble confirmación). Si juegas en dos móviles a la vez con
+  el mismo código, vale la última partida guardada.
+- **Privacidad y seguridad:** el servidor no guarda el código, solo una huella (hash) de él; la carga está limitada a 20
+  intentos por hora e IP para que los códigos no se puedan adivinar; *Borrar copia del servidor* la elimina, y si no
+  se usa caduca a los ~13 meses.
+
+Endpoints: `POST /api/save` (`{ data }` crea, `{ code, data }` actualiza, `{ code, delete: true }` borra) y
+`POST /api/load` (`{ code }`).
+
 ## Ranking global
 
 Ranking online con **apodo**, en dos periodos: **Semana** (se reinicia sola cada lunes a las 00:00 UTC, con cuenta atrás) e **Histórico**. Cada uno tiene tablero global y uno por animal (top 20 y tu posición), y cada fila muestra el icono del animal con el que se logró la puntuación. Se abre desde el botón
@@ -163,7 +181,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v54';   // -> 'dinopixel-v55', ...
+const CACHE = 'dinopixel-v55';   // -> 'dinopixel-v56', ...
 ```
 
 Notas de instalación:
@@ -190,6 +208,7 @@ js/             el juego, dividido por temas y cargado en este orden:
   screens.js      ayuda, compartir y logros
   ranking.js      ranking online
   daily.js        reto del día
+  cloud.js        guardado en el servidor (código de recuperación)
   menu.js         menú, ajustes, instalación, PWA y gancho de tests
 sw.js           service worker (caché, aviso de nueva versión)
 api/            funciones del ranking (Vercel Functions + Upstash Redis)

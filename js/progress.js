@@ -23,7 +23,8 @@ const balance = () => stats.coins + stats.bonus - stats.spent;   // spendable: c
 const ach = jsonStore('dp-ach', {});                    // { id: unlock timestamp }
 const animalBest = {};                                  // best score per animal (kept in memory, saved with the record)
 ANIMALS.forEach((a) => { animalBest[a.id] = Number(store.get('dp-hi-' + a.id, '0')) || 0; });
-const saveStats = () => { store.set('dp-stats', JSON.stringify(stats)); store.set('dp-ach', JSON.stringify(ach)); };
+const persist = { on: true };                           // turned off while a cloud save is being restored (so nothing overwrites it)
+const saveStats = () => { if (!persist.on) return; store.set('dp-stats', JSON.stringify(stats)); store.set('dp-ach', JSON.stringify(ach)); };
 // val(): current progress; the achievement is earned when val() >= goal
 const bestNow = () => Math.max(best, state === 'running' ? Math.floor(score) : 0);
 const ACH = [

@@ -242,6 +242,44 @@ try {
   t.check('daily: the 7th completed challenge earns "Constancia"', await ev('!!__dp.ach.daily7'));
   await ev('clearInterval(window.__onlyTagged)');
 
+  /* ---- cloud save: activate, autosave after a run, restore on a clean device, delete ---- */
+  const load = async (code) => (await fetch(base + '/api/load', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) })).json();
+  await fresh(`localStorage.setItem('dp-best', '3333'); localStorage.setItem('dp-stats', JSON.stringify({ coins: 77, runs: 5 })); localStorage.setItem('dp-skin-dino', 'gold'); localStorage.setItem('dp-vol', '0.5')`);
+  await ev(`document.getElementById('cloud-chip').click()`); await sleep(150);
+  t.check('cloud: off by default, with an "activate" button', !(await hidden('cloud')) && !(await hidden('cloud-off')) && (await hidden('cloud-active')));
+  await click('cloud-on'); await chrome.waitFor(`!!__dp.cloudCode`, 5000);
+  const ccode = await ev('__dp.cloudCode');
+  t.check('cloud: activating shows a recovery code and remembers it', /^[A-Z2-9]{5}-[A-Z2-9]{5}$/.test(ccode) && (await ev(`document.getElementById('cloud-code').textContent`)) === ccode && (await ev(`localStorage.getItem('dp-cloud')`)) === ccode);
+  let saved = await load(ccode);
+  t.check('cloud: the server copy has the progress (best, coins, skin)', saved.data.keys['dp-best'] === '3333' && JSON.parse(saved.data.keys['dp-stats']).coins === 77 && saved.data.keys['dp-skin-dino'] === 'gold');
+  t.check('cloud: device settings are not uploaded (volume)', !('dp-vol' in saved.data.keys) && !('dp-cloud' in saved.data.keys));
+  await esc(); await sleep(100);
+  await startRun();
+  await chrome.waitFor(`__dp.state === 'over'`, 25000);
+  await sleep(3000);                                         // autosave runs 2 s after the run ends
+  saved = await load(ccode);
+  t.check('cloud: a finished run is saved automatically', JSON.parse(saved.data.keys['dp-stats']).runs === 6, JSON.parse(saved.data.keys['dp-stats']).runs);
+  // a "new phone": clean storage, different local progress and its own volume setting
+  await fresh(`localStorage.setItem('dp-best', '10'); localStorage.setItem('dp-vol', '0.25')`);
+  await ev(`document.getElementById('cloud-chip').click()`); await sleep(150);
+  await ev(`document.getElementById('cloud-input').value = '${ccode.toLowerCase()}'`);
+  await click('cloud-restore');
+  t.check('cloud: restoring asks for confirmation first', await chrome.waitFor(`/Pulsa otra vez/.test(document.getElementById('cloud-restore').textContent)`, 5000));
+  await click('cloud-restore'); await sleep(1800);           // replaces local data and reloads the page
+  t.check('cloud: after restoring, the progress is back (best, coins, runs, skin)', (await ev('__dp.best')) === 3333 && (await ev('__dp.stats.coins')) === 77 && (await ev('__dp.stats.runs')) === 6 && (await ev(`localStorage.getItem('dp-skin-dino')`)) === 'gold');
+  t.check('cloud: the device keeps saving to the same code', (await ev('__dp.cloudCode')) === ccode);
+  t.check('cloud: device settings stay as they were on this device', (await ev(`localStorage.getItem('dp-vol')`)) === '0.25');
+  t.check('cloud: the wallet shows the restored coins', (await ev(`document.getElementById('coins-total').textContent`)) === '77');
+  await ev(`document.getElementById('cloud-chip').click()`); await sleep(150);
+  await click('cloud-del'); await click('cloud-del');
+  t.check('cloud: delete (two clicks) removes the server copy and forgets the code here', (await chrome.waitFor(`!__dp.cloudCode`, 5000)) && (await load(ccode)).error === 'not_found' && (await ev('__dp.best')) === 3333);
+  await esc(); await sleep(100);
+  await chrome.send('Emulation.setDeviceMetricsOverride', { width: 844, height: 340, deviceScaleFactor: 2, mobile: true }); await sleep(400);
+  const corner = await ev(`(() => { const a = document.querySelector('.corner-left').getBoundingClientRect(), b = document.querySelector('#menu h1').getBoundingClientRect();
+    return !(a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top) && a.left >= 0; })()`);
+  t.check('cloud: the Reto/Guardado buttons do not cover the title on a landscape phone', corner);
+  await chrome.send('Emulation.setDeviceMetricsOverride', { width: 1000, height: 560, deviceScaleFactor: 1, mobile: false });
+
   /* ---- statistics + shop ---- */
   await fresh(`localStorage.setItem('dp-stats', JSON.stringify({coins:1500, runs:42, timeSec:5430, jumps:812}))`);
   await click('ach-btn'); await ev(`document.querySelector('[data-atab=stats]').click()`); await sleep(150);

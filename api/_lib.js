@@ -103,7 +103,22 @@ const animalHashKey = (period, id) => (period === 'week' ? `dp:ba:wk:${id}` : 'd
 const recentWeekIds = (n = 3, now = Date.now()) => Array.from({ length: n }, (_, i) => weekInfo(now - i * WEEK_MS).id);
 const validBoard = (b) => b === 'all' || ANIMALS.includes(b);
 
+/* ---- cloud saves: a recovery code (never stored, only its hash) -> the player's progress blob ---- */
+const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';   // no 0/O, 1/I/L to avoid mix-ups
+const CODE_LEN = 10;                                        // 31^10 ~ 8e14 codes (~50 bits), plus rate limits on loading
+const SAVE_TTL = 400 * 24 * 3600;                           // ~13 months since the last save
+const SAVE_MAX = 20000;                                     // bytes of JSON
+function newCode() {
+  const bytes = crypto.randomBytes(CODE_LEN);
+  return [...bytes].map((b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join('');
+}
+const cleanCode = (c) => (typeof c === 'string' ? c.toUpperCase().replace(/[^A-Z0-9]/g, '') : '');
+const validCode = (c) => c.length === CODE_LEN && [...c].every((ch) => CODE_ALPHABET.includes(ch));
+const prettyCode = (c) => c.slice(0, 5) + '-' + c.slice(5);
+const saveKey = (code) => 'dp:save:' + crypto.createHash('sha256').update('dinopixel-save:' + code).digest('hex');
+
 module.exports = {
+  CODE_LEN, SAVE_TTL, SAVE_MAX, newCode, cleanCode, validCode, prettyCode, saveKey,
   ANIMALS, PID_RE, TOP, MAX_SCORE, MAX_RATE, SLACK,
   WEEK_TTL, weekInfo, weekKey, animalHashKey, recentWeekIds,
   configured, cmd, pipe, newToken, verifyToken, cleanNick, isBanned, ipHash, rateLimit, body, boardKey, validBoard,

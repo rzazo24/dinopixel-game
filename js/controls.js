@@ -30,6 +30,7 @@ const ICONS = {
   cart: ['11000000', '01111111', '01000001', '01000001', '01111111', '01000000', '00100100', '00100100'],
   target: ['00111100', '01000010', '10011001', '10111101', '10111101', '10011001', '01000010', '00111100'],
   check: ['00000000', '00000001', '00000011', '10000110', '11001100', '01111000', '00110000', '00000000'],
+  cloud: ['00000000', '00111000', '01111100', '01111110', '11111111', '11111111', '01111110', '00000000'],
   phone: [                                       // a phone: thin bezel, big screen, speaker slit, home button
     '011111110', '111111111', '111000111', '111111111', '100000001', '100000001', '100000001', '100000001',
     '100000001', '100000001', '100000001', '111111111', '111101111', '111111111', '011111110',
@@ -164,6 +165,7 @@ function press() {
 }
 
 document.addEventListener('keydown', (e) => {
+  if (!cloudEl.hidden) { if (e.code === 'Escape') { e.preventDefault(); closeCloud(); } return; }
   if (!dailyEl.hidden) { if (e.code === 'Escape') { e.preventDefault(); closeDaily(); } return; }
   if (!shopEl.hidden) { if (e.code === 'Escape') { e.preventDefault(); closeShop(); } return; }
   if (!achEl.hidden) { if (e.code === 'Escape') { e.preventDefault(); closeAch(); } return; }

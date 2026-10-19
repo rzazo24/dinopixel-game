@@ -152,6 +152,6 @@ if (/[?&]test=1/.test(location.search)) {
     ANIMALS, ACH, stats, ach, music, sfx, get master() { return master; }, press, setScore: (v) => { score = v; },
      setJump: (v) => { jumpHeld = v; }, setDuck: (v) => { duckHeld = v; },
     get P() { return P; }, get o() { return obstacles; }, get state() { return state; }, get score() { return score; },
-    get biome() { return BIOMES[biome].id; }, get banner() { return banner; }, get K() { return K; }, get daily() { return daily; }, makeDaily, todayStr, yesterdayStr, get dailyDoneRun() { return dailyDoneRun; }, balance, get items() { return items; }, get coinsRun() { return coinsRun; }, get magnetT() { return magnetT; }, get GROUND() { return GROUND; }, get W() { return W; }, get insets() { return [insetL, insetR]; }, textBoxes, get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },
+    get biome() { return BIOMES[biome].id; }, get banner() { return banner; }, get K() { return K; }, get cloudCode() { return cloudCode; }, cloudSave, snapshot, persist, get daily() { return daily; }, makeDaily, todayStr, yesterdayStr, get dailyDoneRun() { return dailyDoneRun; }, balance, get items() { return items; }, get coinsRun() { return coinsRun; }, get magnetT() { return magnetT; }, get GROUND() { return GROUND; }, get W() { return W; }, get insets() { return [insetL, insetR]; }, textBoxes, get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },
   };
 }

@@ -91,6 +91,29 @@ try {
   t.check('week: length is 7 days', L.weekInfo(Date.parse('2026-10-14T10:00:00Z')).end - L.weekInfo(Date.parse('2026-10-14T10:00:00Z')).start === 7 * 864e5);
   t.check('recent weeks: current plus the two before', L.recentWeekIds(3, Date.parse('2026-10-18T10:00:00Z')).join() === '2026-10-12,2026-10-05,2026-09-28');
 
+  /* ---- cloud saves ---- */
+  const blob = { v: 1, keys: { 'dp-best': '4200', 'dp-stats': JSON.stringify({ coins: 12 }) } };
+  const created = await post('/api/save', { data: blob });
+  t.check('save: creating a cloud save returns a recovery code XXXXX-XXXXX', created.status === 200 && /^[A-Z2-9]{5}-[A-Z2-9]{5}$/.test(created.body.code), created.body);
+  const code = created.body.code;
+  const loaded = await post('/api/load', { code });
+  t.check('load: the code brings the same data back', loaded.status === 200 && JSON.stringify(loaded.body.data) === JSON.stringify(blob) && loaded.body.savedAt === created.body.savedAt);
+  t.check('load: the code is forgiving (lowercase, no dash, spaces)', (await post('/api/load', { code: ' ' + code.toLowerCase().replace('-', '') + ' ' })).status === 200);
+  t.check('load: an unknown code -> 404', (await post('/api/load', { code: 'ABCDE-FGHJK' })).status === 404);
+  t.check('load: a malformed code -> 400', (await post('/api/load', { code: '12' })).status === 400 && (await post('/api/load', { code: 'OOOOO-OOOOO' })).status === 400);
+  const upd = await post('/api/save', { code, data: { v: 1, keys: { 'dp-best': '5000' } } });
+  t.check('save: with a code it overwrites that save (same code back)', upd.status === 200 && upd.body.code === code);
+  t.check('load: returns the latest version', (await post('/api/load', { code })).body.data.keys['dp-best'] === '5000');
+  t.check('save: refuses data that is not an object', (await post('/api/save', { data: 'x' })).status === 400 && (await post('/api/save', { data: [1, 2] })).status === 400);
+  t.check('save: refuses huge saves', (await post('/api/save', { data: { big: 'x'.repeat(30000) } })).status === 413);
+  t.check('save: a bad code -> 400', (await post('/api/save', { code: 'nope', data: blob })).status === 400);
+  const L2 = createRequire(import.meta.url)(path.join(ROOT, 'api', '_lib.js'));
+  t.check('save: the server never stores the code itself, only a hash', !L2.saveKey(code.replace('-', '')).includes(code.replace('-', '')) && L2.saveKey(code.replace('-', '')).startsWith('dp:save:'));
+  t.check('save: delete removes the cloud copy', (await post('/api/save', { code, delete: true })).body?.deleted === true && (await post('/api/load', { code })).status === 404);
+  let lastLoad = 0;
+  for (let i = 0; i < 20; i++) lastLoad = (await post('/api/load', { code: 'ABCDE-FGHJK' })).status;
+  t.check('load: guessing codes is rate limited per IP (-> 429)', lastLoad === 429, lastLoad);
+
   /* ---- rate limit on ranking reads that carry a pid (they skip the CDN cache) ---- */
   let last = 0;
   for (let i = 0; i < 301; i++) last = (await fetch(`${B}/api/ranking?board=all&pid=${pid('e')}`)).status;
