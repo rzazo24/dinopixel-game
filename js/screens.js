@@ -114,6 +114,7 @@ function renderStats() {
     ['Partidas jugadas', num(stats.runs)], ['Tiempo jugado', fmtTime(stats.timeSec)], ['Mejor puntuación', num(best)],
     ['Saltos', num(stats.jumps)], ['Obstáculos esquivados', num(stats.dodged)], ['Pájaros esquivados', num(stats.birds)],
     ['Monedas recogidas', num(stats.coins)], ['Monedas gastadas', num(stats.spent)],
+    ['Monedas de premios', num(stats.bonus)], ['Retos diarios completados', num(stats.dailyDone)], ['Racha de retos', num(stats.dailyStreak) + (stats.dailyStreak === 1 ? ' día' : ' días')],
     ['Logros', done + '/' + ACH.length], ['Animales', ANIMALS.filter(unlocked).length + '/' + ANIMALS.length],
   ];
   const tbl = document.createElement('table'); tbl.className = 'stats';

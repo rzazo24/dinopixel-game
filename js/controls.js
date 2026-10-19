@@ -28,6 +28,8 @@ const ICONS = {
   volume: ['00000010', '00000010', '00001010', '00001010', '00101010', '00101010', '10101010', '10101010'],
   coin: ['00111100', '01111110', '11011111', '11011111', '11011111', '11011111', '01111110', '00111100'],
   cart: ['11000000', '01111111', '01000001', '01000001', '01111111', '01000000', '00100100', '00100100'],
+  target: ['00111100', '01000010', '10011001', '10111101', '10111101', '10011001', '01000010', '00111100'],
+  check: ['00000000', '00000001', '00000011', '10000110', '11001100', '01111000', '00110000', '00000000'],
   phone: [                                       // a phone: thin bezel, big screen, speaker slit, home button
     '011111110', '111111111', '111000111', '111111111', '100000001', '100000001', '100000001', '100000001',
     '100000001', '100000001', '100000001', '111111111', '111101111', '111111111', '011111110',
@@ -162,6 +164,7 @@ function press() {
 }
 
 document.addEventListener('keydown', (e) => {
+  if (!dailyEl.hidden) { if (e.code === 'Escape') { e.preventDefault(); closeDaily(); } return; }
   if (!shopEl.hidden) { if (e.code === 'Escape') { e.preventDefault(); closeShop(); } return; }
   if (!achEl.hidden) { if (e.code === 'Escape') { e.preventDefault(); closeAch(); } return; }
   if (!rankEl.hidden) { if (e.code === 'Escape') { e.preventDefault(); closeRank(); } return; }

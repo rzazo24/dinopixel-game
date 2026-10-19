@@ -68,7 +68,7 @@ try {
   await esc(); await sleep(100);
   t.check('Esc closes help', await hidden('help'));
   await click('ach-btn'); await sleep(200);
-  t.check('achievements screen: 0/23 on a fresh profile', (await ev(`document.getElementById('ach-count').textContent`)) === '0/23' && (await ev(`document.querySelectorAll('.ach').length`)) === 23);
+  t.check('achievements screen: 0/24 on a fresh profile', (await ev(`document.getElementById('ach-count').textContent`)) === '0/24' && (await ev(`document.querySelectorAll('.ach').length`)) === 24);
   await esc(); await sleep(100);
   t.check('Esc closes achievements', await hidden('ach'));
 
@@ -204,6 +204,44 @@ try {
   await click('play'); await sleep(300);
   t.check('wallet: hidden during the game', (await ev(`document.getElementById('wallet').offsetParent`)) === null);
 
+  /* ---- daily challenge ---- */
+  const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const today = ymd(new Date()), yesterday = ymd(new Date(Date.now() - 864e5));
+  await fresh();
+  const d1 = await ev('JSON.stringify(__dp.daily)');
+  t.check('daily: a challenge for today is created', JSON.parse(d1).date === today && ['animal', 'coins', 'birds', 'dodge', 'noduck'].includes(JSON.parse(d1).type), d1);
+  await chrome.goto(base + '/manifest.json', 300); await chrome.goto(url, 1400);
+  t.check('daily: it stays the same all day (after a reload)', (await ev('JSON.stringify(__dp.daily)')) === d1);
+  const variety = await ev(`(() => { const s = new Set(); for (let i = 0; i < 60; i++) { const d = new Date(2026, 0, 1 + i); s.add(__dp.makeDaily(d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(), ['dino']).type); } return s.size; })()`);
+  t.check('daily: the 5 kinds of challenge come up over two months', variety === 5, variety);
+  t.check('daily: same date -> same challenge (deterministic)', (await ev(`JSON.stringify(__dp.makeDaily('2026-12-01', ['dino','cat']))`)) === (await ev(`JSON.stringify(__dp.makeDaily('2026-12-01', ['dino','cat']))`)));
+  const coinsDaily = (extra) => `localStorage.setItem('dp-daily', JSON.stringify({ date: '${today}', type: 'coins', n: 1, animal: null, reward: 50, done: false, best: 0 })); ${extra || ''}`;
+  await fresh(coinsDaily());
+  await click('play'); await sleep(300);
+  t.check('daily: the start screen shows the challenge', (await ev(`__dp.textBoxes.map(b => b.t).join('|')`)).includes('Reto: Recoge 1 monedas en una partida'));
+  await tap(); await sleep(150); await noObstacles(); await grounded();
+  await ev(`window.__onlyTagged = setInterval(() => { for (let i = __dp.items.length - 1; i >= 0; i--) if (!__dp.items[i].tag) __dp.items.splice(i, 1); }, 3)`);
+  await ev(`__dp.items.push({ kind: 'coin', x: 56, dy: -30, w: 14, h: 14, tag: 1 })`); await sleep(300);
+  t.check('daily: completing it pays the prize (50) on top of the coin', (await ev('__dp.daily.done')) && (await ev('__dp.balance()')) === 51 && (await ev('__dp.stats.bonus')) === 50);
+  t.check('daily: a banner announces it, streak starts at 1', (await ev('__dp.banner.text')) === 'Reto del día! +50' && (await ev('__dp.stats.dailyStreak')) === 1 && (await ev('__dp.stats.dailyDone')) === 1);
+  t.check('daily: prize coins do not count for the coin achievements', (await ev('__dp.stats.coins')) === 1);
+  await ev(`__dp.items.push({ kind: 'coin', x: 56, dy: -30, w: 14, h: 14, tag: 1 })`); await sleep(300);
+  t.check('daily: it pays only once a day', (await ev('__dp.stats.bonus')) === 50);
+  await ev('clearInterval(window.__onlyTagged)');
+  await click('pause-btn'); await click('home'); await sleep(150);
+  t.check('daily: the menu chip shows it as done', await ev(`document.getElementById('daily-chip').classList.contains('done')`));
+  await ev(`document.getElementById('daily-chip').click()`); await sleep(150);
+  t.check('daily: the detail screen says it is completed', /Completado/.test(await ev(`document.getElementById('daily-body').textContent`)));
+  await esc(); await sleep(100);
+  // streak: yesterday's challenge was done, with a 2-day streak -> today is day 3, prize 50 + 2x10
+  await fresh(coinsDaily(`localStorage.setItem('dp-stats', JSON.stringify({ dailyLast: '${yesterday}', dailyStreak: 2, dailyDone: 6 }))`));
+  await startRun(); await noObstacles(); await grounded();
+  await ev(`window.__onlyTagged = setInterval(() => { for (let i = __dp.items.length - 1; i >= 0; i--) if (!__dp.items[i].tag) __dp.items.splice(i, 1); }, 3)`);
+  await ev(`__dp.items.push({ kind: 'coin', x: 56, dy: -30, w: 14, h: 14, tag: 1 })`); await sleep(300);
+  t.check('daily: a streak adds +10 per day (day 3 -> 70)', (await ev('__dp.stats.dailyStreak')) === 3 && (await ev('__dp.stats.bonus')) === 70, [await ev('__dp.stats.dailyStreak'), await ev('__dp.stats.bonus')]);
+  t.check('daily: the 7th completed challenge earns "Constancia"', await ev('!!__dp.ach.daily7'));
+  await ev('clearInterval(window.__onlyTagged)');
+
   /* ---- statistics + shop ---- */
   await fresh(`localStorage.setItem('dp-stats', JSON.stringify({coins:1500, runs:42, timeSec:5430, jumps:812}))`);
   await click('ach-btn'); await ev(`document.querySelector('[data-atab=stats]').click()`); await sleep(150);
@@ -304,6 +342,12 @@ try {
   t.check('sound: one tick when crossing 500', (await ev('__calls.mile')) === 1, await ev('__calls'));
   await ev('__dp.setScore(995)'); await sleep(450);
   t.check('sound: animal unlock (1000) plays the unlock fanfare, once', (await ev('__calls.unlock')) === 1, await ev('__calls'));
+  // the score must stay visible after crossing a plain hundred (it only blinks on the 500s)
+  await sleep(1500);                                   // let the (legit) blink of crossing 1000 end
+  await ev('__dp.setScore(1295)'); await sleep(200);
+  let shown = 0;
+  for (let i = 0; i < 12; i++) { if (await ev(`__dp.textBoxes.some(b => /^\\d{5}$/.test(b.t) && b.t !== String(__dp.best).padStart(5, '0'))`)) shown++; await sleep(40); }
+  t.check('score: no blinking after crossing 1300 (only on multiples of 500)', shown === 12, shown);
   await fresh(`localStorage.setItem('dp-stats', JSON.stringify({jumps:1999}))`);
   await ev(`window.__calls = { mile: 0, ach: 0, unlock: 0 }; for (const k of Object.keys(__calls)) { const f = __dp.sfx[k]; __dp.sfx[k] = (...a) => { __calls[k]++; return f(...a); }; }`);
   await startRun();                                           // the first jump is the 2000th -> "Resorte"

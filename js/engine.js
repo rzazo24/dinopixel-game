@@ -35,6 +35,7 @@ function reset() {
 reset();
 
 function start() {
+  dailyStart();
   reset();
   state = 'running';
   stopMusic(0.05); startMusic(true);
@@ -52,6 +53,7 @@ function die() {
   haptic([70, 40, 140]);
   if (score > hi) { hi = Math.floor(score); store.set('dp-hi-' + animal.id, String(hi)); animalBest[animal.id] = hi; }
   if (score > best) { best = Math.floor(score); store.set('dp-best', String(best)); }
+  dailyEnd();
   stats.runs++;
   checkAch();
   saveStats();
@@ -202,6 +204,8 @@ function update(dt) {
     }
   }
 
+  dailyCheck();
+
   // zones
   const bi = Math.floor(score / BIOME_LEN) % BIOMES.length;
   if (bi !== biome) { biomePrev = biome; biome = bi; biomeT = 0; banner = { text: 'Zona: ' + BIOMES[bi].name, t: 150 }; }
@@ -211,7 +215,7 @@ function update(dt) {
   const m = Math.floor(score / 100);
   if (m > mile) {
     mile = m;
-    if (m > 0) { if (m % 5 === 0) sfx.mile(); flash = 60; checkAch(); }   // sound only every 500 points
+    if (m > 0) { if (m % 5 === 0) { sfx.mile(); flash = 60; } checkAch(); }   // tick + score blink only every 500 points
   }
 
   // obstacles

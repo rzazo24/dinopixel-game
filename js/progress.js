@@ -18,8 +18,8 @@ const skinOf = (id) => skinSel[id] || 'base';
 
 /* ---------- achievements ---------- */
 const jsonStore = (k, d) => { try { return Object.assign(d, JSON.parse(store.get(k, '{}'))); } catch { return d; } };
-const stats = jsonStore('dp-stats', { runs: 0, jumps: 0, dodged: 0, birds: 0, doubles: 0, shields: 0, glideSec: 0, slidePts: 0, noDuckBest: 0, podium: 0, weekwin: 0, shared: 0, coins: 0, spent: 0, timeSec: 0 });
-const balance = () => stats.coins - stats.spent;          // coins you can spend (achievements keep counting everything collected)
+const stats = jsonStore('dp-stats', { runs: 0, jumps: 0, dodged: 0, birds: 0, doubles: 0, shields: 0, glideSec: 0, slidePts: 0, noDuckBest: 0, podium: 0, weekwin: 0, shared: 0, coins: 0, spent: 0, timeSec: 0, bonus: 0, dailyDone: 0, dailyStreak: 0, dailyLast: '' });
+const balance = () => stats.coins + stats.bonus - stats.spent;   // spendable: collected + challenge prizes - spent (achievements only count collected)
 const ach = jsonStore('dp-ach', {});                    // { id: unlock timestamp }
 const animalBest = {};                                  // best score per animal (kept in memory, saved with the record)
 ANIMALS.forEach((a) => { animalBest[a.id] = Number(store.get('dp-hi-' + a.id, '0')) || 0; });
@@ -50,6 +50,7 @@ const ACH = [
   { id: 'podium', name: 'Podio', desc: 'Entra en el top 3 del ranking global', goal: 1, val: () => stats.podium },
   { id: 'weekwin', name: 'Campeón semanal', desc: 'Sé el número 1 del ranking semanal', goal: 1, val: () => stats.weekwin },
   { id: 'share', name: 'Embajador', desc: 'Comparte una puntuación', goal: 1, val: () => stats.shared },
+  { id: 'daily7', name: 'Constancia', desc: 'Completa 7 retos diarios', goal: 7, val: () => stats.dailyDone },
 ];
 let achQ = [], achShow = { text: '', t: 0 }, newAch = [], runDucked = false;
 function checkAch(silent) {

@@ -31,6 +31,7 @@
 </head>
 <body>
 <main id="menu">
+  <div class="daily-chip" id="daily-chip" role="button" tabindex="0" title="Reto del día"><i data-icon="target"></i><span>Reto</span></div>
   <div class="wallet" id="wallet" title="Tus monedas: toca para ir a la tienda" role="button" tabindex="0"><i data-icon="coin"></i><span id="coins-total">0</span></div>
   <h1>DINO<span>PIXEL</span></h1>
   <p class="tag" id="tag">Corre, salta y esquiva</p>
@@ -91,6 +92,13 @@
     </div>
     <div class="help-body" id="ach-body" tabindex="0"></div>
     <button id="ach-close" class="small" type="button"><i data-icon="close"></i><span>Cerrar</span></button>
+  </div>
+</div>
+<div id="daily" class="help" hidden role="dialog" aria-modal="true" aria-label="Reto del día">
+  <div class="help-box daily-box">
+    <h2>RETO DEL DÍA</h2>
+    <div class="help-body" id="daily-body" tabindex="0"></div>
+    <button id="daily-close" class="small" type="button"><i data-icon="close"></i><span>Cerrar</span></button>
   </div>
 </div>
 <div id="shop" class="help" hidden role="dialog" aria-modal="true" aria-label="Tienda">
@@ -156,6 +164,7 @@
 <script src="js/controls.js"></script>
 <script src="js/screens.js"></script>
 <script src="js/ranking.js"></script>
+<script src="js/daily.js"></script>
 <script src="js/menu.js"></script>
 </body>
 </html>

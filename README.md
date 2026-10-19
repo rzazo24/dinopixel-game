@@ -36,6 +36,11 @@ de llegar a su puntuación (cuesta su puntuación entre 10: gato 100, …, tortu
 Sombra, Hielo, Chicle; 300 cada uno, sirven para todos los animales y se elige cuál lleva cada uno). El monedero
 muestra el saldo; lo gastado no resta progreso a los logros de monedas.
 
+**Reto del día:** cada día hay un reto distinto (el mismo todo el día, se renueva a medianoche): llegar a X puntos
+con un animal, recoger X monedas, esquivar X pájaros u obstáculos, o llegar a X puntos sin agacharte, siempre en una
+partida. Da 50–70 monedas, +10 por cada día seguido de racha (hasta +50). Se ve en el botón **Reto** del menú y en la
+pantalla de inicio de partida. Las monedas de premio se pueden gastar, pero no cuentan para los logros de monedas.
+
 **Estadísticas:** pestaña dentro de **Logros** con partidas, tiempo jugado, mejor puntuación, saltos, esquivas,
 monedas recogidas y gastadas, y el récord de cada animal.
 
@@ -63,10 +68,10 @@ Los récords se guardan por animal en el navegador (`localStorage`).
 
 ## Logros
 
-23 logros con aviso en pantalla al conseguirlos y una pantalla **Logros** (botón del menú) con el progreso de cada
+24 logros con aviso en pantalla al conseguirlos y una pantalla **Logros** (botón del menú) con el progreso de cada
 uno. Entre ellos: puntuaciones (500 a 7000), partidas jugadas, saltos, obstáculos y pájaros esquivados, monedas (100 y 1000), 1000 puntos
 sin agacharte, uno por habilidad (doble salto del gato, escudo del perro, planeo de la gallina, deslizar del
-pingüino), 1500 con cada animal, desbloquear los 9, entrar en el top 3 del ranking, ser el número 1 de la semana y compartir. Se guardan en el
+pingüino), 1500 con cada animal, desbloquear los 9, entrar en el top 3 del ranking, ser el número 1 de la semana, completar 7 retos diarios y compartir. Se guardan en el
 navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos, sin avisos.
 
 ## Ajustes
@@ -75,8 +80,8 @@ navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos
 - **Velocidad** (60–100 %): ralentiza todo el juego por igual. Por defecto 100 % en móvil y 80 % en PC.
 - **Volumen** (botón del menú y de la pausa): 25, 50, 75 o 100 %, para música y efectos a la vez, con un pitido para
   oír el nivel. Se recuerda.
-- **Efectos** (`M`): sonidos generados con WebAudio (no hay archivos de audio). Un tic suave cada 500 puntos (el
-  contador parpadea cada 100, en silencio), un arpegio al conseguir un logro y una fanfarria al desbloquear un animal.
+- **Efectos** (`M`): sonidos generados con WebAudio (no hay archivos de audio). Un tic suave cada 500 puntos (con un
+  parpadeo del marcador), un arpegio al conseguir un logro y una fanfarria al desbloquear un animal.
 - **Música** (`N`): chiptune generado en directo, sin archivos de audio, así que funciona sin conexión. Cada zona tiene su canción,
   con versión de día y de noche: el desierto en tono mayor (menor de noche), la nieve tranquila y con melodía de
   campanita, y la ciudad más rápida, con bajo en corcheas y bombo en cada tiempo. El tempo sube con la velocidad del juego (y con el ajuste de
@@ -158,7 +163,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v52';   // -> 'dinopixel-v53', ...
+const CACHE = 'dinopixel-v54';   // -> 'dinopixel-v55', ...
 ```
 
 Notas de instalación:
@@ -184,6 +189,7 @@ js/             el juego, dividido por temas y cargado en este orden:
   controls.js     iconos, volumen, velocidad, bucle, pausa y entrada
   screens.js      ayuda, compartir y logros
   ranking.js      ranking online
+  daily.js        reto del día
   menu.js         menú, ajustes, instalación, PWA y gancho de tests
 sw.js           service worker (caché, aviso de nueva versión)
 api/            funciones del ranking (Vercel Functions + Upstash Redis)

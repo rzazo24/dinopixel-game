@@ -298,13 +298,16 @@ function draw() {
     let y = ty - 14;
     y += pixFit(animal.name, y, 4) + 4;
     y += pixFit('Toca la pantalla o pulsa espacio', y, 2);
-    pixFit(ABILITY[animal.id][0] + ': ' + ABILITY[animal.id][1], y, 2, '#ffd23f');
+    y += pixFit(ABILITY[animal.id][0] + ': ' + ABILITY[animal.id][1], y, 2, '#ffd23f') + 4;
+    pixFit((daily.done ? 'Reto del día: completado' : 'Reto: ' + dailyText(daily)), y, 2, '#9be564');
   } else if (state === 'over') {
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, 0, W, H);
     let y = ty - 14;                                   // lines stack, so a wrapped line never runs into the next one
     y += pixFit('Game over', y, 4, '#ffd23f') + 4;
     y += pixFit('Toca o pulsa espacio para reintentar', y, 2) + 6;
     if (coinsRun) y += pixFit('Monedas: ' + coinsRun, y, 2, '#ffd23f');
+    if (dailyDoneRun) y += pixFit('Reto del día completado! +' + dailyDoneRun, y, 2, '#9be564');
+    else if (!daily.done) y += pixFit('Reto: ' + Math.min(daily.n, dailyProgress()) + ' / ' + daily.n, y, 2, '#9be564');
     if (newlyUnlocked.length) y += pixFit('Nuevo: ' + newlyUnlocked.join(', '), y, 2, '#ffd23f');
     if (lastRank) {
       const wk = lastRank.week ? 'Semana #' + lastRank.week.all.rank + ' - ' : '';
