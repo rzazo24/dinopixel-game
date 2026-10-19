@@ -169,7 +169,9 @@ try {
   /* ---- pickups: coins, shield, magnet ---- */
   await fresh(`localStorage.setItem('dp-stats', JSON.stringify({coins:99}))`); await startRun(); await noObstacles(); await grounded();
   await ev(`clearInterval(window.__clr); window.__clr = setInterval(() => { __dp.o.length = 0; }, 3)`);
-  const coinAt = (x, dy) => ev(`__dp.items.push({ kind: 'coin', x: ${x}, dy: ${dy}, w: 14, h: 14 })`);
+  // obstacles keep spawning (and bring their own random coins): keep only the items this test places (tagged)
+  await ev(`window.__onlyTagged = setInterval(() => { for (let i = __dp.items.length - 1; i >= 0; i--) if (!__dp.items[i].tag) __dp.items.splice(i, 1); }, 3)`);
+  const coinAt = (x, dy) => ev(`__dp.items.push({ kind: 'coin', x: ${x}, dy: ${dy}, w: 14, h: 14, tag: 1 })`);
   const s0 = await ev('__dp.score');
   await coinAt(56, -30); await sleep(250);
   t.check('coin: running into a low coin collects it', (await ev('__dp.coinsRun')) === 1 && (await ev('__dp.items.length')) === 0);
@@ -178,16 +180,30 @@ try {
   await coinAt(56, -140); await sleep(300);
   t.check('coin: a coin high in the air is not collected while running', (await ev('__dp.coinsRun')) === 1);
   await ev('__dp.items.length = 0');
-  await ev(`__dp.items.push({ kind: 'shield', x: 56, dy: -30, w: 18, h: 18 })`); await sleep(250);
+  await ev(`__dp.items.push({ kind: 'shield', x: 56, dy: -30, w: 18, h: 18, tag: 1 })`); await sleep(250);
   t.check('shield pickup: gives a shield to any animal', (await ev('__dp.P.shield')) === 1);
   await ev(`clearInterval(window.__clr); __dp.o.length = 0; __dp.o.push({ type: 'bird', x: 52, dy: -58, w: 42, h: 27, f: 0 })`); await sleep(300);
   t.check('shield pickup: it absorbs one hit', (await ev('__dp.state')) === 'running' && (await ev('__dp.P.shield')) === 0);
   await ev(`window.__clr = setInterval(() => { __dp.o.length = 0; }, 3)`); await sleep(1700);
-  await ev(`__dp.items.push({ kind: 'magnet', x: 56, dy: -30, w: 18, h: 18 })`); await sleep(250);
+  await ev(`__dp.items.push({ kind: 'magnet', x: 56, dy: -30, w: 18, h: 18, tag: 1 })`); await sleep(250);
   t.check('magnet pickup: starts a 6 s magnet', (await ev('__dp.magnetT')) > 300);
   const c1 = await ev('__dp.coinsRun');
   await coinAt(150, -140); await sleep(1200);
   t.check('magnet: pulls in a coin that would be out of reach', (await ev('__dp.coinsRun')) === c1 + 1);
+  await ev('clearInterval(window.__onlyTagged)');
+  // the menu wallet shows the total of coins ever collected
+  await click('pause-btn'); await click('home'); await sleep(200);
+  t.check('wallet: the menu shows the total coins (99 seeded + the ones collected)', (await ev(`document.getElementById('coins-total').textContent`)) === String(await ev('__dp.stats.coins')) && (await ev('__dp.stats.coins')) >= 101);
+  await fresh(`localStorage.setItem('dp-stats', JSON.stringify({coins:12345}))`);
+  t.check('wallet: big totals are grouped (12.345)', (await ev(`document.getElementById('coins-total').textContent`)) === '12.345');
+  await chrome.send('Emulation.setDeviceMetricsOverride', { width: 844, height: 340, deviceScaleFactor: 2, mobile: true }); await sleep(400);
+  const wal = await ev(`(() => { const a = document.getElementById('wallet').getBoundingClientRect(), b = document.querySelector('#menu h1').getBoundingClientRect();
+    return { overlap: a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top, inside: a.right <= innerWidth && a.top >= 0 }; })()`);
+  t.check('wallet: on a landscape phone it does not cover the title and stays on screen', !wal.overlap && wal.inside, wal);
+  await chrome.send('Emulation.setDeviceMetricsOverride', { width: 1000, height: 560, deviceScaleFactor: 1, mobile: false });
+  await click('play'); await sleep(300);
+  t.check('wallet: hidden during the game', (await ev(`document.getElementById('wallet').offsetParent`)) === null);
+
   // pickups appear by themselves during a run
   await fresh(); await startRun();
   await ev(`setInterval(() => { __dp.P.inv = 2; }, 5); window.__kinds = {}; setInterval(() => __dp.items.forEach(i => { __kinds[i.kind] = 1; }), 30)`);

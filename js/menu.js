@@ -8,7 +8,12 @@ function showAbility() {
   const [n, d] = ABILITY[animal.id];
   $('ability').textContent = animal.name + ': ' + n + ' - ' + d;
 }
+function showCoins() {                                   // total coins ever collected (kept with the other stats)
+  $('coins-total').textContent = stats.coins.toLocaleString('es-ES');
+  $('wallet').setAttribute('aria-label', stats.coins + ' monedas recogidas en total');
+}
 function refreshPicker() {
+  showCoins();
   [...picker.children].forEach((b) => {
     const a = ANIMALS.find((x) => x.id === b.dataset.id);
     const open = unlocked(a);
