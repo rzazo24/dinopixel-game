@@ -256,6 +256,31 @@ const SHIELD_IMG = sprite([
 const MAGNET_IMG = sprite([
   'ss.....ss', 'ss.....ss', 'rr.....rr', 'rr.....rr', 'rr.....rr', 'rrr...rrr', '.rrrrrrr.', '..rrrrr..',
 ], { r: '#e53935', s: '#cfd8dc' });
+// moving obstacles (one per zone), two frames each to look like they roll
+function ballRows(n, marks) {                           // a filled circle with a shaded lower-right side and some marks
+  const r = n / 2 - 0.5, rows = [];
+  for (let y = 0; y < n; y++) {
+    let row = '';
+    for (let x = 0; x < n; x++) {
+      const dx = x - r, dy = y - r;
+      row += dx * dx + dy * dy > (r + 0.5) * (r + 0.5) ? '.' : marks.some(([mx, my]) => mx === x && my === y) ? 'm' : dx + dy > r * 0.7 ? 's' : 'f';
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+const TUMBLE_PAL = { f: '#b08a4a', s: '#8a6630', m: '#e2c48a' };
+const SNOWBALL_PAL = { f: '#f8fbff', s: '#b9cbe0', m: '#9fb6c9' };
+const CAR_ROWS = (hub) => [
+  '....rrrrrrr.......', '...rwwwrwwwr......', '..rwwwwrwwwwr.....', 'yrrrrrrrrrrrrrrrr.', 'rrrrrrrrrrrrrrrrrt',
+  'rrrrrrrrrrrrrrrrrr', '.rrkkkrrrrrrkkkrr.', '...k' + hub + 'k......k' + hub + 'k...', '...kkk......kkk...',
+];
+const MOVERS = {                                         // w/h in logical px; extra = how much faster than the ground
+  tumbleweed: { w: 30, h: 30, extra: [0.25, 0.4], bounce: 22, imgs: [ballRows(10, [[2, 2], [5, 4], [7, 7], [3, 6], [6, 1]]), ballRows(10, [[7, 2], [4, 5], [2, 7], [6, 6], [3, 1]])].map((r) => sprite(r, TUMBLE_PAL)) },
+  snowball: { w: 36, h: 36, extra: [0.3, 0.45], bounce: 0, imgs: [ballRows(12, [[3, 3], [7, 8]]), ballRows(12, [[8, 3], [3, 8]])].map((r) => sprite(r, SNOWBALL_PAL)) },
+  car: { w: 54, h: 27, extra: [0.4, 0.55], bounce: 0, imgs: ['g', 'k'].map((h) => sprite(CAR_ROWS(h), { r: '#2f6fd6', w: '#bfe6ff', y: '#ffe680', t: '#ff4d4d', k: '#1a1a1a', g: '#cfd8dc' })) },
+};
+const ZONE_MOVER = { desert: 'tumbleweed', snow: 'snowball', city: 'car' };
 const OBST = {
   cactus: cactusImg,
   snowman: sprite([

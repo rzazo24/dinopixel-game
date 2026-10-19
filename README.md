@@ -26,6 +26,11 @@ Esquiva los obstáculos del suelo (salta) y los pájaros (agáchate o salta, seg
 entre día y noche, y la velocidad aumenta con la puntuación: rápido al principio y cada vez más despacio, acercándose al máximo hacia
 los dos minutos de partida.
 
+**Obstáculos que se mueven:** desde 800 puntos, alrededor de 1 de cada 4 obstáculos de suelo se mueve más rápido que
+el suelo, así que llega antes: una **planta rodadora** que bota (desierto), una **bola de nieve** (nieve) y un
+**coche** (ciudad). Nunca son más altos que un cactus pequeño, y el juego limita su velocidad para que no alcancen al
+obstáculo de delante y formen un combo imposible.
+
 **Monedas y objetos:** las monedas dan 10 puntos y salen en arco sobre algunos cactus (se cogen al saltarlos) o en
 fila tras un obstáculo, a ras de suelo o en alto. Desde 400 puntos aparecen, de vez en cuando, un **escudo** (aguanta
 un golpe, con cualquier animal) y un **imán** (atrae las monedas cercanas durante 6 s). Un contador bajo la
@@ -181,7 +186,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v55';   // -> 'dinopixel-v56', ...
+const CACHE = 'dinopixel-v56';   // -> 'dinopixel-v57', ...
 ```
 
 Notas de instalación:

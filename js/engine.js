@@ -116,8 +116,31 @@ function collect(it) {
   }
   for (let i = 0; i < 6; i++) dust.push({ x: it.x + it.w / 2, y: GROUND + it.dy + it.h / 2, vx: rnd(-1.5, 1.5), vy: rnd(-1.5, 1), life: rnd(10, 18) });
 }
+// A moving obstacle for the current zone, or null when it would catch up with the previous obstacle too much
+// (it moves faster than the ground, so the gap to the one in front shrinks until that one passes the player).
+const MOVER_FROM = 800;
+function makeMover() {
+  const kind = ZONE_MOVER[BIOMES[biome].id], spec = MOVERS[kind];
+  let extra = rnd(spec.extra[0], spec.extra[1]);
+  const prev = obstacles[obstacles.length - 1];
+  if (prev && prev.x > PX) {
+    const pe = prev.extra || 0, safe = speed * 30 + 80;
+    const room = (W + 20) - (prev.x + prev.w) - safe;              // gap we can afford to lose
+    extra = Math.min(extra, pe + room * (1 + pe) / (prev.x - PX));
+  }
+  if (extra < 0.12) return null;
+  const dy = 2 - spec.h;
+  return { type: 'mover', kind, x: W + 20, dy, base: dy, w: spec.w, h: spec.h, extra, phase: 0, zone: BIOMES[biome].id };
+}
 function spawn() {
   const birdOK = score > 300 && Math.random() < 0.3;
+  const mover = !birdOK && score > MOVER_FROM && Math.random() < 0.25 ? makeMover() : null;
+  if (mover) {
+    obstacles.push(mover);
+    gap = speed * 30 + 120 + rnd(0, 260);
+    distSince = 0;
+    return;
+  }
   if (birdOK) {
     const tops = [-100, -58, -34];
     obstacles.push({ type: 'bird', x: W + 20, dy: tops[(Math.random() * 3) | 0], w: 14 * S, h: 9 * S });
@@ -224,7 +247,8 @@ function update(dt) {
   if (distSince >= gap) spawn();
   const pb = playerBox();
   for (const o of obstacles) {
-    o.x -= speed * dt;
+    o.x -= speed * dt * (1 + (o.extra || 0));                     // movers go faster than the ground
+    if (o.type === 'mover' && MOVERS[o.kind].bounce) { o.phase += dt * 0.12; o.dy = o.base - Math.abs(Math.sin(o.phase)) * MOVERS[o.kind].bounce; }
     if (o.type === 'bird') o.f = ((animT / 14) | 0) % 2;
     if (P.inv > 0 && overlap(pb, hitbox(o))) o.hit = true;   // walking through an obstacle while invulnerable is not a dodge
     if (!o.counted && o.x + o.w < PX) {               // passed the player without touching: dodged

@@ -166,6 +166,39 @@ try {
   const rDino = await rt();
   t.check('turtle: the game runs about 15% slower (points per second)', rTurtle / rDino > 0.75 && rTurtle / rDino < 0.95, [rTurtle, rDino]);
 
+  /* ---- moving obstacles ---- */
+  await fresh(); await startRun();
+  await ev(`window.__inv = setInterval(() => { __dp.P.inv = 2; }, 5)`);
+  const cactusAt = (x) => `__dp.o.push({ type: 'cactus', x: ${x}, dy: -37, w: 30, h: 39, parts: [{ k: 3, dx: 0, kind: 'cactus' }], zone: 'desert' })`;
+  // they show up by themselves from 800 points
+  await ev('__dp.setScore(850)');
+  t.check('movers: they appear by themselves after 800 points', await chrome.waitFor(`__dp.o.some(o => o.type === 'mover')`, 30000));
+  const zoneMover = {};
+  for (const [sc, zone] of [[900, 'desert'], [1600, 'snow'], [3100, 'city']]) {
+    await ev(`__dp.setScore(${sc})`); await sleep(400);
+    zoneMover[zone] = (await ev('(() => { __dp.o.length = 0; return __dp.spawnMover(); })()'))?.kind;   // clear + make in one step (no spawn in between)
+  }
+  t.check('movers: one per zone (tumbleweed / snowball / car)', zoneMover.desert === 'tumbleweed' && zoneMover.snow === 'snowball' && zoneMover.city === 'car', zoneMover);
+  // they go faster than the ground: compare with a cactus placed at the same time
+  await ev('__dp.setScore(900)'); await sleep(400);
+  await ev(`window.__keep = setInterval(() => { for (let i = __dp.o.length - 1; i >= 0; i--) if (!__dp.o[i].keep) __dp.o.splice(i, 1); }, 3)`);
+  await ev(`{ __dp.o.length = 0; const m = __dp.makeMover(); m.keep = 1; m.x = 800; ${cactusAt(800)}; __dp.o[0].keep = 1; __dp.o.push(m); }`);   // mover made first: nothing in front of it
+  const p0 = await ev('__dp.o.map(o => o.x)'); await sleep(350); const p1 = await ev('__dp.o.map(o => o.x)');
+  const ratio = (p0[1] - p1[1]) / (p0[0] - p1[0]), ext = await ev('__dp.o[1].extra');
+  t.check('movers: they move faster than the ground (by their "extra")', Math.abs(ratio - (1 + ext)) < 0.08, [ratio, ext]);
+  const dys = new Set(); for (let i = 0; i < 10; i++) { dys.add(Math.round(await ev('__dp.o[1].dy'))); await sleep(40); }
+  t.check('movers: the tumbleweed bounces', dys.size > 3, [...dys]);
+  // fairness: a mover never closes in on the obstacle in front more than the safe gap
+  await ev(`{ __dp.o.length = 0; ${cactusAt(300)}; __dp.o[0].keep = 1; window.__safe = __dp.speed * 30 + 80; const m = __dp.makeMover(); if (m) { m.keep = 1; __dp.o.push(m); } }`);
+  const minGap = await ev(`new Promise((res) => { let g = 1e9; const t = setInterval(() => { const [a, b] = __dp.o; if (!b || a.x <= 50) { clearInterval(t); res(g); return; } g = Math.min(g, b.x - (a.x + a.w)); }, 4); })`);
+  t.check('movers: they never get closer than the safe gap to the obstacle in front', minGap >= (await ev('window.__safe')) * 0.9, [minGap, await ev('window.__safe')]);
+  await ev(`__dp.o.length = 0; ${cactusAt('__dp.W - 20')}; __dp.o[0].keep = 1`);   // right next to where new obstacles appear
+  t.check('movers: with no room (obstacle just ahead) no mover is made', (await ev('__dp.makeMover()')) === null);
+  await ev('clearInterval(window.__keep); clearInterval(window.__inv); __dp.P.inv = 0');
+  await sleep(100);
+  await ev(`{ __dp.o.length = 0; const m = __dp.makeMover(); m.x = 54; __dp.o.push(m); }`); await sleep(300);
+  t.check('movers: touching one ends the run', (await ev('__dp.state')) === 'over');
+
   /* ---- pickups: coins, shield, magnet ---- */
   await fresh(`localStorage.setItem('dp-stats', JSON.stringify({coins:99}))`); await startRun(); await noObstacles(); await grounded();
   await ev(`clearInterval(window.__clr); window.__clr = setInterval(() => { __dp.o.length = 0; }, 3)`);

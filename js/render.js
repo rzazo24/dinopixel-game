@@ -155,6 +155,8 @@ function drawObstacles() {
   obstacles.forEach((o) => {
     if (o.type === 'bird') {
       blit(birdImgs[o.f || 0], Math.round(o.x), GROUND + o.dy, o.w, o.h);
+    } else if (o.type === 'mover') {
+      blit(MOVERS[o.kind].imgs[Math.floor(flapT / 6) % 2], Math.round(o.x), Math.round(GROUND + o.dy), o.w, o.h);
     } else {
       o.parts.forEach((p) => {
         const w = 10 * p.k, h = 13 * p.k;
