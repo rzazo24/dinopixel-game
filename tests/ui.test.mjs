@@ -49,7 +49,7 @@ try {
   t.check('menu: 9 animal cards, 8 locked on a fresh profile', (await ev(`document.querySelectorAll('.pick').length`)) === 9 && (await ev(`document.querySelectorAll('.pick.locked').length`)) === 8);
   t.check('menu: next unlock hint', (await ev(`document.getElementById('tag').textContent`)).includes('1000'));
   t.check('menu: pixel font loaded', await ev(`document.fonts.check('10px "Press Start 2P"')`));
-  t.check('menu: play / speed / sound / ranking / achievements / help buttons', await ev(`['play','pace','mute','music','vol','rank-btn','ach-btn','help-btn'].every(id => document.getElementById(id))`));
+  t.check('menu: play / speed / sound / ranking / achievements / help buttons', await ev(`['play','pace','mute','music','vol','shop-btn','rank-btn','ach-btn','help-btn'].every(id => document.getElementById(id))`));
   t.check('menu: install errors from Chrome = none', JSON.stringify((await chrome.send('Page.getInstallabilityErrors')).result.installabilityErrors) === '[]');
   const overflow = await (async () => {                       // phone in landscape (short screen): the menu must fit without scrolling
     await chrome.send('Emulation.setDeviceMetricsOverride', { width: 844, height: 340, deviceScaleFactor: 2, mobile: true });
@@ -203,6 +203,48 @@ try {
   await chrome.send('Emulation.setDeviceMetricsOverride', { width: 1000, height: 560, deviceScaleFactor: 1, mobile: false });
   await click('play'); await sleep(300);
   t.check('wallet: hidden during the game', (await ev(`document.getElementById('wallet').offsetParent`)) === null);
+
+  /* ---- statistics + shop ---- */
+  await fresh(`localStorage.setItem('dp-stats', JSON.stringify({coins:1500, runs:42, timeSec:5430, jumps:812}))`);
+  await click('ach-btn'); await ev(`document.querySelector('[data-atab=stats]').click()`); await sleep(150);
+  const stx = await ev(`document.getElementById('ach-body').textContent`);
+  t.check('stats: the statistics tab shows runs, play time and jumps', /Partidas jugadas42/.test(stx) && /1 h 30 min/.test(stx) && /Saltos812/.test(stx), stx.slice(0, 160));
+  t.check('stats: it lists a record for each of the 9 animals', (await ev(`document.querySelectorAll('#ach-body .rec').length`)) === 9);
+  await esc(); await sleep(100);
+  await ev(`document.getElementById('wallet').click()`); await sleep(200);
+  t.check('shop: tapping the wallet opens the shop with the balance', !(await hidden('shop')) && (await ev(`document.getElementById('shop-balance').textContent`)) === '1500');
+  const buyFor = (name) => ev(`(() => { const row = [...document.querySelectorAll('#shop-body .item')].find(r => r.querySelector('em').textContent === '${name}'); row.querySelector('.buy').click(); })()`);
+  await buyFor('Gato'); await sleep(150);
+  t.check('shop: buying the cat (100) unlocks it and lowers the balance', (await ev(`document.getElementById('shop-balance').textContent`)) === '1400' && (await ev(`!document.querySelector('[data-id=cat]').classList.contains('locked')`)));
+  t.check('shop: spending does not lower the coins collected (achievements keep counting)', (await ev('__dp.stats.coins')) === 1500 && (await ev('__dp.stats.spent')) === 100);
+  await buyFor('Tortuga'); await sleep(150);
+  t.check('shop: buying the turtle (1200) leaves 200', (await ev(`document.getElementById('shop-balance').textContent`)) === '200');
+  await buyFor('Zorro'); await sleep(150);
+  t.check('shop: not enough coins -> nothing bought, says how many are missing', (await ev(`document.getElementById('shop-balance').textContent`)) === '200' && /Te faltan 800/.test(await ev(`document.getElementById('shop-msg').textContent`)) && (await ev(`document.querySelector('[data-id=fox]').classList.contains('locked')`)));
+  await esc(); await sleep(100);
+  t.check('shop: the menu wallet shows what is left to spend', (await ev(`document.getElementById('coins-total').textContent`)) === '200');
+  await chrome.goto(base + '/manifest.json', 300); await chrome.goto(url, 1400);
+  t.check('shop: purchases survive a reload', (await ev(`!document.querySelector('[data-id=turtle]').classList.contains('locked')`)) && (await ev(`document.getElementById('coins-total').textContent`)) === '200');
+  // colour skin: the dino's green (#4caf50) disappears from the player once the gold skin is on
+  const greenOnPlayer = () => ev(`(() => { const c = document.getElementById('game'), k = __dp.K, g = c.getContext('2d');
+    const d = g.getImageData(50 * k, (__dp.GROUND - 50) * k, 50 * k, 50 * k).data; let n = 0;
+    for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - 76) < 4 && Math.abs(d[i + 1] - 175) < 4 && Math.abs(d[i + 2] - 80) < 4) n++;
+    return n; })()`);
+  await fresh(`localStorage.setItem('dp-stats', JSON.stringify({coins:400}))`);
+  await click('play'); await sleep(400);
+  const greenBefore = await greenOnPlayer();
+  await click('pause-btn'); await click('home'); await sleep(150);
+  await click('shop-btn'); await ev(`document.querySelector('[data-stab=skins]').click()`); await sleep(150);
+  await buyFor('Dorado'); await sleep(150);
+  t.check('skins: buying "Dorado" (300) equips it on the selected animal', (await ev(`localStorage.getItem('dp-skin-dino')`)) === 'gold' && (await ev(`document.getElementById('shop-balance').textContent`)) === '100');
+  await esc(); await click('play'); await sleep(400);
+  const greenAfter = await greenOnPlayer();
+  t.check('skins: the game draws the dino in gold (its green is gone)', greenBefore > 0 && greenAfter === 0, [greenBefore, greenAfter]);
+  await click('pause-btn'); await click('home'); await sleep(150);
+  await click('shop-btn'); await ev(`document.querySelector('[data-stab=skins]').click()`); await sleep(150);
+  await buyFor('Original'); await sleep(150);
+  t.check('skins: switching back to "Original" is free', (await ev(`localStorage.getItem('dp-skin-dino')`)) === 'base' && (await ev(`document.getElementById('shop-balance').textContent`)) === '100');
+  await esc(); await sleep(100);
 
   // pickups appear by themselves during a run
   await fresh(); await startRun();

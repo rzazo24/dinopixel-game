@@ -108,12 +108,13 @@ function drawPlayer() {
   if (P.inv > 0 && Math.floor(P.inv / 5) % 2 === 0) return;     // blink while invulnerable
   const run = Math.floor(animT / 40) % 2;   // one step every 40 px of travel: ~6 frames at start, ~3 at top speed
   const f = P.h > 0 || state !== 'running' ? 0 : run;
-  let frames = animal.frames, duck = animal.duck;
-  if (animal.framesUp && state === 'running') {
+  const lk = looksOf(animal, skinOf(animal.id));             // colour skin from the shop
+  let frames = lk.frames, duck = lk.duck;
+  if (lk.framesUp && state === 'running') {
     // wings: slow flap with the steps on the ground, quick flap in the air, slower and wider while gliding
     const gliding = animal.id === 'chick' && jumpHeld && P.vy < 0;
     const up = P.h > 0 ? Math.floor(flapT / (gliding ? 7 : 4)) % 2 : Math.floor(animT / 20) % 2;
-    if (up) { frames = animal.framesUp; duck = animal.duckUp; }
+    if (up) { frames = lk.framesUp; duck = lk.duckUp; }
   }
   // frog: when the super jump is ready, a yellow bar and sparkles appear above it
   const frogReady = animal.id === 'frog' && state === 'running' && P.h === 0 && P.charge >= FROG_READY;

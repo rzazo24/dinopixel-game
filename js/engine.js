@@ -163,6 +163,7 @@ function update(dt) {
   else if (achQ.length) achShow = { text: achQ.shift(), t: 170 };
   if (P.inv > 0) P.inv -= dt;
   if (state !== 'running') return;
+  stats.timeSec += dt / 60 / simPace();                       // real seconds played (dt is scaled by the pace)
 
   speed = Math.min(MAX_SPEED, START_SPEED + score / 300);
   const slide = animal.id === 'peng' && P.duck;
@@ -190,7 +191,7 @@ function update(dt) {
 
   // unlocks
   for (const a of ANIMALS) {
-    if (a.unlock > best && score >= a.unlock) {
+    if (a.unlock > best && score >= a.unlock && !bought.includes(a.id)) {
       best = Math.floor(score);
       store.set('dp-best', String(best));
       newlyUnlocked.push(a.name);

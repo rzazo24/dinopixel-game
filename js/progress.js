@@ -8,11 +8,18 @@
 const UNLOCK = { dino: 0, cat: 1000, dog: 2500, bunny: 4000, chick: 5500, peng: 7000, frog: 8500, fox: 10000, turtle: 12000 };
 ANIMALS.forEach((a) => { a.unlock = UNLOCK[a.id] || 0; });
 let best = Number(store.get('dp-best', '0')) || 0;      // best score reached with any animal
-const unlocked = (a) => best >= a.unlock;
+const jsonList = (k) => { try { const v = JSON.parse(store.get(k, '[]')); return Array.isArray(v) ? v : []; } catch { return []; } };
+const bought = jsonList('dp-bought');                   // animals unlocked early with coins
+const ownedSkins = jsonList('dp-skins');                // colour skins bought (they work on every animal)
+const unlocked = (a) => best >= a.unlock || bought.includes(a.id);
+const skinSel = {};                                     // chosen skin per animal
+ANIMALS.forEach((a) => { skinSel[a.id] = store.get('dp-skin-' + a.id, 'base'); });
+const skinOf = (id) => skinSel[id] || 'base';
 
 /* ---------- achievements ---------- */
 const jsonStore = (k, d) => { try { return Object.assign(d, JSON.parse(store.get(k, '{}'))); } catch { return d; } };
-const stats = jsonStore('dp-stats', { runs: 0, jumps: 0, dodged: 0, birds: 0, doubles: 0, shields: 0, glideSec: 0, slidePts: 0, noDuckBest: 0, podium: 0, weekwin: 0, shared: 0, coins: 0 });
+const stats = jsonStore('dp-stats', { runs: 0, jumps: 0, dodged: 0, birds: 0, doubles: 0, shields: 0, glideSec: 0, slidePts: 0, noDuckBest: 0, podium: 0, weekwin: 0, shared: 0, coins: 0, spent: 0, timeSec: 0 });
+const balance = () => stats.coins - stats.spent;          // coins you can spend (achievements keep counting everything collected)
 const ach = jsonStore('dp-ach', {});                    // { id: unlock timestamp }
 const animalBest = {};                                  // best score per animal (kept in memory, saved with the record)
 ANIMALS.forEach((a) => { animalBest[a.id] = Number(store.get('dp-hi-' + a.id, '0')) || 0; });

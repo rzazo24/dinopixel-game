@@ -102,6 +102,37 @@ shareBtn.addEventListener('click', shareRun);
 
 /* ---------- achievements screen ---------- */
 const achEl = $('ach'), achBody = $('ach-body');
+let achTab = 'ach';
+function fmtTime(sec) {
+  const m = Math.floor(sec / 60), h = Math.floor(m / 60);
+  return h ? h + ' h ' + (m % 60) + ' min' : m ? m + ' min' : Math.floor(sec) + ' s';
+}
+const num = (n) => Math.floor(n).toLocaleString('es-ES');
+function renderStats() {
+  const done = ACH.filter((a) => ach[a.id]).length;
+  const rows = [
+    ['Partidas jugadas', num(stats.runs)], ['Tiempo jugado', fmtTime(stats.timeSec)], ['Mejor puntuación', num(best)],
+    ['Saltos', num(stats.jumps)], ['Obstáculos esquivados', num(stats.dodged)], ['Pájaros esquivados', num(stats.birds)],
+    ['Monedas recogidas', num(stats.coins)], ['Monedas gastadas', num(stats.spent)],
+    ['Logros', done + '/' + ACH.length], ['Animales', ANIMALS.filter(unlocked).length + '/' + ANIMALS.length],
+  ];
+  const tbl = document.createElement('table'); tbl.className = 'stats';
+  rows.forEach(([k, v]) => { const tr = tbl.insertRow(); tr.insertCell().textContent = k; tr.insertCell().textContent = v; });
+  const h = document.createElement('h3'); h.textContent = 'Récord por animal';
+  const grid = document.createElement('div'); grid.className = 'recs';
+  ANIMALS.forEach((a) => {
+    const open = unlocked(a), cell = document.createElement('div'); cell.className = 'rec' + (open ? '' : ' locked');
+    const c = spriteCanvas(looksOf(a, skinOf(a.id)).frames[0], 2);
+    const p = document.createElement('p'); p.textContent = (open ? a.name : '???') + ' ' + num(animalBest[a.id]);
+    cell.append(c, p); grid.appendChild(cell);
+  });
+  achBody.replaceChildren(tbl, h, grid);
+}
+function renderAchOrStats() {
+  $('ach-tabs').querySelectorAll('.tab').forEach((b) => b.classList.toggle('on', b.dataset.atab === achTab));
+  if (achTab === 'stats') { $('ach-count').textContent = ACH.filter((a) => ach[a.id]).length + '/' + ACH.length; renderStats(); } else renderAch();
+}
+$('ach-tabs').querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => { achTab = b.dataset.atab; renderAchOrStats(); }));
 function renderAch() {
   const done = ACH.filter((a) => ach[a.id]).length;
   $('ach-count').textContent = done + '/' + ACH.length;
@@ -128,11 +159,93 @@ function renderAch() {
   });
   achBody.appendChild(grid);
 }
-function openAch() { renderAch(); achEl.hidden = false; $('ach-close').focus(); }
+function openAch() { achTab = 'ach'; renderAchOrStats(); achEl.hidden = false; $('ach-close').focus(); }
 function closeAch() { achEl.hidden = true; (inGame ? $('resume') : $('ach-btn')).focus(); }
 $('ach-btn').addEventListener('click', openAch);
 $('ach-btn2').addEventListener('click', openAch);
 $('ach-close').addEventListener('click', closeAch);
+
+/* ---------- shop: spend coins on animals (early unlock) and colour skins ---------- */
+const shopEl = $('shop'), shopBody = $('shop-body'), shopMsg = $('shop-msg');
+let shopTab = 'animals';
+const animalPrice = (a) => Math.round(a.unlock / 10);
+function spend(price) {
+  if (balance() < price) return false;
+  stats.spent += price;
+  saveStats();
+  return true;
+}
+function setSkin(id, skinId) {
+  skinSel[id] = skinId;
+  store.set('dp-skin-' + id, skinId);
+  refreshPicker();
+}
+function shopRow(img, title, sub, btn) {
+  const row = document.createElement('div'); row.className = 'item';
+  const face = document.createElement('span'); face.className = 'face'; face.appendChild(img);
+  const p = document.createElement('p');
+  const em = document.createElement('em'); em.textContent = title;
+  p.append(em, document.createElement('br'), sub);
+  row.append(face, p);
+  if (btn) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'small buy';
+    if (btn.price) {
+      b.innerHTML = iconSvg('coin');
+      b.append(' ' + btn.price.toLocaleString('es-ES'));
+      if (balance() < btn.price) b.classList.add('short');
+    } else b.textContent = btn.label;
+    b.addEventListener('click', () => {
+      if (btn.price && !spend(btn.price)) { shopMsg.textContent = 'Te faltan ' + (btn.price - balance()).toLocaleString('es-ES') + ' monedas.'; return; }
+      if (btn.price) sfx.power();
+      shopMsg.textContent = btn.action() || '';
+      renderShop();
+    });
+    row.appendChild(b);
+  }
+  return row;
+}
+function renderShop() {
+  $('shop-balance').textContent = balance().toLocaleString('es-ES');
+  showCoins();
+  $('shop-tabs').querySelectorAll('.tab').forEach((b) => b.classList.toggle('on', b.dataset.stab === shopTab));
+  const list = document.createElement('div'); list.className = 'shop';
+  if (shopTab === 'animals') {
+    ANIMALS.filter((a) => a.unlock > 0).forEach((a) => {
+      const open = unlocked(a);
+      list.appendChild(shopRow(spriteCanvas(a.frames[0], 3), a.name,
+        ABILITY[a.id][0] + (open ? ' - desbloqueado' : ' - o llega a ' + a.unlock.toLocaleString('es-ES') + ' puntos'),
+        open ? null : { price: animalPrice(a), action: () => {
+          bought.push(a.id); store.set('dp-bought', JSON.stringify(bought));
+          refreshPicker(); checkAch();
+          return '¡' + a.name + ' desbloqueado!';
+        } }));
+    });
+  } else {
+    const a = animal;                                   // skins are chosen for the animal selected in the menu
+    const note = document.createElement('p'); note.className = 'note';
+    note.textContent = 'Colores para: ' + a.name + ' (cada color se compra una vez y sirve para todos los animales)';
+    list.appendChild(note);
+    SKINS.forEach((sk) => {
+      const owned = sk.price === 0 || ownedSkins.includes(sk.id), using = skinOf(a.id) === sk.id;
+      list.appendChild(shopRow(spriteCanvas(looksOf(a, sk.id).frames[0], 3), sk.name,
+        using ? 'En uso' : owned ? 'Comprado' : sk.price + ' monedas',
+        using ? null : owned ? { label: 'Usar', action: () => { setSkin(a.id, sk.id); return a.name + ' ahora es ' + sk.name.toLowerCase() + '.'; } }
+          : { price: sk.price, action: () => {
+            ownedSkins.push(sk.id); store.set('dp-skins', JSON.stringify(ownedSkins));
+            setSkin(a.id, sk.id);
+            return '¡Color ' + sk.name + ' comprado!';
+          } }));
+    });
+  }
+  shopBody.replaceChildren(list);
+}
+function openShop() { shopTab = 'animals'; shopMsg.textContent = ''; renderShop(); shopEl.hidden = false; $('shop-close').focus(); }
+function closeShop() { shopEl.hidden = true; $('shop-btn').focus(); }
+$('shop-tabs').querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => { shopTab = b.dataset.stab; shopMsg.textContent = ''; renderShop(); }));
+$('shop-close').addEventListener('click', closeShop);
+$('shop-btn').addEventListener('click', openShop);
+$('wallet').addEventListener('click', openShop);
+$('wallet').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openShop(); } });
 checkAch(true);                                       // mark what you already earned (no banners on load)
 document.addEventListener('visibilitychange', () => { if (document.hidden) saveStats(); });
 window.addEventListener('pagehide', saveStats);

@@ -191,17 +191,57 @@ function blit(img, x, y, w, h) {
   ctx.drawImage(img, x - cx, y - cy, img.width * cx, img.height * cy);
 }
 
-ANIMALS.forEach((a) => {
-  const mk = (body, legs) => sprite([...body, ...legs].map((r) => r.padEnd(SP, '.')), a.pal);
+// All the frames of an animal for a given palette (running, crouching, and wings up for animals that flap)
+function buildLooks(a, pal) {
+  const mk = (body, legs) => sprite([...body, ...legs].map((r) => r.padEnd(SP, '.')), pal);
   const drop = a.crouchDrop || [7, 8, 9, 10];                   // squat: drop 4 rows (keeps the sprite 12 rows tall)
   const crouch = a.body.filter((_, i) => !drop.includes(i));
-  a.frames = a.legs.map((l) => mk(a.body, l));
-  a.duck = a.legs.map((l) => mk(crouch, l));
+  const looks = { frames: a.legs.map((l) => mk(a.body, l)), duck: a.legs.map((l) => mk(crouch, l)) };
   if (a.bodyUp) {                                              // animals with flapping wings get a second set of frames
-    a.framesUp = a.legs.map((l) => mk(a.bodyUp, l));
-    a.duckUp = a.legs.map((l) => mk(a.bodyUp.filter((_, i) => !drop.includes(i)), l));
+    looks.framesUp = a.legs.map((l) => mk(a.bodyUp, l));
+    looks.duckUp = a.legs.map((l) => mk(a.bodyUp.filter((_, i) => !drop.includes(i)), l));
   }
-});
+  return looks;
+}
+ANIMALS.forEach((a) => Object.assign(a, buildLooks(a, a.pal)));
+
+// Colour skins (bought in the shop): recolour every palette entry except near-black and near-white (eyes, outlines, teeth)
+const SKINS = [
+  { id: 'base', name: 'Original', price: 0 },
+  { id: 'gold', name: 'Dorado', price: 300, f: (h, s, l) => [45, Math.max(s, 0.75), l] },
+  { id: 'shadow', name: 'Sombra', price: 300, f: (h, s, l) => [h, s * 0.15, l * 0.55] },
+  { id: 'ice', name: 'Hielo', price: 300, f: (h, s, l) => [195, s * 0.8, Math.min(0.85, l + 0.1)] },
+  { id: 'candy', name: 'Chicle', price: 300, f: (h, s, l) => [320, Math.max(s, 0.6), Math.min(0.8, l + 0.05)] },
+];
+function hexToHsl(hex) {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.substr(i, 2), 16) / 255);
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+  if (!d) return [0, 0, l];
+  const s = d / (1 - Math.abs(2 * l - 1));
+  const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [(h * 60 + 360) % 360, s, l];
+}
+function hslToHex(h, s, l) {
+  s = Math.max(0, Math.min(1, s)); l = Math.max(0, Math.min(1, l));
+  const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = l - c / 2;
+  const [r, g, b] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+  return '#' + [r, g, b].map((v) => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('');
+}
+function skinPal(pal, skin) {
+  const out = {};
+  for (const [k, hex] of Object.entries(pal)) {
+    const [h, s, l] = hexToHsl(hex);
+    out[k] = l < 0.15 || l > 0.9 ? hex : hslToHex(...skin.f(h, s, l));
+  }
+  return out;
+}
+const lookCache = {};
+function looksOf(a, skinId) {
+  const skin = SKINS.find((x) => x.id === skinId);
+  if (!skin || !skin.f) return a;
+  const key = a.id + ':' + skinId;
+  return lookCache[key] || (lookCache[key] = buildLooks(a, skinPal(a.pal, skin)));
+}
 const cactusImg = sprite(CACTUS, CACTUS_PAL);
 // pickups: a spinning coin (face / edge), the shield bubble and the magnet
 const COIN_PAL = { o: '#b8860b', y: '#ffd23f', w: '#fff6b0' };

@@ -28,7 +28,15 @@ entre día y noche, y la velocidad aumenta con la puntuación.
 **Monedas y objetos:** las monedas dan 10 puntos y salen en arco sobre algunos cactus (se cogen al saltarlos) o en
 fila tras un obstáculo, a ras de suelo o en alto. Desde 400 puntos aparecen, de vez en cuando, un **escudo** (aguanta
 un golpe, con cualquier animal) y un **imán** (atrae las monedas cercanas durante 6 s). Un contador bajo la
-puntuación muestra las monedas de la partida, y el **monedero** de la esquina del menú, el total recogido.
+puntuación muestra las monedas de la partida, y el **monedero** de la esquina del menú, las monedas que puedes gastar.
+
+**Tienda:** las monedas se gastan en la **Tienda** (botón del menú, o tocando el monedero): desbloquear un animal antes
+de llegar a su puntuación (cuesta su puntuación entre 10: gato 100, …, tortuga 1200) o comprar **colores** (Dorado,
+Sombra, Hielo, Chicle; 300 cada uno, sirven para todos los animales y se elige cuál lleva cada uno). El monedero
+muestra el saldo; lo gastado no resta progreso a los logros de monedas.
+
+**Estadísticas:** pestaña dentro de **Logros** con partidas, tiempo jugado, mejor puntuación, saltos, esquivas,
+monedas recogidas y gastadas, y el récord de cada animal.
 
 **Zonas:** cada 1500 puntos cambias de escenario, con transición de colores y aviso: **Desierto** (cactus),
 **Nieve** (muñecos de nieve y pinos) y **Ciudad** (conos y bocas de incendio, con edificios al fondo). Después vuelve
@@ -149,7 +157,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v50';   // -> 'dinopixel-v51', ...
+const CACHE = 'dinopixel-v51';   // -> 'dinopixel-v52', ...
 ```
 
 Notas de instalación:

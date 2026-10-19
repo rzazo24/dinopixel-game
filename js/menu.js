@@ -9,8 +9,14 @@ function showAbility() {
   $('ability').textContent = animal.name + ': ' + n + ' - ' + d;
 }
 function showCoins() {                                   // total coins ever collected (kept with the other stats)
-  $('coins-total').textContent = stats.coins.toLocaleString('es-ES');
-  $('wallet').setAttribute('aria-label', stats.coins + ' monedas recogidas en total');
+  $('coins-total').textContent = balance().toLocaleString('es-ES');
+  $('wallet').setAttribute('aria-label', balance() + ' monedas. Toca para ir a la tienda');
+}
+function drawCard(b, a) {
+  const c = b.querySelector('canvas'), g = c.getContext('2d');
+  g.clearRect(0, 0, c.width, c.height);
+  g.imageSmoothingEnabled = false;
+  g.drawImage(looksOf(a, skinOf(a.id)).frames[0], 0, 0, c.width, c.height);
 }
 function refreshPicker() {
   showCoins();
@@ -18,6 +24,7 @@ function refreshPicker() {
     const a = ANIMALS.find((x) => x.id === b.dataset.id);
     const open = unlocked(a);
     b.classList.toggle('locked', !open);
+    drawCard(b, a);
     b.setAttribute('aria-disabled', String(!open));
     b.querySelector('span').textContent = open ? a.name : '???';
     b.querySelector('small').innerHTML = open
