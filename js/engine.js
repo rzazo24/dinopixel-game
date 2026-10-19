@@ -25,7 +25,7 @@ function reset() {
   night = 0; nightTarget = 0; animT = 0; flapT = 0;
   obstacles = []; dust = [];
   items = []; coinsRun = 0; magnetT = 0;
-  P.h = 0; P.vy = 0; P.duck = false; P.doubled = false; P.inv = 0; P.charge = 0; P.dodge = 0;
+  P.h = 0; P.vy = 0; P.duck = false; P.doubled = false; P.inv = 0; P.charge = 0; P.dodge = 0; P.foxCd = 0;
   P.shield = animal.id === 'dog' ? 1 : 0;
   banner = { text: '', t: 0 }; newlyUnlocked = [];
   newAch = []; achQ = []; achShow = { text: '', t: 0 }; runDucked = false;
@@ -205,8 +205,8 @@ function update(dt) {
   const wasDuck = P.duck;
   P.duck = duckHeld && P.h === 0;
   if (animal.id === 'frog' && P.h === 0) P.charge = Math.min(60, P.charge + dt);   // frog: charges by itself while running on the ground
-  if (animal.id === 'fox' && wasDuck && !P.duck && P.h === 0) P.dodge = 30;                                    // fox: half a second of bird immunity when you stand up
   if (P.dodge > 0) P.dodge -= dt;
+  if (P.foxCd > 0) P.foxCd -= dt;
   if (P.h > 0 || P.vy > 0) {
     if (!jumpHeld && P.vy > CUT_V && P.h >= MIN_H) P.vy = CUT_V;   // released early: shorter jump
     const glide = animal.id === 'chick' && jumpHeld && P.vy < 0;   // chicken: hold while falling to glide
@@ -255,7 +255,11 @@ function update(dt) {
       o.counted = true;
       if (!o.hit) { stats.dodged++; if (o.type === 'bird') stats.birds++; checkAch(); }
     }
-    if (o.type === 'bird' && (animal.id === 'turtle' || (animal.id === 'fox' && P.dodge > 0)) && overlap(pb, hitbox(o))) { o.hit = true; continue; }
+    if (o.type === 'bird' && overlap(pb, hitbox(o))) {
+      // turtle: birds never hurt it. fox: the first bird passes through, then the dodge recharges (FOX_CD)
+      if (animal.id === 'fox' && P.dodge <= 0 && P.foxCd <= 0) { P.foxCd = FOX_CD; P.dodge = 20; }
+      if (animal.id === 'turtle' || (animal.id === 'fox' && P.dodge > 0)) { o.hit = true; continue; }
+    }
     if (P.inv <= 0 && overlap(pb, hitbox(o))) {
       if (P.shield > 0) {
         P.shield = 0; P.inv = INVULN; o.hit = true;

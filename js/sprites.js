@@ -6,6 +6,7 @@
 let W = 600, H = 200, GROUND = 160;                     // logical size (adapts to the screen), ground line
 const S = 3;                                            // sprite scale
 const GRAV = 0.6, JUMP_V = 12, START_SPEED = 6, MAX_SPEED = 13;
+const FOX_CD = 480;                                      // frames (~8 s) the fox needs to recharge its bird dodge
 const SPEED_RAMP = 3000;                                // how gradually the speed approaches MAX_SPEED (bigger = slower ramp)
 const PX = 50;                                          // player x
 const SP = 16;                                          // animal sprite size in cells

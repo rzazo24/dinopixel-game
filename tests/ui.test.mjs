@@ -147,13 +147,23 @@ try {
   await ev(birdOnPlayer.replace("f: 0 }", "f: 0, injected: true }")); await sleep(300);
   t.check('control: the dino dies to a bird on top of it', (await ev('__dp.state')) === 'over');
 
+  // fox: the first bird passes through, then the dodge recharges (~8 s); orange bar (#ff8a2a) above it when ready
+  const orangeAbove = () => ev(`(() => { const c = document.getElementById('game'), k = __dp.K, g = c.getContext('2d');
+    const d = g.getImageData(40 * k, (__dp.GROUND - 70) * k, 70 * k, 40 * k).data; let n = 0;
+    for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - 255) < 4 && Math.abs(d[i + 1] - 138) < 4 && Math.abs(d[i + 2] - 42) < 4) n++;
+    return n; })()`);
   await fresh(ALL); await startRun('fox'); await noObstacles(); await grounded();
-  await ev('__dp.setDuck(true)'); await sleep(300); await ev('__dp.setDuck(false)'); await sleep(40);
-  await ev(`clearInterval(window.__clr); __dp.o.length = 0; ${birdOnPlayer}`); await sleep(250);
-  t.check('fox: right after standing up, a bird passes through', (await ev('__dp.state')) === 'running');
-  await ev(`__dp.o.length = 0`); await sleep(900);
+  t.check('fox: starts with the dodge ready (orange bar)', (await ev('__dp.P.foxCd')) <= 0 && (await orangeAbove()) > 0);
+  await ev(`clearInterval(window.__clr); __dp.o.length = 0; ${birdOnPlayer}`); await sleep(400);
+  t.check('fox: the first bird passes through, no input needed', (await ev('__dp.state')) === 'running' && (await ev('__dp.P.foxCd')) > 0);
+  t.check('fox: while recharging the bar is not orange', (await orangeAbove()) === 0);
+  await ev(`__dp.o.length = 0`); await sleep(300);
+  await ev(`__dp.P.foxCd = 0`); await sleep(100);                    // skip the 8 s wait: recharged
+  await ev(birdOnPlayer); await sleep(400);
+  t.check('fox: once recharged, it dodges again', (await ev('__dp.state')) === 'running');
+  await ev(`__dp.o.length = 0`); await sleep(400);
   await ev(birdOnPlayer); await sleep(300);
-  t.check('fox: the dodge only lasts a moment (a later bird hits)', (await ev('__dp.state')) === 'over');
+  t.check('fox: a bird during the recharge hits', (await ev('__dp.state')) === 'over');
 
   await fresh(ALL); await startRun('turtle'); await noObstacles(); await grounded();
   await ev(`clearInterval(window.__clr); __dp.o.length = 0; ${birdOnPlayer}`); await sleep(800);

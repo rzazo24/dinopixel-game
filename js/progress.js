@@ -76,7 +76,7 @@ const ABILITY = {
   chick: ['Planeo', 'Mantén al caer para planear'],
   peng: ['Deslizar', 'Agachado: puntos x2'],
   frog: ['Supersalto', 'Espera un momento en el suelo y salta altísimo'],
-  fox: ['Esquiva', 'Al levantarte, los pájaros no te tocan un instante'],
+  fox: ['Esquiva', 'El primer pájaro que le toca lo atraviesa; se recarga en 8 s'],
   turtle: ['Caparazón', 'Los pájaros no le hacen daño; va más despacio'],
 };
 const INVULN = 90;

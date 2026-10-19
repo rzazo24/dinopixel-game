@@ -123,6 +123,12 @@ function drawPlayer() {
   if (P.duck) blit(duck[f], PX + jx, GROUND - 36, 48, 36);
   else blit(frames[f], PX + jx, GROUND - P.h - SP * S, SP * S, SP * S);
   ctx.globalAlpha = 1;
+  if (animal.id === 'fox' && state === 'running') {          // fox: orange bar = dodge ready, white bar = recharging
+    const top = GROUND - P.h - (P.duck ? 36 : 48) - 12;
+    ctx.fillStyle = '#1b1b2b'; ctx.fillRect(PX + 11, top - 1, 26, 6);
+    ctx.fillStyle = P.foxCd > 0 ? '#ffffff' : '#ff8a2a';
+    ctx.fillRect(PX + 12, top, Math.round(24 * (P.foxCd > 0 ? 1 - P.foxCd / FOX_CD : 1)), 4);
+  }
   if (frogReady) {                                                // super jump ready: yellow bar + blinking sparkles
     const top = GROUND - (P.duck ? 36 : 48) - 12;
     ctx.fillStyle = '#1b1b2b'; ctx.fillRect(PX + 11, top - 1, 26, 6);
