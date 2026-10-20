@@ -116,7 +116,6 @@ function leaveFs() {
 }
 function setPaused(v) {
   paused = v && inGame;
-  duckHeld = false;
   jumpHeld = false;
   pauseEl.hidden = !paused;
   refreshShare();
@@ -178,13 +177,12 @@ document.addEventListener('keydown', (e) => {
     if (e.code === 'KeyF') { if (inFs()) leaveFs(); else goFs(); }
     return;
   }
-  if (e.repeat) { if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'ArrowDown') e.preventDefault(); return; }
+  if (e.repeat) { if (e.code === 'Space' || e.code === 'ArrowUp') e.preventDefault(); return; }
   switch (e.code) {
     case 'Space': case 'ArrowUp': case 'KeyW':
       e.preventDefault();
       if (paused) { if (e.code === 'Space') setPaused(false); } else { jumpHeld = true; press(); }
       break;
-    case 'ArrowDown': case 'KeyS': e.preventDefault(); duckHeld = !paused; break;
     case 'KeyP': case 'Escape': setPaused(!paused); break;
     case 'KeyF': if (inFs()) leaveFs(); else goFs(); break;
     case 'KeyM': setMuted(!muted); break;
@@ -192,7 +190,6 @@ document.addEventListener('keydown', (e) => {
   }
 });
 document.addEventListener('keyup', (e) => {
-  if (e.code === 'ArrowDown' || e.code === 'KeyS') duckHeld = false;
   if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') jumpHeld = false;
   if (inGame && e.code === 'Space') e.preventDefault();
 });
@@ -200,11 +197,8 @@ document.addEventListener('keyup', (e) => {
 canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
   if (paused) return;
-  const r = canvas.getBoundingClientRect();
-  const lower = (e.clientY - r.top) / r.height > 0.68;
-  if (state === 'running' && lower) duckHeld = true;
-  else { jumpHeld = true; press(); }
+  jumpHeld = true; press();                                  // tap anywhere: jump (hold for a higher jump)
 });
-['pointerup', 'pointercancel', 'pointerleave'].forEach((n) => canvas.addEventListener(n, () => { duckHeld = false; jumpHeld = false; }));
+['pointerup', 'pointercancel', 'pointerleave'].forEach((n) => canvas.addEventListener(n, () => { jumpHeld = false; }));
 document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'running') setPaused(true); });
-window.addEventListener('blur', () => { duckHeld = false; jumpHeld = false; if (state === 'running') setPaused(true); });
+window.addEventListener('blur', () => { jumpHeld = false; if (state === 'running') setPaused(true); });

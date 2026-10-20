@@ -112,10 +112,10 @@ try {
   const airGlide = await airTime(`__dp.setJump(true); __dp.press()`);
   t.check('chicken: holding while falling glides (longer in the air)', airGlide > airShort * 1.2, [airGlide, airShort]);
 
-  await fresh(ALL); await startRun('peng'); await noObstacles(); await grounded();
-  const rate = async (duck) => { await ev(`__dp.setDuck(${duck})`); const a = await ev('__dp.score'); await sleep(1200); const b = await ev('__dp.score'); await ev('__dp.setDuck(false)'); return (b - a) / 1.2; };
-  const rNormal = await rate(false), rSlide = await rate(true);
-  t.check('penguin: sliding doubles the points', rSlide > rNormal * 1.7 && rSlide < rNormal * 2.3, [rSlide, rNormal]);
+  // penguin: +50% points, always (compare points per second with the dino)
+  const pps = async (id) => { await fresh(ALL); await startRun(id); await noObstacles(); await grounded(); const a = await ev('__dp.score'); await sleep(1500); return ((await ev('__dp.score')) - a) / 1.5; };
+  const rPeng = await pps('peng'), rDinoPts = await pps('dino');
+  t.check('penguin: earns about 50% more points than the dino', rPeng / rDinoPts > 1.35 && rPeng / rDinoPts < 1.65, [rPeng, rDinoPts]);
 
   await fresh(ALL); await startRun('dog');
   t.check('dog: starts with a shield', (await ev('__dp.P.shield')) === 1);
@@ -175,6 +175,25 @@ try {
   await fresh(ALL); await startRun('dino'); await noObstacles(); await grounded();
   const rDino = await rt();
   t.check('turtle: the game runs about 15% slower (points per second)', rTurtle / rDino > 0.75 && rTurtle / rDino < 0.95, [rTurtle, rDino]);
+
+  /* ---- no crouching: one action only ---- */
+  await fresh(); await startRun(); await noObstacles(); await grounded();
+  await ev(`document.dispatchEvent(new KeyboardEvent('keydown', { code: 'ArrowDown', bubbles: true }))`); await sleep(200);
+  t.check('controls: the down arrow does nothing (no crouching)', (await ev('__dp.P.h')) === 0 && (await ev('__dp.state')) === 'running');
+  const r0 = await ev(`(() => { const r = document.getElementById('game').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height * 0.9]; })()`);
+  await ev(`document.getElementById('game').dispatchEvent(new PointerEvent('pointerdown', { clientX: ${r0[0]}, clientY: ${r0[1]}, bubbles: true }))`); await sleep(150);
+  t.check('controls: tapping the lower part of the screen jumps too', (await ev('__dp.P.h')) > 0);
+  await ev('__dp.setScore(400)'); await sleep(100);
+  const tops = await ev(`(() => { const s = new Set(); for (let i = 0; i < 600; i++) { __dp.o.length = 0; __dp.spawn(); __dp.o.filter(o => o.type === 'bird').forEach(o => s.add(o.dy)); } __dp.o.length = 0; return [...s].sort((a, b) => a - b); })()`);   // the real spawner
+  t.check('birds: three heights (high: run under; mid and low: jump), all valid', JSON.stringify(tops) === '[-100,-58,-34]', tops);
+  await ev('__dp.o.length = 0');
+  // a mid-height bird can be jumped: hold the jump as it arrives and stay alive
+  await fresh(); await startRun(); await noObstacles(); await grounded();
+  await ev(`clearInterval(window.__clr); __dp.o.length = 0; __dp.o.push({ type: 'bird', x: 300, dy: -58, w: 42, h: 27, f: 0 })`);
+  await ev(`window.__jb = setInterval(() => { const b = __dp.o[0]; if (b && b.x < 50 + 48 + __dp.speed * 9 && __dp.P.h === 0) { __dp.setJump(true); __dp.press(); } }, 5)`);
+  await sleep(1500);
+  t.check('birds: a mid-height bird can be jumped over', (await ev('__dp.state')) === 'running');
+  await ev('clearInterval(window.__jb)');
 
   /* ---- moving obstacles ---- */
   await fresh(); await startRun();
@@ -252,7 +271,7 @@ try {
   const today = ymd(new Date()), yesterday = ymd(new Date(Date.now() - 864e5));
   await fresh();
   const d1 = await ev('JSON.stringify(__dp.daily)');
-  t.check('daily: a challenge for today is created', JSON.parse(d1).date === today && ['animal', 'coins', 'birds', 'dodge', 'noduck'].includes(JSON.parse(d1).type), d1);
+  t.check('daily: a challenge for today is created', JSON.parse(d1).date === today && ['animal', 'coins', 'birds', 'dodge', 'time'].includes(JSON.parse(d1).type), d1);
   await chrome.goto(base + '/manifest.json', 300); await chrome.goto(url, 1400);
   t.check('daily: it stays the same all day (after a reload)', (await ev('JSON.stringify(__dp.daily)')) === d1);
   const variety = await ev(`(() => { const s = new Set(); for (let i = 0; i < 60; i++) { const d = new Date(2026, 0, 1 + i); s.add(__dp.makeDaily(d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(), ['dino']).type); } return s.size; })()`);

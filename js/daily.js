@@ -5,8 +5,8 @@
 /* ---------- daily challenge ---------- */
 // Five kinds, always within a single run. The day's challenge is picked from a seed made of the date,
 // then stored, so it stays the same all day even if you unlock animals meanwhile.
-const DAILY_TYPES = ['animal', 'coins', 'birds', 'dodge', 'noduck'];
-const DAILY_REWARD = { animal: 60, coins: 50, birds: 60, dodge: 50, noduck: 70 };
+const DAILY_TYPES = ['animal', 'coins', 'birds', 'dodge', 'time'];
+const DAILY_REWARD = { animal: 60, coins: 50, birds: 60, dodge: 50, time: 70 };
 const DAILY_STREAK_BONUS = 10, DAILY_STREAK_MAX = 5;   // +10 coins per day of streak, up to +50
 const pad2 = (n) => String(n).padStart(2, '0');
 const dateStr = (d) => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
@@ -26,7 +26,7 @@ function seeded(str) {                                 // small deterministic PR
 function makeDaily(date, pool) {
   const r = seeded('dinopixel:' + date), pick = (arr) => arr[Math.floor(r() * arr.length)];
   const type = pick(DAILY_TYPES);
-  const n = { animal: [800, 1000, 1200, 1500], coins: [15, 20, 25, 30], birds: [4, 6, 8], dodge: [20, 30, 40], noduck: [600, 800, 1000] }[type];
+  const n = { animal: [800, 1000, 1200, 1500], coins: [15, 20, 25, 30], birds: [4, 6, 8], dodge: [20, 30, 40], time: [60, 90, 120] }[type];
   return { date, type, n: pick(n), animal: type === 'animal' ? pick(pool) : null, reward: DAILY_REWARD[type], done: false, best: 0 };
 }
 function dailyText(d) {
@@ -36,7 +36,7 @@ function dailyText(d) {
     coins: 'Recoge ' + d.n + ' monedas en una partida',
     birds: 'Esquiva ' + d.n + ' pájaros en una partida',
     dodge: 'Esquiva ' + d.n + ' obstáculos en una partida',
-    noduck: 'Llega a ' + d.n + ' puntos sin agacharte',
+    time: 'Aguanta ' + d.n + ' segundos en una partida',
   }[d.type];
 }
 function loadDaily() {
@@ -59,7 +59,7 @@ function dailyProgress() {
     case 'coins': return coinsRun;
     case 'birds': return stats.birds - dailyBase.birds;
     case 'dodge': return stats.dodged - dailyBase.dodged;
-    default: return runDucked ? 0 : Math.floor(score);
+    default: return Math.floor(runTime);
   }
 }
 function dailyStart() {                                // called when a run starts

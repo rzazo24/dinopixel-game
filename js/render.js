@@ -109,28 +109,27 @@ function drawPlayer() {
   const run = Math.floor(animT / 40) % 2;   // one step every 40 px of travel: ~6 frames at start, ~3 at top speed
   const f = P.h > 0 || state !== 'running' ? 0 : run;
   const lk = looksOf(animal, skinOf(animal.id));             // colour skin from the shop
-  let frames = lk.frames, duck = lk.duck;
+  let frames = lk.frames;
   if (lk.framesUp && state === 'running') {
     // wings: slow flap with the steps on the ground, quick flap in the air, slower and wider while gliding
     const gliding = animal.id === 'chick' && jumpHeld && P.vy < 0;
     const up = P.h > 0 ? Math.floor(flapT / (gliding ? 7 : 4)) % 2 : Math.floor(animT / 20) % 2;
-    if (up) { frames = lk.framesUp; duck = lk.duckUp; }
+    if (up) frames = lk.framesUp;
   }
   // frog: when the super jump is ready, a yellow bar and sparkles appear above it
   const frogReady = animal.id === 'frog' && state === 'running' && P.h === 0 && P.charge >= FROG_READY;
   const jx = 0;
   if (P.dodge > 0) ctx.globalAlpha = 0.55;                      // fox dodging: ghostly
-  if (P.duck) blit(duck[f], PX + jx, GROUND - 36, 48, 36);
-  else blit(frames[f], PX + jx, GROUND - P.h - SP * S, SP * S, SP * S);
+  blit(frames[f], PX + jx, GROUND - P.h - SP * S, SP * S, SP * S);
   ctx.globalAlpha = 1;
   if (animal.id === 'fox' && state === 'running') {          // fox: orange bar = dodge ready, white bar = recharging
-    const top = GROUND - P.h - (P.duck ? 36 : 48) - 12;
+    const top = GROUND - P.h - 48 - 12;
     ctx.fillStyle = '#1b1b2b'; ctx.fillRect(PX + 11, top - 1, 26, 6);
     ctx.fillStyle = P.foxCd > 0 ? '#ffffff' : '#ff8a2a';
     ctx.fillRect(PX + 12, top, Math.round(24 * (P.foxCd > 0 ? 1 - P.foxCd / FOX_CD : 1)), 4);
   }
   if (frogReady) {                                                // super jump ready: yellow bar + blinking sparkles
-    const top = GROUND - (P.duck ? 36 : 48) - 12;
+    const top = GROUND - 48 - 12;
     ctx.fillStyle = '#1b1b2b'; ctx.fillRect(PX + 11, top - 1, 26, 6);
     ctx.fillStyle = '#ffd23f'; ctx.fillRect(PX + 12, top, 24, 4);
     if (Math.floor(flapT / 6) % 2 === 0) {
@@ -152,7 +151,7 @@ function drawItems() {
 }
 function drawShieldBubble() {
   if (P.shield <= 0 || state !== 'running') return;
-  const cx = PX + 24, cy = GROUND - P.h - (P.duck ? 18 : 24), r = P.duck ? 30 : 34;
+  const cx = PX + 24, cy = GROUND - P.h - 24, r = 34;
   ctx.globalAlpha = 0.45; ctx.fillStyle = '#4fc3f7';
   for (let a = 0; a < Math.PI * 2; a += 0.16) ctx.fillRect(Math.round(cx + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r), 3, 3);
   ctx.globalAlpha = 1;
@@ -272,7 +271,6 @@ function drawHUD() {
     blit(COIN_IMGS[0], W - 12 - insetR - w - 18, 32, 14, 14);
   }
   if (magnetT > 0 && state === 'running') pixText('Imán ' + Math.ceil(magnetT / 60), W - 12 - insetR, 52, 2, 'right', '#e53935');
-  if (animal.id === 'peng' && P.duck && state === 'running') pixText('x2', W - 212 - insetR, 12, 2, 'right', '#ffd23f');
 }
 
 function draw() {

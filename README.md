@@ -16,13 +16,13 @@ desbloqueables**, cada uno con su propia habilidad. Se juega en el navegador y s
 |---|---|---|
 | Saltar | `Espacio` / `↑` / `W` | Toca la pantalla |
 | Salto más corto | Suelta la tecla pronto | Toque corto |
-| Agacharse | `↓` / `S` | Mantén pulsada la parte baja |
 | Pausa | `P` / `Esc` | Botón ⏸ |
 | Pantalla completa | `F` | Se activa al pulsar JUGAR |
 | Efectos de sonido | `M` | Botón del menú |
 | Música | `N` | Botón del menú |
 
-Esquiva los obstáculos del suelo (salta) y los pájaros (agáchate o salta, según la altura). Cada 700 puntos cambia
+Solo hay una acción: **saltar** (mantén para saltar más alto). Salta los obstáculos del suelo y los pájaros bajos y medios
+(estos, un poco más alto); por debajo de los pájaros altos se pasa sin hacer nada. Cada 700 puntos cambia
 entre día y noche, y la velocidad aumenta con la puntuación: rápido al principio y cada vez más despacio, acercándose al máximo hacia
 los dos minutos de partida.
 
@@ -42,7 +42,7 @@ Sombra, Hielo, Chicle; 300 cada uno, sirven para todos los animales y se elige c
 muestra el saldo; lo gastado no resta progreso a los logros de monedas.
 
 **Reto del día:** cada día hay un reto distinto (el mismo todo el día, se renueva a medianoche): llegar a X puntos
-con un animal, recoger X monedas, esquivar X pájaros u obstáculos, o llegar a X puntos sin agacharte, siempre en una
+con un animal, recoger X monedas, esquivar X pájaros u obstáculos, o aguantar X segundos, siempre en una
 partida. Da 50–70 monedas, +10 por cada día seguido de racha (hasta +50). Se ve en el botón **Reto** del menú y en la
 pantalla de inicio de partida. Las monedas de premio se pueden gastar, pero no cuentan para los logros de monedas.
 
@@ -64,7 +64,7 @@ Empiezas con el dino; el resto se desbloquea con tu **mejor puntuación** (con c
 | Perro | 2500 | **Escudo**: sobrevive a un golpe por partida |
 | Conejo | 4000 | **Salto alto** |
 | Gallina | 5500 | **Planeo**: mantén pulsado al caer |
-| Pingüino | 7000 | **Deslizar**: agachado en el suelo, puntos x2 |
+| Pingüino | 7000 | **Patinador**: suma un 50 % más de puntos |
 | Rana | 8500 | **Supersalto**: se carga sola mientras corre por el suelo; tras ~¾ s sin saltar, el siguiente salto es mucho más alto (una barra amarilla encima avisa) |
 | Zorro | 10000 | **Esquiva**: el primer pájaro que le toca lo atraviesa; luego se recarga en 8 s (barra naranja = lista) |
 | Tortuga | 12000 | **Caparazón**: los pájaros no le hacen daño, pero el juego va un 15 % más lento (y suma menos puntos) |
@@ -74,8 +74,7 @@ Los récords se guardan por animal en el navegador (`localStorage`).
 ## Logros
 
 24 logros con aviso en pantalla al conseguirlos y una pantalla **Logros** (botón del menú) con el progreso de cada
-uno. Entre ellos: puntuaciones (500 a 7000), partidas jugadas, saltos, obstáculos y pájaros esquivados, monedas (100 y 1000), 1000 puntos
-sin agacharte, uno por habilidad (doble salto del gato, escudo del perro, planeo de la gallina, deslizar del
+uno. Entre ellos: puntuaciones (500 a 7000), partidas jugadas, saltos, obstáculos y pájaros esquivados, monedas (100 y 1000), aguantar 2 minutos, uno por habilidad (doble salto del gato, escudo del perro, planeo de la gallina, deslizar del
 pingüino), 1500 con cada animal, desbloquear los 9, entrar en el top 3 del ranking, ser el número 1 de la semana, completar 7 retos diarios y compartir. Se guardan en el
 navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos, sin avisos.
 
@@ -186,7 +185,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v57';   // -> 'dinopixel-v58', ...
+const CACHE = 'dinopixel-v58';   // -> 'dinopixel-v59', ...
 ```
 
 Notas de instalación:
@@ -227,8 +226,7 @@ og-image.png    imagen de vista previa al compartir el enlace (1200x630)
 
 Cómo está hecho, por si quieres tocarlo:
 
-- **Sprites** definidos como texto en [js/sprites.js](js/sprites.js) (`ANIMALS`), con contorno automático y un sprite agachado
-  por animal. Para añadir un animal, copia una entrada y define su cuerpo, patas y habilidad.
+- **Sprites** definidos como texto en [js/sprites.js](js/sprites.js) (`ANIMALS`), con contorno automático. Para añadir un animal, copia una entrada y define su cuerpo, patas y habilidad.
 - **Resolución nativa**: el canvas usa los píxeles reales de la pantalla con escala entera, así que el pixel art
   se ve nítido en cualquier densidad.
 - **Texto e iconos pixel** dibujados desde mapas de bits, sin imágenes.

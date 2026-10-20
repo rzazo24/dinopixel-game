@@ -18,7 +18,7 @@ const skinOf = (id) => skinSel[id] || 'base';
 
 /* ---------- achievements ---------- */
 const jsonStore = (k, d) => { try { return Object.assign(d, JSON.parse(store.get(k, '{}'))); } catch { return d; } };
-const stats = jsonStore('dp-stats', { runs: 0, jumps: 0, dodged: 0, birds: 0, doubles: 0, shields: 0, glideSec: 0, slidePts: 0, noDuckBest: 0, podium: 0, weekwin: 0, shared: 0, coins: 0, spent: 0, timeSec: 0, bonus: 0, dailyDone: 0, dailyStreak: 0, dailyLast: '' });
+const stats = jsonStore('dp-stats', { runs: 0, jumps: 0, dodged: 0, birds: 0, doubles: 0, shields: 0, glideSec: 0, slidePts: 0, longestRun: 0, podium: 0, weekwin: 0, shared: 0, coins: 0, spent: 0, timeSec: 0, bonus: 0, dailyDone: 0, dailyStreak: 0, dailyLast: '' });
 const balance = () => stats.coins + stats.bonus - stats.spent;   // spendable: collected + challenge prizes - spent (achievements only count collected)
 const ach = jsonStore('dp-ach', {});                    // { id: unlock timestamp }
 const animalBest = {};                                  // best score per animal (kept in memory, saved with the record)
@@ -41,11 +41,11 @@ const ACH = [
   { id: 'birds30', name: 'Cazapájaros', desc: 'Esquiva 30 pájaros', goal: 30, val: () => stats.birds },
   { id: 'coins100', name: 'Hucha', desc: 'Recoge 100 monedas', goal: 100, val: () => stats.coins },
   { id: 'coins1000', name: 'Tesoro', desc: 'Recoge 1000 monedas', goal: 1000, val: () => stats.coins },
-  { id: 'noduck', name: 'Pie plano', desc: '1000 puntos sin agacharte', goal: 1000, val: () => stats.noDuckBest },
+  { id: 'marathon', name: 'Maratón', desc: 'Aguanta 2 minutos en una partida', goal: 120, val: () => Math.floor(stats.longestRun || 0) },
   { id: 'double50', name: 'Rebote', desc: '50 dobles saltos con el gato', goal: 50, val: () => stats.doubles },
   { id: 'shield5', name: 'Escudo de hierro', desc: 'Salva 5 golpes con el perro', goal: 5, val: () => stats.shields },
   { id: 'glide20', name: 'Planeador', desc: 'Planea 20 segundos con la gallina', goal: 20, val: () => Math.floor(stats.glideSec) },
-  { id: 'slide1000', name: 'Surfista', desc: '1000 puntos deslizando con el pingüino', goal: 1000, val: () => Math.floor(stats.slidePts) },
+  { id: 'slide1000', name: 'Surfista', desc: '1000 puntos extra con el pingüino', goal: 1000, val: () => Math.floor(stats.slidePts) },
   { id: 'master', name: 'Maestro', desc: '1500 puntos con cada animal', goal: ANIMALS.length, val: () => ANIMALS.filter((a) => animalBest[a.id] >= 1500).length },
   { id: 'collector', name: 'Coleccionista', desc: 'Desbloquea los ' + ANIMALS.length + ' animales', goal: ANIMALS.length, val: () => ANIMALS.filter(unlocked).length },
   { id: 'podium', name: 'Podio', desc: 'Entra en el top 3 del ranking global', goal: 1, val: () => stats.podium },
@@ -53,9 +53,8 @@ const ACH = [
   { id: 'share', name: 'Embajador', desc: 'Comparte una puntuación', goal: 1, val: () => stats.shared },
   { id: 'daily7', name: 'Constancia', desc: 'Completa 7 retos diarios', goal: 7, val: () => stats.dailyDone },
 ];
-let achQ = [], achShow = { text: '', t: 0 }, newAch = [], runDucked = false;
+let achQ = [], achShow = { text: '', t: 0 }, newAch = [];
 function checkAch(silent) {
-  if (state === 'running' && !runDucked) stats.noDuckBest = Math.max(stats.noDuckBest, Math.floor(score));
   let got = false;
   for (const a of ACH) {
     if (!ach[a.id] && a.val() >= a.goal) {
@@ -74,7 +73,7 @@ const ABILITY = {
   dog: ['Escudo', 'Sobrevive a un golpe'],
   bunny: ['Salto alto', 'Salta mucho más'],
   chick: ['Planeo', 'Mantén al caer para planear'],
-  peng: ['Deslizar', 'Agachado: puntos x2'],
+  peng: ['Patinador', 'Suma un 50% más de puntos'],
   frog: ['Supersalto', 'Espera un momento en el suelo y salta altísimo'],
   fox: ['Esquiva', 'El primer pájaro que le toca lo atraviesa; se recarga en 8 s'],
   turtle: ['Caparazón', 'Los pájaros no le hacen daño; va más despacio'],

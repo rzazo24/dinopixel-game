@@ -24,7 +24,6 @@ const BIPED_LEGS = (ch) => [
 const ANIMALS = [
   {
     id: 'dino', name: 'Dino',
-    crouchDrop: [4, 5, 9, 10],        // shorten neck + belly so the tail stays attached
     pal: { a: '#4caf50', b: '#b6e388', k: '#1a1a1a' },
     body: [
       '........aaaaaa..', '.......aaaaaaaa.', '.......aakaaaaa.', '.......aaaaaaaa.',
@@ -68,7 +67,6 @@ const ANIMALS = [
       '..aaaa.aaaaaaa..', '.aaaaaaaaaaaaa..', 'wwaaaaaaaaaaaa..', 'wwaabbbbbbbbaa..',
       '..aaaaaaaaaaaa..',
     ],
-    crouchDrop: [1, 2, 9, 10],        // crouching: shorter ears, tighter body
     legs: QUAD_LEGS,
   },
   {
@@ -132,7 +130,6 @@ const ANIMALS = [
   },
   {
     id: 'turtle', name: 'Tortuga',
-    crouchDrop: [0, 1, 2, 3],          // already low: crouching just keeps the shell
     pal: { s: '#3f8f4a', S: '#2a6a35', h: '#9ccf6e', k: '#1a1a1a', b: '#d8c78a' },
     body: [
       '................', '................', '................', '................',
@@ -193,16 +190,11 @@ function blit(img, x, y, w, h) {
   ctx.drawImage(img, x - cx, y - cy, img.width * cx, img.height * cy);
 }
 
-// All the frames of an animal for a given palette (running, crouching, and wings up for animals that flap)
+// All the frames of an animal for a given palette (running, and wings up for animals that flap)
 function buildLooks(a, pal) {
   const mk = (body, legs) => sprite([...body, ...legs].map((r) => r.padEnd(SP, '.')), pal);
-  const drop = a.crouchDrop || [7, 8, 9, 10];                   // squat: drop 4 rows (keeps the sprite 12 rows tall)
-  const crouch = a.body.filter((_, i) => !drop.includes(i));
-  const looks = { frames: a.legs.map((l) => mk(a.body, l)), duck: a.legs.map((l) => mk(crouch, l)) };
-  if (a.bodyUp) {                                              // animals with flapping wings get a second set of frames
-    looks.framesUp = a.legs.map((l) => mk(a.bodyUp, l));
-    looks.duckUp = a.legs.map((l) => mk(a.bodyUp.filter((_, i) => !drop.includes(i)), l));
-  }
+  const looks = { frames: a.legs.map((l) => mk(a.body, l)) };
+  if (a.bodyUp) looks.framesUp = a.legs.map((l) => mk(a.bodyUp, l));   // animals with flapping wings get a second set
   return looks;
 }
 ANIMALS.forEach((a) => Object.assign(a, buildLooks(a, a.pal)));

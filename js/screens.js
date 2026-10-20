@@ -20,7 +20,6 @@ const HELP = {
       <table class="keys">
         <tr><th></th><th>Teclado</th><th>Táctil</th></tr>
         <tr><td>Saltar</td><td>${keys('ESPACIO', '<i data-icon="up"></i>', 'W')}</td><td>Toca</td></tr>
-        <tr><td>Agacharte</td><td>${keys('<i data-icon="down"></i>', 'S')}</td><td>Mantén abajo</td></tr>
         <tr><td>Pausa</td><td>${keys('P', 'ESC')}</td><td>Botón arriba</td></tr>
         <tr><td>Pantalla completa</td><td>${keys('F')}</td><td></td></tr>
         <tr><td>Efectos</td><td>${keys('M')}</td><td>Botón del menú</td></tr>
@@ -31,7 +30,7 @@ const HELP = {
       <h3>Obstáculos</h3>
       <div class="obs"><span data-sprite="cactus"></span><p><em>Cactus:</em> salta por encima.</p></div>
       <div class="obs"><span data-sprite="bird"></span><p><em>Pájaro alto:</em> pasa por debajo sin hacer nada.<br>
-        <em>Pájaro medio:</em> agáchate.<br><em>Pájaro bajo:</em> salta.</p></div>`;
+        <em>Pájaro medio:</em> salta (un poco más alto).<br><em>Pájaro bajo:</em> salta.</p></div>`;
   },
   animals() {
     return '<div class="ani">' + ANIMALS.map((a) => {
@@ -55,7 +54,7 @@ const HELP = {
       'Cada animal guarda su <em>propio récord</em>.',
       'Si el juego te va muy rápido, baja la <em>velocidad</em> en el menú o en la pausa.',
       '<em>Gato:</em> guarda el segundo salto para corregir un salto corto.',
-      '<em>Pingüino:</em> desliza cuando no haya cactus cerca; los puntos valen el doble.',
+      '<em>Pingüino:</em> cada punto le vale un 50% más: ideal para subir en el ranking.',
       '<em>Gallina:</em> mantén pulsado al caer para planear sobre grupos de cactus.',
     ];
     return '<ul class="tips">' + t.map((x) => '<li>' + bullet + '<p>' + x + '</p></li>').join('') + '</ul>';

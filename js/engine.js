@@ -8,13 +8,13 @@ if (!unlocked(animal)) animal = ANIMALS[0];
 let state = 'ready';                                    // ready | running | over
 let paused = false;
 let score, speed, hi, night = 0, nightTarget = 0, worldX, distSince, gap, mile, flash, diedAt;
-let obstacles, dust, animT, flapT = 0, duckHeld = false, jumpHeld = false;
+let obstacles, dust, animT, flapT = 0, jumpHeld = false, runTime = 0;
 let items = [], coinsRun = 0, magnetT = 0;                // pickups (see addItems)
 let banner = { text: '', t: 0 }, newlyUnlocked = [];
 let runToken = null, lastRank = null, pendingRun = null;
 let biome = 0, biomePrev = 0, biomeT = 1;   // online ranking (see the ranking section below)
 const MIN_H = 75, CUT_V = 4;                           // variable jump: released early => cut once above MIN_H
-const P = { h: 0, vy: 0, duck: false, doubled: false, shield: 0, inv: 0, charge: 0, dodge: 0 };
+const P = { h: 0, vy: 0, doubled: false, shield: 0, inv: 0, charge: 0, dodge: 0 };
 
 const specks = Array.from({ length: 110 }, () => ({ x: rnd(0, 1400), y: rnd(GROUND + 10, H - 4), w: Math.floor(rnd(1, 4)) * 2 }));
 const clouds = Array.from({ length: 7 }, (_, i) => ({ x: i * 170 + rnd(0, 60), y: rnd(20, Math.max(40, GROUND - 110)), s: rnd(3, 5) | 0 }));
@@ -25,10 +25,10 @@ function reset() {
   night = 0; nightTarget = 0; animT = 0; flapT = 0;
   obstacles = []; dust = [];
   items = []; coinsRun = 0; magnetT = 0;
-  P.h = 0; P.vy = 0; P.duck = false; P.doubled = false; P.inv = 0; P.charge = 0; P.dodge = 0; P.foxCd = 0;
+  P.h = 0; P.vy = 0; P.doubled = false; P.inv = 0; P.charge = 0; P.dodge = 0; P.foxCd = 0;
   P.shield = animal.id === 'dog' ? 1 : 0;
   banner = { text: '', t: 0 }; newlyUnlocked = [];
-  newAch = []; achQ = []; achShow = { text: '', t: 0 }; runDucked = false;
+  newAch = []; achQ = []; achShow = { text: '', t: 0 }; runTime = 0;
   biome = 0; biomePrev = 0; biomeT = 1;
   hi = Number(store.get('dp-hi-' + animal.id, '0'));
 }
@@ -142,8 +142,8 @@ function spawn() {
     return;
   }
   if (birdOK) {
-    const tops = [-100, -58, -34];
-    obstacles.push({ type: 'bird', x: W + 20, dy: tops[(Math.random() * 3) | 0], w: 14 * S, h: 9 * S });
+    const tops = [-100, -58, -34];              // high: run under it; mid and low: jump over it (there is no crouching)
+    obstacles.push({ type: 'bird', x: W + 20, dy: tops[(Math.random() * tops.length) | 0], w: 14 * S, h: 9 * S });
     addItems(obstacles[obstacles.length - 1]);
   } else {
     const n = 1 + ((Math.random() * (score > 150 ? 3 : 2)) | 0);
@@ -172,9 +172,7 @@ function hitbox(o) {
     : { x: o.x + 4, y: y + 4, w: o.w - 8, h: o.h - 4 };
 }
 function playerBox() {
-  return P.duck
-    ? { x: PX + 8, y: GROUND - P.h - 36 + 5, w: 34, h: 29 }
-    : { x: PX + 10, y: GROUND - P.h - 48 + 6, w: 28, h: 40 };
+  return { x: PX + 10, y: GROUND - P.h - 48 + 6, w: 28, h: 40 };
 }
 const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
@@ -193,17 +191,16 @@ function update(dt) {
 
   // speed rises fast at first and then more and more slowly towards the maximum (it used to hit it at 2100 points)
   speed = START_SPEED + (MAX_SPEED - START_SPEED) * (1 - Math.exp(-score / SPEED_RAMP));
-  const slide = animal.id === 'peng' && P.duck;
-  score += speed * dt * 0.12 * (slide ? 2 : 1);   // penguin: sliding doubles points
-  if (slide) stats.slidePts += speed * dt * 0.12;
-  if (duckHeld) runDucked = true;
+  const pts = speed * dt * 0.12;
+  score += pts * (animal.id === 'peng' ? 1.5 : 1);           // penguin: +50% points
+  if (animal.id === 'peng') stats.slidePts += pts * 0.5;
+  runTime += dt / 60 / simPace();                             // real seconds survived in this run
+  stats.longestRun = Math.max(stats.longestRun || 0, runTime);
   worldX += speed * dt;
   animT += speed * dt;
   flapT += dt;
 
   // physics
-  const wasDuck = P.duck;
-  P.duck = duckHeld && P.h === 0;
   if (animal.id === 'frog' && P.h === 0) P.charge = Math.min(60, P.charge + dt);   // frog: charges by itself while running on the ground
   if (P.dodge > 0) P.dodge -= dt;
   if (P.foxCd > 0) P.foxCd -= dt;
@@ -211,7 +208,7 @@ function update(dt) {
     if (!jumpHeld && P.vy > CUT_V && P.h >= MIN_H) P.vy = CUT_V;   // released early: shorter jump
     const glide = animal.id === 'chick' && jumpHeld && P.vy < 0;   // chicken: hold while falling to glide
     if (glide) stats.glideSec += dt / 60;
-    P.vy -= GRAV * (duckHeld ? 3 : glide ? 0.3 : 1) * dt;
+    P.vy -= GRAV * (glide ? 0.3 : 1) * dt;
     P.h += P.vy * dt;
     if (P.h <= 0) { P.h = 0; P.vy = 0; P.doubled = false; puff(5); }
   } else if (Math.floor(animT) % 18 === 0 && Math.random() < 0.15) puff(1);
