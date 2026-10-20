@@ -4,8 +4,8 @@
 
 /* ---------- unlocks: animals open up as your best score grows ---------- */
 // Best score needed per animal. Points come at ~43/s at the start and approach ~94/s as the speed ramps up,
-// so 1000 is ~20 s of perfect play and 7000 is about 1 min 50 s without a single mistake.
-const UNLOCK = { dino: 0, cat: 1000, dog: 2500, bunny: 4000, chick: 5500, peng: 7000, frog: 8500, fox: 10000, turtle: 12000 };
+// so a new animal every 1000 points: 1000 is ~22 s of perfect play and 8000 about 2 min 15 s without a mistake.
+const UNLOCK = { dino: 0, cat: 1000, dog: 2000, bunny: 3000, chick: 4000, peng: 5000, frog: 6000, fox: 7000, turtle: 8000 };
 ANIMALS.forEach((a) => { a.unlock = UNLOCK[a.id] || 0; });
 let best = Number(store.get('dp-best', '0')) || 0;      // best score reached with any animal
 const jsonList = (k) => { try { const v = JSON.parse(store.get(k, '[]')); return Array.isArray(v) ? v : []; } catch { return []; } };

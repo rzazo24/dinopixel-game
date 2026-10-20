@@ -37,7 +37,7 @@ un golpe, con cualquier animal; se acumulan) y un **imán** (atrae las monedas c
 puntuación muestra las monedas de la partida, y el **monedero** de la esquina del menú, las monedas que puedes gastar.
 
 **Tienda:** las monedas se gastan en la **Tienda** (botón del menú, o tocando el monedero): desbloquear un animal antes
-de llegar a su puntuación (cuesta su puntuación entre 10: gato 100, …, tortuga 1200) o comprar **colores** (Dorado,
+de llegar a su puntuación (cuesta su puntuación entre 10: gato 100, …, tortuga 800) o comprar **colores** (Dorado,
 Sombra, Hielo, Chicle; 300 cada uno, sirven para todos los animales y se elige cuál lleva cada uno). El monedero
 muestra el saldo; lo gastado no resta progreso a los logros de monedas.
 
@@ -62,13 +62,13 @@ Empiezas con el dino; el resto se desbloquea con tu **mejor puntuación** (con c
 |---|---|---|
 | Dino | 0 | Clásico, sin habilidad |
 | Gato | 1000 | **Salto doble**: un segundo salto en el aire |
-| Perro | 2500 | **Escudo**: sobrevive a un golpe por partida |
-| Conejo | 4000 | **Salto alto** |
-| Gallina | 5500 | **Planeo**: mantén pulsado al caer |
-| Pingüino | 7000 | **Patinador**: suma un 50 % más de puntos |
-| Rana | 8500 | **Supersalto**: se carga sola mientras corre por el suelo; tras ~¾ s sin saltar, el siguiente salto es mucho más alto (una barra amarilla encima avisa) |
-| Zorro | 10000 | **Esquiva**: el primer pájaro que le toca lo atraviesa; luego se recarga en 8 s (barra naranja = lista) |
-| Tortuga | 12000 | **Caparazón**: los pájaros no le hacen daño, pero el juego va un 15 % más lento (y suma menos puntos) |
+| Perro | 2000 | **Escudo**: sobrevive a un golpe por partida |
+| Conejo | 3000 | **Salto alto** |
+| Gallina | 4000 | **Planeo**: mantén pulsado al caer |
+| Pingüino | 5000 | **Patinador**: suma un 50 % más de puntos |
+| Rana | 6000 | **Supersalto**: se carga sola mientras corre por el suelo; tras ~¾ s sin saltar, el siguiente salto es mucho más alto (una barra amarilla encima avisa) |
+| Zorro | 7000 | **Esquiva**: el primer pájaro que le toca lo atraviesa; luego se recarga en 8 s (barra naranja = lista) |
+| Tortuga | 8000 | **Caparazón**: los pájaros no le hacen daño, pero el juego va un 15 % más lento (y suma menos puntos) |
 
 Los récords se guardan por animal en el navegador (`localStorage`).
 
@@ -187,7 +187,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v61';   // -> 'dinopixel-v62', ...
+const CACHE = 'dinopixel-v62';   // -> 'dinopixel-v63', ...
 ```
 
 Notas de instalación:

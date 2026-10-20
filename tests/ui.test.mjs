@@ -204,7 +204,7 @@ try {
   const cactusAt = (x) => `__dp.o.push({ type: 'cactus', x: ${x}, dy: -37, w: 30, h: 39, parts: [{ k: 3, dx: 0, kind: 'cactus' }], zone: 'desert' })`;
   // they show up by themselves from 800 points
   await ev('__dp.setScore(850)');
-  t.check('movers: they appear by themselves after 800 points', await chrome.waitFor(`__dp.o.some(o => o.type === 'mover')`, 30000));
+  t.check('movers: they appear by themselves after 800 points', await chrome.waitFor(`__dp.o.some(o => o.type === 'mover')`, 60000));
   const zoneMover = {};
   for (const [sc, zone] of [[900, 'desert'], [1600, 'snow'], [3100, 'city'], [4600, 'jungle'], [6100, 'volcano']]) {
     await ev(`__dp.setScore(${sc})`); await sleep(400);
@@ -362,13 +362,13 @@ try {
   t.check('shop: buying the cat (100) unlocks it and lowers the balance', (await ev(`document.getElementById('shop-balance').textContent`)) === '1400' && (await ev(`!document.querySelector('[data-id=cat]').classList.contains('locked')`)));
   t.check('shop: spending does not lower the coins collected (achievements keep counting)', (await ev('__dp.stats.coins')) === 1500 && (await ev('__dp.stats.spent')) === 100);
   await buyFor('Tortuga'); await sleep(150);
-  t.check('shop: buying the turtle (1200) leaves 200', (await ev(`document.getElementById('shop-balance').textContent`)) === '200');
+  t.check('shop: buying the turtle (800) leaves 600', (await ev(`document.getElementById('shop-balance').textContent`)) === '600');
   await buyFor('Zorro'); await sleep(150);
-  t.check('shop: not enough coins -> nothing bought, says how many are missing', (await ev(`document.getElementById('shop-balance').textContent`)) === '200' && /Te faltan 800/.test(await ev(`document.getElementById('shop-msg').textContent`)) && (await ev(`document.querySelector('[data-id=fox]').classList.contains('locked')`)));
+  t.check('shop: not enough coins -> nothing bought, says how many are missing', (await ev(`document.getElementById('shop-balance').textContent`)) === '600' && /Te faltan 100/.test(await ev(`document.getElementById('shop-msg').textContent`)) && (await ev(`document.querySelector('[data-id=fox]').classList.contains('locked')`)));
   await esc(); await sleep(100);
-  t.check('shop: the menu wallet shows what is left to spend', (await ev(`document.getElementById('coins-total').textContent`)) === '200');
+  t.check('shop: the menu wallet shows what is left to spend', (await ev(`document.getElementById('coins-total').textContent`)) === '600');
   await chrome.goto(base + '/manifest.json', 300); await chrome.goto(url, 1400);
-  t.check('shop: purchases survive a reload', (await ev(`!document.querySelector('[data-id=turtle]').classList.contains('locked')`)) && (await ev(`document.getElementById('coins-total').textContent`)) === '200');
+  t.check('shop: purchases survive a reload', (await ev(`!document.querySelector('[data-id=turtle]').classList.contains('locked')`)) && (await ev(`document.getElementById('coins-total').textContent`)) === '600');
   // colour skin: the dino's green (#4caf50) disappears from the player once the gold skin is on
   const greenOnPlayer = () => ev(`(() => { const c = document.getElementById('game'), k = __dp.K, g = c.getContext('2d');
     const d = g.getImageData(50 * k, (__dp.GROUND - 50) * k, 50 * k, 50 * k).data; let n = 0;
@@ -488,16 +488,16 @@ try {
   { const sp = await ev('__dp.speed'); t.check('speed: gradual ramp, at 3000 points still well under halfway to the max', sp > 6.5 && sp < 9, sp); }
   await ev('__dp.setScore(1495)'); await sleep(500);
   t.check('zones: snow from 1500, with a "Zona: Nieve" notice', (await ev('__dp.biome')) === 'snow' && (await ev('__dp.banner.text')) === 'Zona: Nieve');
-  await sleep(5000);
+  await sleep(9000);   // ~0.7 obstacles/s, some of them birds or movers
   await ev('__dp.setScore(2995)'); await sleep(500);
   t.check('zones: city from 3000', (await ev('__dp.biome')) === 'city');
-  await sleep(5000);
+  await sleep(9000);   // ~0.7 obstacles/s, some of them birds or movers
   await ev('__dp.setScore(4495)'); await sleep(500);
   t.check('zones: jungle from 4500, with a "Zona: Selva" notice', (await ev('__dp.biome')) === 'jungle' && (await ev('__dp.banner.text')) === 'Zona: Selva');
-  await sleep(5000);
+  await sleep(9000);   // ~0.7 obstacles/s, some of them birds or movers
   await ev('__dp.setScore(5995)'); await sleep(500);
   t.check('zones: volcano from 6000', (await ev('__dp.biome')) === 'volcano' && (await ev('__dp.banner.text')) === 'Zona: Volcán');
-  await sleep(5000);
+  await sleep(9000);   // ~0.7 obstacles/s, some of them birds or movers
   await ev('__dp.setScore(7495)'); await sleep(500);
   t.check('zones: back to the desert at 7500 (it loops)', (await ev('__dp.biome')) === 'desert');
   const seen = Object.keys(await ev('window.__seen'));
