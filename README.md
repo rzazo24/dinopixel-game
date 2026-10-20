@@ -56,13 +56,13 @@ al desierto. Todos los obstáculos del suelo tienen el mismo tamaño, así que c
 
 ## Animales y habilidades
 
-Empiezas con el dino; el resto se desbloquea con tu **mejor puntuación** (con cualquier animal).
+Empiezas con el dino; el resto se desbloquea con tu **mejor puntuación** (con cualquier animal): uno nuevo cada 1000 puntos.
 
 | Animal | Puntos | Habilidad |
 |---|---|---|
 | Dino | 0 | Clásico, sin habilidad |
 | Gato | 1000 | **Salto doble**: un segundo salto en el aire |
-| Perro | 2000 | **Escudo**: sobrevive a un golpe por partida |
+| Perro | 2000 | **Escudo**: empieza cada partida con un escudo (se suma a los que recoja); solo ese cuenta para el logro *Escudo de hierro* |
 | Conejo | 3000 | **Salto alto** |
 | Gallina | 4000 | **Planeo**: mantén pulsado al caer |
 | Pingüino | 5000 | **Patinador**: suma un 50 % más de puntos |
@@ -187,7 +187,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v63';   // -> 'dinopixel-v64', ...
+const CACHE = 'dinopixel-v64';   // -> 'dinopixel-v65', ...
 ```
 
 Notas de instalación:

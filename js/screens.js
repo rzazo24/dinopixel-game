@@ -45,7 +45,7 @@ const HELP = {
   },
   tips() {
     const t = [
-      'Tu <em>mejor puntuación</em> con cualquier animal desbloquea a los demás.',
+      'Tu <em>mejor puntuación</em> con cualquier animal desbloquea a los demás: uno nuevo cada 1000 puntos.',
       'Cada <em>700 puntos</em> cambia entre día y noche, y el juego va cada vez más rápido.',
       'Los <em>pájaros</em> aparecen a partir de 300 puntos.',
       'Las <em>monedas</em> dan 10 puntos. Cada <em>escudo</em> aguanta un golpe (se acumulan) y el <em>imán</em> atrae monedas 6 segundos.',
