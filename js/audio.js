@@ -189,7 +189,32 @@ function stopMusic(fade = 0.25) {
   }
 }
 
-/* ---------- haptics (Android; iOS has no web vibration API) ---------- */
-const canVibrate = typeof navigator.vibrate === 'function';
+/* ---------- haptics ---------- */
+// Android: the Vibration API. iOS has none, but since iOS 18 Safari gives a haptic tick when an
+// <input type="checkbox" switch> is toggled through its label, so each "on" step of a pattern becomes one tick.
+const hasVibrate = typeof navigator.vibrate === 'function';
+const iosSwitch = !hasVibrate && 'switch' in HTMLInputElement.prototype;
+const canVibrate = hasVibrate || iosSwitch;
 let vibeOn = store.get('dp-vibe', '1') === '1';
-const haptic = (pattern) => { if (canVibrate && vibeOn) { try { navigator.vibrate(pattern); } catch { /* ignore */ } } };
+let tickLabel = null;
+function iosTick() {
+  if (!tickLabel) {
+    tickLabel = document.createElement('label');
+    tickLabel.setAttribute('aria-hidden', 'true');
+    tickLabel.style.cssText = 'position:fixed;left:-99px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
+    const box = document.createElement('input');
+    box.type = 'checkbox'; box.setAttribute('switch', ''); box.tabIndex = -1;
+    tickLabel.appendChild(box);
+    document.body.appendChild(tickLabel);
+  }
+  tickLabel.click();
+}
+function iosPattern(pattern) {                          // [on, off, on, ...] in ms -> one tick at the start of each "on"
+  const steps = Array.isArray(pattern) ? pattern : [pattern];
+  let t = 0;
+  steps.forEach((ms, i) => { if (i % 2 === 0) { if (t === 0) iosTick(); else setTimeout(iosTick, t); } t += ms; });
+}
+const haptic = (pattern) => {
+  if (!vibeOn) return;
+  try { if (hasVibrate) navigator.vibrate(pattern); else if (iosSwitch) iosPattern(pattern); } catch { /* ignore */ }
+};

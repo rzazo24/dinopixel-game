@@ -77,7 +77,7 @@ function setVibe(v) {
   $('vibe').querySelector('span').textContent = v ? 'Vibración' : 'Sin vibración';
   $('vibe').classList.toggle('off', !v);
 }
-if (canVibrate) $('vibe').hidden = false;      // hide the button on devices without vibration (iOS, desktop)
+if (canVibrate) $('vibe').hidden = false;      // hide the button on devices without vibration (desktop, iOS before 18)
 $('vibe').addEventListener('click', (e) => { setVibe(!vibeOn); if (vibeOn) haptic(25); e.currentTarget.blur(); });
 setVibe(vibeOn);
 $('mute').addEventListener('click', (e) => { setMuted(!muted); e.currentTarget.blur(); });
@@ -149,6 +149,7 @@ if ('serviceWorker' in navigator) {
 /* ---------- test hook: only when the URL has ?test=1 (used by tests/, harmless otherwise) ---------- */
 if (/[?&]test=1/.test(location.search)) {
   window.__dp = {
+    iosPattern,
     ANIMALS, ACH, stats, ach, music, sfx, get master() { return master; }, press, setScore: (v) => { score = v; },
      setJump: (v) => { jumpHeld = v; },
     get P() { return P; }, get o() { return obstacles; }, get state() { return state; }, get score() { return score; },

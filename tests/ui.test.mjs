@@ -198,6 +198,11 @@ try {
   t.check('birds: a mid-height bird can be jumped over', (await ev('__dp.state')) === 'running');
   await ev('clearInterval(window.__jb)');
 
+  /* ---- iPhone haptics: a switch toggled through its label, one tick per "on" step ---- */
+  await ev(`window.__ticks = 0; document.addEventListener('click', (e) => { if (e.target.tagName === 'LABEL' && e.target.querySelector('input[switch]')) __ticks++; }, true); __dp.iosPattern([40, 60, 40, 60, 90])`);
+  await sleep(400);
+  t.check('haptics (iOS): a 3-pulse pattern gives 3 ticks on a hidden switch', (await ev('__ticks')) === 3, await ev('__ticks'));
+
   /* ---- moving obstacles ---- */
   await fresh(); await startRun();
   await ev(`window.__inv = setInterval(() => { __dp.P.inv = 2; }, 5)`);
