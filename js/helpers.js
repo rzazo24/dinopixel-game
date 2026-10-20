@@ -28,5 +28,11 @@ const BIOMES = [
   { id: 'city', name: 'Ciudad', obs: ['cone', 'hydrant'], skyline: true,
     day: { hill1: '#9aa7b8', hill2: '#6f7d91', ground: '#7a7a82', lip: '#4a4a52', speck: '#c9c9cf' },
     night: { hill1: '#2a2f4a', hill2: '#1e2238', ground: '#2c2c38', lip: '#15151d', speck: '#8a8060' } },
+  { id: 'jungle', name: 'Selva', obs: ['bush', 'stump'],
+    day: { skyB: '#dff7d6', hill1: '#5fae5a', hill2: '#2f8a4a', ground: '#7a5532', lip: '#3e2a18', speck: '#a07a4a' },
+    night: { hill1: '#1f4a3a', hill2: '#163828', ground: '#3a2a20', lip: '#1a1210', speck: '#5a4630' } },
+  { id: 'volcano', name: 'Volcán', obs: ['rock', 'lava'],
+    day: { skyT: '#e98a5a', skyB: '#fcd6a8', hill1: '#9a6252', hill2: '#6a3e34', ground: '#5a4640', lip: '#e2572a', speck: '#ff8a3a' },
+    night: { skyT: '#1e0c14', skyB: '#4a1e2a', hill1: '#4a2228', hill2: '#33161c', ground: '#2e2020', lip: '#c2401e', speck: '#ff7030' } },
 ];
 const NIGHT = { skyT: '#0d0f2b', skyB: '#2a2d5c', hill1: '#2d3a63', hill2: '#212b4d', ground: '#3b3452', lip: '#1c1830', speck: '#554c72', cloud: '#4a5080', hud: '#e8e8ff' };

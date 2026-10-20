@@ -24,11 +24,11 @@ desbloqueables**, cada uno con su propia habilidad. Se juega en el navegador y s
 Solo hay una acción: **saltar** (mantén para saltar más alto). Salta los obstáculos del suelo y los pájaros bajos y medios
 (estos, un poco más alto); por debajo de los pájaros altos se pasa sin hacer nada. Cada 700 puntos cambia
 entre día y noche, y la velocidad aumenta con la puntuación: rápido al principio y cada vez más despacio, acercándose al máximo hacia
-los dos minutos de partida.
+los cuatro minutos de partida (la mitad del aumento llega hacia el minuto y medio).
 
 **Obstáculos que se mueven:** desde 800 puntos, alrededor de 1 de cada 4 obstáculos de suelo se mueve más rápido que
-el suelo, así que llega antes: una **planta rodadora** que bota (desierto), una **bola de nieve** (nieve) y un
-**coche** (ciudad). Nunca son más altos que un cactus pequeño, y el juego limita su velocidad para que no alcancen al
+el suelo, así que llega antes: una **planta rodadora** que bota (desierto), una **bola de nieve** (nieve) un
+**coche** (ciudad), un **coco** que bota (selva) y una **roca** rodando (volcán). Nunca son más altos que un cactus pequeño, y el juego limita su velocidad para que no alcancen al
 obstáculo de delante y formen un combo imposible.
 
 **Monedas y objetos:** las monedas dan 10 puntos y salen en arco sobre algunos cactus (se cogen al saltarlos) o en
@@ -50,7 +50,8 @@ pantalla de inicio de partida. Las monedas de premio se pueden gastar, pero no c
 monedas recogidas y gastadas, y el récord de cada animal.
 
 **Zonas:** cada 1500 puntos cambias de escenario, con transición de colores y aviso: **Desierto** (cactus),
-**Nieve** (muñecos de nieve y pinos) y **Ciudad** (conos y bocas de incendio, con edificios al fondo). Después vuelve
+**Nieve** (muñecos de nieve y pinos) y **Ciudad** (conos y bocas de incendio, con edificios al fondo), **Selva** (arbustos y tocones) y **Volcán**
+(rocas y rocas de lava). Después vuelve
 al desierto. Todos los obstáculos del suelo tienen el mismo tamaño, así que cambia el paisaje, no la dificultad.
 
 ## Animales y habilidades
@@ -88,7 +89,8 @@ navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos
   parpadeo del marcador), un arpegio al conseguir un logro y una fanfarria al desbloquear un animal.
 - **Música** (`N`): chiptune generado en directo, sin archivos de audio, así que funciona sin conexión. Cada zona tiene su canción,
   con versión de día y de noche: el desierto en tono mayor (menor de noche), la nieve tranquila y con melodía de
-  campanita, y la ciudad más rápida, con bajo en corcheas y bombo en cada tiempo. El tempo sube con la velocidad del juego (y con el ajuste de
+  campanita, y la ciudad más rápida, con bajo en corcheas y bombo en cada tiempo; la selva
+  alegre, con melodía de marimba, y el volcán grave y oscuro, el más rápido. El tempo sube con la velocidad del juego (y con el ajuste de
   velocidad), y al ir más rápido entran el charles y el bombo. Se pausa con la pausa y se corta al morir; el menú
   es silencioso. Los efectos y la música se activan por separado y se recuerdan.
 - **Vibración**: solo en dispositivos que la soportan (Android).
@@ -185,7 +187,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v60';   // -> 'dinopixel-v61', ...
+const CACHE = 'dinopixel-v61';   // -> 'dinopixel-v62', ...
 ```
 
 Notas de instalación:

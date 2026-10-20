@@ -206,11 +206,11 @@ try {
   await ev('__dp.setScore(850)');
   t.check('movers: they appear by themselves after 800 points', await chrome.waitFor(`__dp.o.some(o => o.type === 'mover')`, 30000));
   const zoneMover = {};
-  for (const [sc, zone] of [[900, 'desert'], [1600, 'snow'], [3100, 'city']]) {
+  for (const [sc, zone] of [[900, 'desert'], [1600, 'snow'], [3100, 'city'], [4600, 'jungle'], [6100, 'volcano']]) {
     await ev(`__dp.setScore(${sc})`); await sleep(400);
     zoneMover[zone] = (await ev('(() => { __dp.o.length = 0; return __dp.spawnMover(); })()'))?.kind;   // clear + make in one step (no spawn in between)
   }
-  t.check('movers: one per zone (tumbleweed / snowball / car)', zoneMover.desert === 'tumbleweed' && zoneMover.snow === 'snowball' && zoneMover.city === 'car', zoneMover);
+  t.check('movers: one per zone (tumbleweed / snowball / car)', zoneMover.desert === 'tumbleweed' && zoneMover.snow === 'snowball' && zoneMover.city === 'car' && zoneMover.jungle === 'coconut' && zoneMover.volcano === 'boulder', zoneMover);
   // they go faster than the ground: compare with a cactus placed at the same time
   await ev('__dp.setScore(900)'); await sleep(400);
   await ev(`window.__keep = setInterval(() => { for (let i = __dp.o.length - 1; i >= 0; i--) if (!__dp.o[i].keep) __dp.o.splice(i, 1); }, 3)`);
@@ -415,7 +415,7 @@ try {
   const n0 = await ev('__dp.music.notes'); await sleep(1000);
   t.check('music: notes keep being scheduled', (await ev('__dp.music.notes')) - n0 > 8);
   const bpmSlow = await ev('__dp.music.bpm');
-  await ev('__dp.setScore(7000)'); await sleep(700);
+  await ev('__dp.setScore(15000)'); await sleep(700);
   const bpmFast = await ev('__dp.music.bpm');
   t.check('music: tempo rises with the game speed', bpmFast > bpmSlow * 1.3, [bpmSlow, bpmFast]);
   await click('pause-btn'); await sleep(600);
@@ -433,6 +433,10 @@ try {
   t.check('music: entering the snow switches to the snow song (bell-like triangle lead)', (await chrome.waitFor(`__dp.music.zone === 'snow'`, 6000)) && (await chrome.waitFor(`__dp.music.lastLead === 'triangle'`, 4000)));
   await ev('__dp.setScore(2995)');
   t.check('music: entering the city switches to the city song (sawtooth lead)', (await chrome.waitFor(`__dp.music.zone === 'city'`, 6000)) && (await chrome.waitFor(`__dp.music.lastLead === 'sawtooth'`, 4000)));
+  await ev('__dp.setScore(4495)');
+  t.check('music: entering the jungle switches to the jungle song (sine lead)', (await chrome.waitFor(`__dp.music.zone === 'jungle'`, 6000)) && (await chrome.waitFor(`__dp.music.lastLead === 'sine'`, 4000)));
+  await ev('__dp.setScore(5995)');
+  t.check('music: entering the volcano switches to the volcano song', await chrome.waitFor(`__dp.music.zone === 'volcano'`, 6000));
 
   await fresh(); await startRun('dino');
   t.check('music: stops on game over', (await chrome.waitFor(`__dp.state === 'over'`, 25000)) && (await ev('__dp.music.playing')) === false);
@@ -480,6 +484,8 @@ try {
   await fresh(); await startRun();
   await ev(`setInterval(() => { __dp.P.inv = 2; }, 5); window.__seen = {}; setInterval(() => __dp.o.forEach(o => (o.parts || []).forEach(p => { __seen[o.zone + ':' + p.kind] = 1; })), 30)`);
   t.check('zones: a run starts in the desert', (await ev('__dp.biome')) === 'desert');
+  await ev('__dp.setScore(3000)'); await sleep(200);
+  { const sp = await ev('__dp.speed'); t.check('speed: gradual ramp, at 3000 points still well under halfway to the max', sp > 6.5 && sp < 9, sp); }
   await ev('__dp.setScore(1495)'); await sleep(500);
   t.check('zones: snow from 1500, with a "Zona: Nieve" notice', (await ev('__dp.biome')) === 'snow' && (await ev('__dp.banner.text')) === 'Zona: Nieve');
   await sleep(5000);
@@ -487,10 +493,16 @@ try {
   t.check('zones: city from 3000', (await ev('__dp.biome')) === 'city');
   await sleep(5000);
   await ev('__dp.setScore(4495)'); await sleep(500);
-  t.check('zones: back to the desert at 4500 (it loops)', (await ev('__dp.biome')) === 'desert');
+  t.check('zones: jungle from 4500, with a "Zona: Selva" notice', (await ev('__dp.biome')) === 'jungle' && (await ev('__dp.banner.text')) === 'Zona: Selva');
+  await sleep(5000);
+  await ev('__dp.setScore(5995)'); await sleep(500);
+  t.check('zones: volcano from 6000', (await ev('__dp.biome')) === 'volcano' && (await ev('__dp.banner.text')) === 'Zona: Volcán');
+  await sleep(5000);
+  await ev('__dp.setScore(7495)'); await sleep(500);
+  t.check('zones: back to the desert at 7500 (it loops)', (await ev('__dp.biome')) === 'desert');
   const seen = Object.keys(await ev('window.__seen'));
-  const allowed = { desert: ['cactus'], snow: ['snowman', 'pine'], city: ['cone', 'hydrant'] };
-  t.check('zones: snow and city spawned their own obstacles', seen.some((k) => k.startsWith('snow:')) && seen.some((k) => k.startsWith('city:')), seen);
+  const allowed = { desert: ['cactus'], snow: ['snowman', 'pine'], city: ['cone', 'hydrant'], jungle: ['bush', 'stump'], volcano: ['rock', 'lava'] };
+  t.check('zones: every zone spawned its own obstacles', ['snow', 'city', 'jungle', 'volcano'].every((z) => seen.some((k) => k.startsWith(z + ':'))), seen);
   // obstacles already on screen keep scrolling into the next zone; what matters is the zone they were spawned in
   t.check('zones: every obstacle uses the sprites of the zone it was spawned in', seen.every((k) => { const [z, kind] = k.split(':'); return allowed[z].includes(kind); }), seen);
 

@@ -7,7 +7,7 @@ let W = 600, H = 200, GROUND = 160;                     // logical size (adapts 
 const S = 3;                                            // sprite scale
 const GRAV = 0.6, JUMP_V = 12, START_SPEED = 6, MAX_SPEED = 13;
 const FOX_CD = 480;                                      // frames (~8 s) the fox needs to recharge its bird dodge
-const SPEED_RAMP = 3000;                                // how gradually the speed approaches MAX_SPEED (bigger = slower ramp)
+const SPEED_RAMP = 7000;                                // how gradually the speed approaches MAX_SPEED (bigger = slower ramp)
 const PX = 50;                                          // player x
 const SP = 16;                                          // animal sprite size in cells
 
@@ -263,6 +263,8 @@ function ballRows(n, marks) {                           // a filled circle with 
   return rows;
 }
 const TUMBLE_PAL = { f: '#b08a4a', s: '#8a6630', m: '#e2c48a' };
+const COCO_PAL = { f: '#7a4a24', s: '#553018', m: '#c8a070' };
+const BOULDER_PAL = { f: '#6e625e', s: '#4a403c', m: '#ff7a2a' };
 const SNOWBALL_PAL = { f: '#f8fbff', s: '#b9cbe0', m: '#9fb6c9' };
 const CAR_ROWS = (hub) => [
   '....rrrrrrr.......', '...rwwwrwwwr......', '..rwwwwrwwwwr.....', 'yrrrrrrrrrrrrrrrr.', 'rrrrrrrrrrrrrrrrrt',
@@ -271,9 +273,11 @@ const CAR_ROWS = (hub) => [
 const MOVERS = {                                         // w/h in logical px; extra = how much faster than the ground
   tumbleweed: { w: 30, h: 30, extra: [0.25, 0.4], bounce: 22, imgs: [ballRows(10, [[2, 2], [5, 4], [7, 7], [3, 6], [6, 1]]), ballRows(10, [[7, 2], [4, 5], [2, 7], [6, 6], [3, 1]])].map((r) => sprite(r, TUMBLE_PAL)) },
   snowball: { w: 36, h: 36, extra: [0.3, 0.45], bounce: 0, imgs: [ballRows(12, [[3, 3], [7, 8]]), ballRows(12, [[8, 3], [3, 8]])].map((r) => sprite(r, SNOWBALL_PAL)) },
+  coconut: { w: 27, h: 27, extra: [0.25, 0.4], bounce: 16, imgs: [ballRows(9, [[2, 2], [4, 2], [3, 4]]), ballRows(9, [[6, 2], [6, 4], [4, 3]])].map((r) => sprite(r, COCO_PAL)) },
+  boulder: { w: 36, h: 36, extra: [0.3, 0.45], bounce: 0, imgs: [ballRows(12, [[3, 4], [4, 5], [8, 7], [6, 2]]), ballRows(12, [[7, 3], [6, 4], [3, 7], [9, 6]])].map((r) => sprite(r, BOULDER_PAL)) },
   car: { w: 54, h: 27, extra: [0.4, 0.55], bounce: 0, imgs: ['g', 'k'].map((h) => sprite(CAR_ROWS(h), { r: '#2f6fd6', w: '#bfe6ff', y: '#ffe680', t: '#ff4d4d', k: '#1a1a1a', g: '#cfd8dc' })) },
 };
-const ZONE_MOVER = { desert: 'tumbleweed', snow: 'snowball', city: 'car' };
+const ZONE_MOVER = { desert: 'tumbleweed', snow: 'snowball', city: 'car', jungle: 'coconut', volcano: 'boulder' };
 const OBST = {
   cactus: cactusImg,
   snowman: sprite([
@@ -292,6 +296,22 @@ const OBST = {
     '....rr....', '...rrrr...', '..RRRRRR..', '.rrrrrrrr.', 'rrrrrrrrrr', '.rrrrrrrr.', '..rrrrrr..',
     '..rrRrrr..', '..rrrrrr..', '..rrrrrr..', '..rrrrrr..', '.RRRRRRRR.', '.RRRRRRRR.',
   ], { r: '#d8322a', R: '#9b1f1a' }),
+  bush: sprite([
+    '..........', '...gg.....', '..gGgg.g..', '.gggGggGg.', '.gGggggggg', 'gggggGgggg', 'ggGgggggGg',
+    'gggggggggg', 'gGgggGgggg', 'gggggggggg', 'ggggggggGg', '.gggggggg.', '..dddddd..',
+  ], { g: '#2f9a4a', G: '#1e6a32', d: '#5a3a20' }),
+  stump: sprite([
+    '..........', '..........', '...ll.....', '..llll....', '..lttl....', '.ttttttt..', 'tTtTttTtt.',
+    'tttttttTt.', 'tTttttttt.', 'tttTttttt.', 'ttttttTtt.', 'tTttttttt.', 'rtttttttrr',
+  ], { t: '#8a5a32', T: '#5e3a1e', l: '#4caa4a', r: '#5e3a1e' }),
+  rock: sprite([
+    '..........', '..........', '..........', '...rrr....', '..rrRrr...', '.rrrrrRr..', '.rRrrrrrr.',
+    'rrrrrRrrr.', 'rrRrrrrrrr', 'rrrrrrRrrr', 'rRrrrrrrrr', 'rrrrrRrrrr', 'RRRRRRRRRR',
+  ], { r: '#7a6a64', R: '#4a3e3a' }),
+  lava: sprite([
+    '....oo....', '...oyo....', '....o.....', '...rrr....', '..rrorr...', '.rrrorrr..', '.rRroorrr.',
+    'rrrrorRrr.', 'rrRroorrrr', 'rrrrrorRrr', 'rRrroorrrr', 'rrrrrorrrr', 'RRRRRRRRRR',
+  ], { r: '#3e3436', R: '#241e20', o: '#ff6a1a', y: '#ffd23f' }),
 };
 const birdImgs = BIRD.map((b) => sprite(b, BIRD_PAL));
 const cloudImg = sprite(CLOUD, { w: '#ffffff' }, null);

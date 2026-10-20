@@ -63,6 +63,14 @@ const SONGS = {
     day: { base: 65, scale: PENT_MAJ, chords: [[41, MAJ], [48, MAJ], [50, MIN], [46, MAJ]], lead: ['triangle', 0.1], arp: ['sine', 0.03, 24], bass: 'long', drums: 'soft', tempo: 0.92, sparse: true },
     night: { base: 62, scale: PENT_MIN, chords: [[50, MIN], [46, MAJ], [41, MAJ], [48, MAJ]], lead: ['triangle', 0.1], arp: ['sine', 0.03, 24], bass: 'long', drums: 'soft', tempo: 0.8, sparse: true },
   },
+  jungle: {                                              // bouncy and warm: marimba-like sine lead, tom-ish drums that build
+    day: { base: 62, scale: PENT_MAJ, chords: [[43, MAJ], [48, MAJ], [45, MIN], [50, MAJ]], lead: ['sine', 0.12], arp: ['triangle', 0.03, 12], bass: 'pump', drums: 'build', tempo: 1.02 },
+    night: { base: 59, scale: PENT_MIN, chords: [[47, MIN], [43, MAJ], [45, MIN], [42, MAJ]], lead: ['sine', 0.12], arp: ['triangle', 0.03, 12], bass: 'long', drums: 'build', tempo: 0.9 },
+  },
+  volcano: {                                             // dark and heavy: low minor, sawtooth, pounding kick
+    day: { base: 57, scale: PENT_MIN, chords: [[38, MIN], [41, MAJ], [36, MAJ], [43, MAJ]], lead: ['sawtooth', 0.035], arp: ['square', 0.016, 0], bass: 'pump', drums: 'city', tempo: 1.12 },
+    night: { base: 55, scale: PENT_MIN, chords: [[36, MIN], [39, MAJ], [34, MAJ], [41, MAJ]], lead: ['sawtooth', 0.035], arp: ['square', 0.016, 0], bass: 'pump', drums: 'city', tempo: 1.05 },
+  },
   city: {                                                // driving: pumping bass, four-on-the-floor, offbeat hats
     day: { base: 64, scale: PENT_MIN, chords: [[40, MIN], [45, MAJ], [40, MIN], [50, MAJ]], lead: ['sawtooth', 0.03], arp: ['square', 0.016, 12], bass: 'pump', drums: 'city', tempo: 1.08 },
     night: { base: 60, scale: PENT_MIN, chords: [[48, MIN], [44, MAJ], [51, MAJ], [46, MAJ]], lead: ['square', 0.045], arp: ['square', 0.016, 12], bass: 'pump', drums: 'city', tempo: 1 },
