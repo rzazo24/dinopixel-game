@@ -457,8 +457,8 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
 /* wallet: total coins, pinned to the top-right corner of the menu (takes no room from the layout) */
 .wallet {
   position: fixed;
-  top: max(12px, env(safe-area-inset-top));
-  right: calc(16px + env(safe-area-inset-right));
+  top: max(22px, env(safe-area-inset-top));                       /* Android reports no inset for its rounded corners: keep clear of them */
+  right: max(30px, calc(16px + env(safe-area-inset-right)));
   z-index: 2;
   display: flex;
   align-items: center;
@@ -505,8 +505,8 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
 /* ---------- daily challenge ---------- */
 .corner-left {                                         /* Reto + Guardado, pinned top-left (mirror of the wallet) */
   position: fixed;
-  top: max(12px, env(safe-area-inset-top));
-  left: calc(16px + env(safe-area-inset-left));
+  top: max(22px, env(safe-area-inset-top));
+  left: max(30px, calc(16px + env(safe-area-inset-left)));
   z-index: 2;
   display: flex;
   gap: 14px;

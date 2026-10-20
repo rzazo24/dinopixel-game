@@ -268,6 +268,9 @@ try {
   const wal = await ev(`(() => { const a = document.getElementById('wallet').getBoundingClientRect(), b = document.querySelector('#menu h1').getBoundingClientRect();
     return { overlap: a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top, inside: a.right <= innerWidth && a.top >= 0 }; })()`);
   t.check('wallet: on a landscape phone it does not cover the title and stays on screen', !wal.overlap && wal.inside, wal);
+  { const m = await ev(`(() => { const w = document.getElementById('wallet').getBoundingClientRect(), c = document.querySelector('.corner-left').getBoundingClientRect();
+      return { right: innerWidth - w.right, left: c.left, top: Math.min(w.top, c.top) }; })()`);
+    t.check('corners: wallet and Reto keep clear of rounded screen corners with no safe-area inset (Android)', m.right >= 30 && m.left >= 30 && m.top >= 22, m); }
   await chrome.send('Emulation.setDeviceMetricsOverride', { width: 1000, height: 560, deviceScaleFactor: 1, mobile: false });
   await click('play'); await sleep(300);
   t.check('wallet: hidden during the game', (await ev(`document.getElementById('wallet').offsetParent`)) === null);
