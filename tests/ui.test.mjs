@@ -122,6 +122,9 @@ try {
   await chrome.waitFor(`__dp.P.shield === 0`, 20000);
   t.check('dog: the first hit is survived', (await ev('__dp.state')) === 'running' && (await ev('__dp.stats.shields')) === 1);
   t.check('dog: an obstacle walked through while invulnerable is not a dodge', (await ev('__dp.stats.dodged')) === 0);
+  await ev('__dp.P.shield = 1');   // as if a shield had been picked up
+  await chrome.waitFor(`__dp.P.shield === 0`, 20000);
+  t.check('dog: a picked-up shield does not count for "Escudo de hierro"', (await ev('__dp.stats.shields')) === 1);
   t.check('dog: the second hit ends the run', await chrome.waitFor(`__dp.state === 'over'`, 25000));
 
   /* ---- the three newer animals ---- */

@@ -14,7 +14,7 @@ let banner = { text: '', t: 0 }, newlyUnlocked = [];
 let runToken = null, lastRank = null, pendingRun = null;
 let biome = 0, biomePrev = 0, biomeT = 1;   // online ranking (see the ranking section below)
 const MIN_H = 75, CUT_V = 4;                           // variable jump: released early => cut once above MIN_H
-const P = { h: 0, vy: 0, doubled: false, shield: 0, inv: 0, charge: 0, dodge: 0 };
+const P = { h: 0, vy: 0, doubled: false, shield: 0, ownShield: 0, inv: 0, charge: 0, dodge: 0 };
 
 const specks = Array.from({ length: 110 }, () => ({ x: rnd(0, 1400), y: rnd(GROUND + 10, H - 4), w: Math.floor(rnd(1, 4)) * 2 }));
 const clouds = Array.from({ length: 7 }, (_, i) => ({ x: i * 170 + rnd(0, 60), y: rnd(20, Math.max(40, GROUND - 110)), s: rnd(3, 5) | 0 }));
@@ -27,6 +27,7 @@ function reset() {
   items = []; coinsRun = 0; magnetT = 0;
   P.h = 0; P.vy = 0; P.doubled = false; P.inv = 0; P.charge = 0; P.dodge = 0; P.foxCd = 0;
   P.shield = animal.id === 'dog' ? 1 : 0;
+  P.ownShield = P.shield;   // the dog's own shield (used first); only it counts for the achievement
   banner = { text: '', t: 0 }; newlyUnlocked = [];
   newAch = []; achQ = []; achShow = { text: '', t: 0 }; runTime = 0;
   biome = 0; biomePrev = 0; biomeT = 1;
@@ -260,7 +261,7 @@ function update(dt) {
     if (P.inv <= 0 && overlap(pb, hitbox(o))) {
       if (P.shield > 0) {
         P.shield--; P.inv = INVULN; o.hit = true;
-        if (animal.id === 'dog') { stats.shields++; checkAch(); }   // the achievement is about the dog's own shield
+        if (P.ownShield) { P.ownShield = 0; stats.shields++; checkAch(); }   // the achievement is about the dog's own shield
         banner = { text: 'Escudo roto!', t: 90 };
         sfx.die();
         haptic(60);
