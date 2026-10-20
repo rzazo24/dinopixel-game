@@ -110,7 +110,7 @@ function collect(it) {
     score += COIN_POINTS; coinsRun++; stats.coins++;
     sfx.coin(); checkAch();
   } else if (it.kind === 'shield') {
-    P.shield = 1; sfx.power(); banner = { text: 'Escudo!', t: 90 };
+    P.shield++; sfx.power(); banner = { text: P.shield > 1 ? 'Escudo x' + P.shield + '!' : 'Escudo!', t: 90 };   // shields stack
   } else {
     magnetT = MAGNET_TIME; sfx.power(); banner = { text: 'Imán!', t: 90 };
   }
@@ -259,7 +259,7 @@ function update(dt) {
     }
     if (P.inv <= 0 && overlap(pb, hitbox(o))) {
       if (P.shield > 0) {
-        P.shield = 0; P.inv = INVULN; o.hit = true;
+        P.shield--; P.inv = INVULN; o.hit = true;
         if (animal.id === 'dog') { stats.shields++; checkAch(); }   // the achievement is about the dog's own shield
         banner = { text: 'Escudo roto!', t: 90 };
         sfx.die();

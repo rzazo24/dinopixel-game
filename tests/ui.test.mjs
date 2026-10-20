@@ -244,8 +244,11 @@ try {
   await ev('__dp.items.length = 0');
   await ev(`__dp.items.push({ kind: 'shield', x: 56, dy: -30, w: 18, h: 18, tag: 1 })`); await sleep(250);
   t.check('shield pickup: gives a shield to any animal', (await ev('__dp.P.shield')) === 1);
+  await ev(`__dp.items.push({ kind: 'shield', x: 56, dy: -30, w: 18, h: 18, tag: 1 })`); await sleep(250);
+  t.check('shield pickup: shields stack', (await ev('__dp.P.shield')) === 2);
   await ev(`clearInterval(window.__clr); __dp.o.length = 0; __dp.o.push({ type: 'bird', x: 52, dy: -58, w: 42, h: 27, f: 0 })`); await sleep(300);
-  t.check('shield pickup: it absorbs one hit', (await ev('__dp.state')) === 'running' && (await ev('__dp.P.shield')) === 0);
+  t.check('shield pickup: a hit uses only one stacked shield', (await ev('__dp.state')) === 'running' && (await ev('__dp.P.shield')) === 1);
+  await ev(`__dp.P.shield = 0`);
   await ev(`window.__clr = setInterval(() => { __dp.o.length = 0; }, 3)`); await sleep(1700);
   await ev(`__dp.items.push({ kind: 'magnet', x: 56, dy: -30, w: 18, h: 18, tag: 1 })`); await sleep(250);
   t.check('magnet pickup: starts a 6 s magnet', (await ev('__dp.magnetT')) > 300);

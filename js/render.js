@@ -264,7 +264,7 @@ function drawHUD() {
   pixText('HI ' + pad(hi), W - 86 - insetR, 12, 2, 'right', c, false);
   ctx.globalAlpha = 1;
   if (!blink) pixText(pad(score), W - 12 - insetR, 12, 2, 'right', c, false);
-  if (P.shield > 0) pixText('Escudo', W - 212 - insetR, 12, 2, 'right', '#4fc3f7');
+  if (P.shield > 0) pixText(P.shield > 1 ? 'Escudo x' + P.shield : 'Escudo', W - 212 - insetR, 12, 2, 'right', '#4fc3f7');
   if (state === 'running' || state === 'over') {                   // coins this run, under the score
     const t = String(coinsRun), w = t.length * 12 - 2;
     pixText(t, W - 12 - insetR, 32, 2, 'right', '#ffd23f', false);
