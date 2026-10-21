@@ -108,7 +108,7 @@ function drawPlayer() {
   if (P.inv > 0 && Math.floor(P.inv / 5) % 2 === 0) return;     // blink while invulnerable
   const run = Math.floor(animT / 40) % 2;   // one step every 40 px of travel: ~6 frames at start, ~3 at top speed
   const f = P.h > 0 || state !== 'running' ? 0 : run;
-  const lk = looksOf(animal, skinOf(animal.id));             // colour skin from the shop
+  const lk = lookOf(animal);                                  // colour skin + hat from the shop
   let frames = lk.frames;
   if (lk.framesUp && state === 'running') {
     // wings: slow flap with the steps on the ground, quick flap in the air, slower and wider while gliding
@@ -120,7 +120,7 @@ function drawPlayer() {
   const frogReady = animal.id === 'frog' && state === 'running' && P.h === 0 && P.charge >= FROG_READY;
   const jx = 0;
   if (P.dodge > 0) ctx.globalAlpha = 0.55;                      // fox dodging: ghostly
-  blit(frames[f], PX + jx, GROUND - P.h - SP * S, SP * S, SP * S);
+  blit(frames[f], PX + jx, GROUND - P.h - (SP + lk.pad) * S, SP * S, (SP + lk.pad) * S);
   ctx.globalAlpha = 1;
   if (animal.id === 'fox' && state === 'running') {          // fox: orange bar = dodge ready, white bar = recharging
     const top = GROUND - P.h - 48 - 12;

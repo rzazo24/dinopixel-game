@@ -103,7 +103,7 @@ function renderDaily() {
   body.replaceChildren();
   const p = (cls, text) => { const e = document.createElement('p'); e.className = cls; e.textContent = text; body.appendChild(e); return e; };
   const a = daily.animal && ANIMALS.find((x) => x.id === daily.animal);
-  if (a) { const f = document.createElement('div'); f.className = 'face'; f.appendChild(spriteCanvas(looksOf(a, skinOf(a.id)).frames[0], 4)); body.appendChild(f); }
+  if (a) { const f = document.createElement('div'); f.className = 'face'; f.appendChild(spriteCanvas(lookOf(a).frames[0], 4)); body.appendChild(f); }
   p('goal', dailyText(daily));
   const streakNext = Math.min(DAILY_STREAK_MAX, (stats.dailyLast === yesterdayStr() ? stats.dailyStreak : 0)) * DAILY_STREAK_BONUS;
   if (daily.done) p('state ok', '¡Completado! Vuelve mañana para el siguiente.');

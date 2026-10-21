@@ -48,7 +48,7 @@ const HELP = {
       'Tu <em>mejor puntuación</em> con cualquier animal desbloquea a los demás: uno nuevo cada 1000 puntos.',
       'Cada <em>700 puntos</em> cambia entre día y noche, y el juego va cada vez más rápido.',
       'Los <em>pájaros</em> aparecen a partir de 300 puntos.',
-      'Las <em>monedas</em> dan 10 puntos. Cada <em>escudo</em> aguanta un golpe (se acumulan) y el <em>imán</em> atrae monedas 6 segundos.',
+      'Las <em>monedas</em> dan 10 puntos y se gastan en la <em>tienda</em>: animales, colores y sombreros. Cada <em>escudo</em> aguanta un golpe (se acumulan) y el <em>imán</em> atrae monedas 6 segundos.',
       'Cada <em>1500 puntos</em> cambias de zona: desierto, nieve, ciudad, selva y volcán, cada una con sus obstáculos.',
       'Desde 800 puntos hay <em>obstáculos que se mueven</em> (planta rodadora, bola de nieve, coche, coco, roca): llegan antes, salta un poco antes.',
       'Cada animal guarda su <em>propio récord</em>.',
@@ -123,7 +123,7 @@ function renderStats() {
   const grid = document.createElement('div'); grid.className = 'recs';
   ANIMALS.forEach((a) => {
     const open = unlocked(a), cell = document.createElement('div'); cell.className = 'rec' + (open ? '' : ' locked');
-    const c = spriteCanvas(looksOf(a, skinOf(a.id)).frames[0], 2);
+    const c = spriteCanvas(lookOf(a).frames[0], 2);
     const p = document.createElement('p'); p.textContent = (open ? a.name : '???') + ' ' + num(animalBest[a.id]);
     cell.append(c, p); grid.appendChild(cell);
   });
@@ -181,6 +181,11 @@ function setSkin(id, skinId) {
   store.set('dp-skin-' + id, skinId);
   refreshPicker();
 }
+function setHat(id, hatId) {
+  hatSel[id] = hatId;
+  store.set('dp-hat-' + id, hatId);
+  refreshPicker();
+}
 function shopRow(img, title, sub, btn) {
   const row = document.createElement('div'); row.className = 'item';
   const face = document.createElement('span'); face.className = 'face'; face.appendChild(img);
@@ -222,6 +227,22 @@ function renderShop() {
           return '¡' + a.name + ' desbloqueado!';
         } }));
     });
+  } else if (shopTab === 'hats') {
+    const a = animal;                                   // hats are chosen for the animal selected in the menu
+    const note = document.createElement('p'); note.className = 'note';
+    note.textContent = 'Sombreros para: ' + a.name + ' (cada sombrero se compra una vez y sirve para todos los animales)';
+    list.appendChild(note);
+    HATS.forEach((h) => {
+      const owned = h.price === 0 || ownedHats.includes(h.id), using = hatOf(a.id) === h.id;
+      list.appendChild(shopRow(spriteCanvas(dressedLooks(a, skinOf(a.id), h.id).frames[0], 3), h.name,
+        using ? 'En uso' : owned ? 'Comprado' : h.price + ' monedas',
+        using ? null : owned ? { label: 'Usar', action: () => { setHat(a.id, h.id); return h.id === 'none' ? a.name + ' ya no lleva sombrero.' : a.name + ' lleva ' + h.name.toLowerCase() + '.'; } }
+          : { price: h.price, action: () => {
+            ownedHats.push(h.id); store.set('dp-hats', JSON.stringify(ownedHats));
+            setHat(a.id, h.id);
+            return '¡' + h.name + ' comprado!';
+          } }));
+    });
   } else {
     const a = animal;                                   // skins are chosen for the animal selected in the menu
     const note = document.createElement('p'); note.className = 'note';
@@ -229,7 +250,7 @@ function renderShop() {
     list.appendChild(note);
     SKINS.forEach((sk) => {
       const owned = sk.price === 0 || ownedSkins.includes(sk.id), using = skinOf(a.id) === sk.id;
-      list.appendChild(shopRow(spriteCanvas(looksOf(a, sk.id).frames[0], 3), sk.name,
+      list.appendChild(shopRow(spriteCanvas(dressedLooks(a, sk.id, hatOf(a.id)).frames[0], 3), sk.name,
         using ? 'En uso' : owned ? 'Comprado' : sk.price + ' monedas',
         using ? null : owned ? { label: 'Usar', action: () => { setSkin(a.id, sk.id); return a.name + ' ahora es ' + sk.name.toLowerCase() + '.'; } }
           : { price: sk.price, action: () => {

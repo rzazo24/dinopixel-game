@@ -236,6 +236,43 @@ function looksOf(a, skinId) {
   const key = a.id + ':' + skinId;
   return lookCache[key] || (lookCache[key] = buildLooks(a, skinPal(a.pal, skin)));
 }
+
+// Hats (bought in the shop, one per animal): drawn on top of the head. HEAD = [centre column, top row] of each
+// animal's head in its 16x16 grid; the hat's bottom row overlaps that top row.
+const HEAD = { dino: [10.5, 0], cat: [12.5, 1], dog: [11.5, 0], bunny: [12.5, 0], chick: [11, 1], peng: [9.5, 0], frog: [11.5, 3], fox: [12.5, 1], turtle: [14.5, 7] };
+const HAT_PAD = 6;                                       // extra rows above the 16x16 grid so tall hats fit
+const HATS = [
+  { id: 'none', name: 'Sin sombrero', price: 0 },
+  { id: 'cap', name: 'Gorra', price: 150, rows: ['..rrrr....', '.rrwrrr...', '.rrrrrrrrr'], pal: { r: '#e53935', w: '#ffffff' }, dx: 1 },
+  { id: 'top', name: 'Chistera', price: 250, rows: ['.kkkkk.', '.kkkkk.', '.kkkkk.', '.rrrrr.', 'kkkkkkk'], pal: { k: '#2c2c3a', r: '#c62828' } },
+  { id: 'cowboy', name: 'Vaquero', price: 300, rows: ['...bbb...', '..bbbbb..', '..ddddd..', 'bbbbbbbbb'], pal: { b: '#a0672e', d: '#5e3a1e' } },
+  { id: 'santa', name: 'Papá Noel', price: 400, rows: ['......ww', '....rrrw', '...rrrr.', '..rrrrr.', '.wwwwwww'], pal: { r: '#d32f2f', w: '#f5f5f5' } },
+  { id: 'crown', name: 'Corona', price: 600, rows: ['y..y..y', 'yy.y.yy', 'yyyyyyy', 'yryybyy'], pal: { y: '#ffd23f', r: '#e53935', b: '#3f7fe0' } },
+];
+HATS.forEach((h) => { if (h.rows) h.img = sprite(h.rows, h.pal); });
+// an animal frame with a hat on it: a taller canvas (HAT_PAD more rows on top)
+function withHat(frame, a, hat) {
+  const c = document.createElement('canvas');
+  c.width = frame.width; c.height = frame.height + HAT_PAD;
+  const g = c.getContext('2d');
+  g.drawImage(frame, 0, HAT_PAD);
+  const [cx, top] = HEAD[a.id] || [8, 0], w = hat.rows[0].length, h = hat.rows.length;
+  const x0 = Math.max(0, Math.min(SP - w, Math.round(cx - w / 2) + (hat.dx || 0)));
+  g.drawImage(hat.img, x0, HAT_PAD + top - h + 1);       // hat art at (x0, top-h+1) in grid cells; both canvases carry a 1-cell margin
+  return c;
+}
+const dressCache = {};
+// everything the player looks like: colour skin + hat. `pad` = extra rows on top (0 without a hat).
+function dressedLooks(a, skinId, hatId) {
+  const lk = looksOf(a, skinId), hat = HATS.find((x) => x.id === hatId);
+  if (!hat || !hat.rows) return Object.assign({ pad: 0 }, lk, { pad: 0 });
+  const key = a.id + ':' + skinId + ':' + hatId;
+  if (!dressCache[key]) {
+    dressCache[key] = { pad: HAT_PAD, frames: lk.frames.map((f) => withHat(f, a, hat)) };
+    if (lk.framesUp) dressCache[key].framesUp = lk.framesUp.map((f) => withHat(f, a, hat));
+  }
+  return dressCache[key];
+}
 const cactusImg = sprite(CACTUS, CACTUS_PAL);
 // pickups: a spinning coin (face / edge), the shield bubble and the magnet
 const COIN_PAL = { o: '#b8860b', y: '#ffd23f', w: '#fff6b0' };

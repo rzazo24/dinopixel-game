@@ -397,6 +397,29 @@ try {
   await buyFor('Original'); await sleep(150);
   t.check('skins: switching back to "Original" is free', (await ev(`localStorage.getItem('dp-skin-dino')`)) === 'base' && (await ev(`document.getElementById('shop-balance').textContent`)) === '100');
   await esc(); await sleep(100);
+  // hats: the cap's red (#e53935) shows above the player once it is bought
+  const capRed = () => ev(`(() => { const c = document.getElementById('game'), k = __dp.K, g = c.getContext('2d');
+    const d = g.getImageData(40 * k, (__dp.GROUND - 200) * k, 80 * k, 200 * k).data; let n = 0;
+    for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - 229) < 4 && Math.abs(d[i + 1] - 57) < 4 && Math.abs(d[i + 2] - 53) < 4) n++;
+    return n; })()`);
+  await fresh(`localStorage.setItem('dp-stats', JSON.stringify({coins:400}))`);
+  await click('play'); await sleep(400);
+  const capBefore = await capRed();
+  await click('pause-btn'); await click('home'); await sleep(150);
+  await click('shop-btn'); await ev(`document.querySelector('[data-stab=hats]').click()`); await sleep(150);
+  t.check('hats: the shop has a hats tab with 5 hats plus "Sin sombrero"', (await ev(`document.querySelectorAll('#shop-body .item').length`)) === 6);
+  await buyFor('Gorra'); await sleep(150);
+  t.check('hats: buying "Gorra" (150) puts it on the selected animal', (await ev(`localStorage.getItem('dp-hat-dino')`)) === 'cap' && (await ev(`document.getElementById('shop-balance').textContent`)) === '250');
+  await esc(); await click('play'); await sleep(400);
+  const capAfter = await capRed();
+  t.check('hats: the game draws the cap on the dino', capBefore === 0 && capAfter > 20, [capBefore, capAfter]);
+  await click('pause-btn'); await click('home'); await sleep(150);
+  t.check('hats: the menu card is drawn with the hat (taller image fitted in)', await ev(`(() => { const c = document.querySelector('[data-id=dino] canvas'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - 229) < 4 && Math.abs(d[i + 1] - 57) < 4 && Math.abs(d[i + 2] - 53) < 4) return true; return false; })()`));
+  await click('shop-btn'); await ev(`document.querySelector('[data-stab=hats]').click()`); await sleep(150);
+  await buyFor('Sin sombrero'); await sleep(150);
+  t.check('hats: taking it off is free and it stays bought', (await ev(`localStorage.getItem('dp-hat-dino')`)) === 'none' && (await ev(`document.getElementById('shop-balance').textContent`)) === '250' && (await ev(`localStorage.getItem('dp-hats')`)) === '["cap"]');
+  await esc(); await sleep(100);
 
   // pickups appear by themselves during a run
   await fresh(); await startRun();

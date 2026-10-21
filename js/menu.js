@@ -16,7 +16,8 @@ function drawCard(b, a) {
   const c = b.querySelector('canvas'), g = c.getContext('2d');
   g.clearRect(0, 0, c.width, c.height);
   g.imageSmoothingEnabled = false;
-  g.drawImage(looksOf(a, skinOf(a.id)).frames[0], 0, 0, c.width, c.height);
+  const img = lookOf(a).frames[0], k = Math.min(c.width / img.width, c.height / img.height);   // a hat makes it taller: fit it
+  g.drawImage(img, (c.width - img.width * k) / 2, c.height - img.height * k, img.width * k, img.height * k);
 }
 function refreshPicker() {
   showCoins();

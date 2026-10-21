@@ -37,8 +37,10 @@ un golpe, con cualquier animal; se acumulan) y un **imán** (atrae las monedas c
 puntuación muestra las monedas de la partida, y el **monedero** de la esquina del menú, las monedas que puedes gastar.
 
 **Tienda:** las monedas se gastan en la **Tienda** (botón del menú, o tocando el monedero): desbloquear un animal antes
-de llegar a su puntuación (cuesta su puntuación entre 10: gato 100, …, tortuga 800) o comprar **colores** (Dorado,
-Sombra, Hielo, Chicle; 300 cada uno, sirven para todos los animales y se elige cuál lleva cada uno). El monedero
+de llegar a su puntuación (cuesta su puntuación entre 10: gato 100, …, tortuga 800) comprar **colores** (Dorado,
+Sombra, Hielo, Chicle; 300 cada uno) o **sombreros** (Gorra 150, Chistera 250, Vaquero 300, Papá Noel 400, Corona 600).
+Colores y sombreros se compran una vez, sirven para todos los animales y se elige cuál lleva cada uno; se ven en la
+partida y en el menú. El monedero
 muestra el saldo; lo gastado no resta progreso a los logros de monedas.
 
 **Reto del día:** cada día hay un reto distinto (el mismo todo el día, se renueva a medianoche): llegar a X puntos
@@ -187,7 +189,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v65';   // -> 'dinopixel-v66', ...
+const CACHE = 'dinopixel-v66';   // -> 'dinopixel-v67', ...
 ```
 
 Notas de instalación:

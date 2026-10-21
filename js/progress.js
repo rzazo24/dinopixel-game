@@ -15,6 +15,11 @@ const unlocked = (a) => best >= a.unlock || bought.includes(a.id);
 const skinSel = {};                                     // chosen skin per animal
 ANIMALS.forEach((a) => { skinSel[a.id] = store.get('dp-skin-' + a.id, 'base'); });
 const skinOf = (id) => skinSel[id] || 'base';
+const ownedHats = jsonList('dp-hats');                  // hats bought (they work on every animal)
+const hatSel = {};                                      // chosen hat per animal
+ANIMALS.forEach((a) => { hatSel[a.id] = store.get('dp-hat-' + a.id, 'none'); });
+const hatOf = (id) => hatSel[id] || 'none';
+const lookOf = (a) => dressedLooks(a, skinOf(a.id), hatOf(a.id));   // skin + hat, for the game and the menus
 
 /* ---------- achievements ---------- */
 const jsonStore = (k, d) => { try { return Object.assign(d, JSON.parse(store.get(k, '{}'))); } catch { return d; } };
