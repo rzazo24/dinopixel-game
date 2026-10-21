@@ -95,7 +95,7 @@ navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos
   alegre, con melodía de marimba, y el volcán grave y oscuro, el más rápido. El tempo sube con la velocidad del juego (y con el ajuste de
   velocidad), y al ir más rápido entran el charles y el bombo. Se pausa con la pausa y se corta al morir; el menú
   es silencioso. Los efectos y la música se activan por separado y se recuerdan.
-- **Vibración**: en Android y en iPhone con iOS 18 o posterior (en iPhone son toques cortos: Safari no permite vibraciones largas).
+- **Vibración**: solo en Android (en iPhone no aparece el botón: Safari no permite vibrar desde una web).
 - **Ranking**: botón *Ranking* del menú y de la pausa (ver más abajo), con opción de borrar tus datos.
 - **Ayuda**: botón *Ayuda* del menú y de la pausa (o la tecla `H`), con controles, animales y consejos.
 
@@ -189,7 +189,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v66';   // -> 'dinopixel-v67', ...
+const CACHE = 'dinopixel-v67';   // -> 'dinopixel-v68', ...
 ```
 
 Notas de instalación:
