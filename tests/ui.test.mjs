@@ -12,7 +12,7 @@ const ev = chrome.ev;
 
 async function fresh(seed = '') {                // clean storage (seeded before the game loads, so pagehide cannot overwrite it)
   await chrome.goto(base + '/manifest.json', 300);
-  await ev(`localStorage.clear(); ${seed}`);
+  await ev(`localStorage.clear(); localStorage.setItem('dp-lang', 'es'); ${seed}`);   // the suite checks the Spanish texts
   await chrome.goto(url, 1400);
 }
 const click = (id) => ev(`document.getElementById('${id}').click()`);
@@ -616,6 +616,27 @@ try {
   t.check('ranking is empty again, local nickname cleared', /Aún no hay|Esta semana aún no hay/.test(await ev(`document.getElementById('rank-body').textContent`)) && (await ev(`localStorage.getItem('dp-nick')`)) === '');
   const gone = await (await fetch(`${base}/api/ranking?board=all&period=week`)).json();
   t.check('API confirms the data is gone', gone.rows.length === 0 && gone.total === 0);
+
+  // language: the menu button switches to English (and back); the choice stays on this device only
+  await fresh();
+  t.check('language: Spanish menu offers "English"', (await ev(`document.documentElement.lang`)) === 'es' && (await ev(`document.querySelector('#lang span').textContent`)) === 'English' && (await ev(`document.querySelector('#play span').textContent`)) === 'JUGAR');
+  await click('lang'); await sleep(1400);
+  t.check('language: English after the switch (menu, abilities, animals)', (await ev(`localStorage.getItem('dp-lang')`)) === 'en' && (await ev(`document.documentElement.lang`)) === 'en'
+    && (await ev(`document.querySelector('#play span').textContent`)) === 'PLAY' && (await ev(`document.querySelector('#lang span').textContent`)) === 'Español'
+    && (await ev(`document.querySelector('[data-id=dino] span').textContent`)) === 'Dino' && /Next animal at 1000/.test(await ev(`document.getElementById('tag').textContent`)));
+  await click('help-btn');
+  t.check('language: help in English', /Keyboard/.test(await ev(`document.getElementById('help-body').textContent`)) && (await ev(`document.querySelector('#help-close span').textContent`)) === 'Close');
+  await ev(`document.querySelector('#help [data-tab=tips]').click()`);
+  t.check('language: tips in English', /every 1000 points/.test(await ev(`document.getElementById('help-body').textContent`)));
+  await click('help-close'); await click('shop-btn');
+  t.check('language: shop in English', /SHOP/.test(await ev(`document.querySelector('#shop h2').textContent`)) && /Cat/.test(await ev(`document.getElementById('shop-body').textContent`)) && (await ev(`document.querySelector('[data-stab=hats]').textContent`)) === 'Hats');
+  await click('shop-close'); await click('ach-btn');
+  t.check('language: achievements in English', /First steps/.test(await ev(`document.getElementById('ach-body').textContent`)) && /ACHIEVEMENTS/.test(await ev(`document.querySelector('#ach h2').textContent`)));
+  await click('ach-close');
+  t.check('language: nothing Spanish left in the visible menu', !/Elige|Tienda|Logros|Ayuda|Música|Efectos|Velocidad/.test(await ev(`document.getElementById('menu').innerText`)), await ev(`document.getElementById('menu').innerText`));
+  t.check('language: the choice is a device setting (not in the cloud save)', !('dp-lang' in (await ev(`__dp.snapshot().keys`))));
+  await click('lang'); await sleep(1400);
+  t.check('language: back to Spanish', (await ev(`localStorage.getItem('dp-lang')`)) === 'es' && (await ev(`document.querySelector('#play span').textContent`)) === 'JUGAR');
 
   t.check('no JavaScript errors anywhere', chrome.errors.length === 0, chrome.errors.slice(0, 3));
 } catch (e) {

@@ -1,5 +1,7 @@
 # DinoPixel
 
+*Español · [English](README.en.md)*
+
 **[Juega ahora: dinopixel-game.vercel.app](https://dinopixel-game.vercel.app/)**
 
 Un juego de correr y saltar al estilo del dinosaurio de Chrome, en pixel art a color, con **9 animales
@@ -96,6 +98,7 @@ navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos
   velocidad), y al ir más rápido entran el charles y el bombo. Se pausa con la pausa y se corta al morir; el menú
   es silencioso. Los efectos y la música se activan por separado y se recuerdan.
 - **Vibración**: solo en Android (en iPhone no aparece el botón: Safari no permite vibrar desde una web).
+- **Idioma**: español o inglés. Se elige solo según el idioma del navegador y se cambia con el botón *English* / *Español* del menú.
 - **Ranking**: botón *Ranking* del menú y de la pausa (ver más abajo), con opción de borrar tus datos.
 - **Ayuda**: botón *Ayuda* del menú y de la pausa (o la tecla `H`), con controles, animales y consejos.
 
@@ -105,7 +108,7 @@ Botón **Guardado** (nube) en el menú. Al activarlo, el servidor da un **códig
 con él recuperas tu partida en otro móvil o después de borrar los datos del navegador. Sin cuentas ni contraseñas.
 
 - **Qué se guarda:** récords, monedas, compras, colores, logros, estadísticas, la racha del reto diario, el apodo y
-  tu identidad en el ranking. No se guardan los ajustes del dispositivo (velocidad, volumen, música, efectos, vibración).
+  tu identidad en el ranking. No se guardan los ajustes del dispositivo (velocidad, volumen, música, efectos, vibración, idioma).
 - **Cuándo:** solo, al terminar cada partida, al comprar en la tienda, al cambiar de apodo y al cerrar la app; y con
   *Guardar ahora*.
 - **Recuperar** sustituye el progreso del dispositivo (con doble confirmación). Si juegas en dos móviles a la vez con
@@ -189,7 +192,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v67';   // -> 'dinopixel-v68', ...
+const CACHE = 'dinopixel-v68';   // -> 'dinopixel-v69', ...
 ```
 
 Notas de instalación:
@@ -205,6 +208,7 @@ Notas de instalación:
 index.html      menú, escenario del juego, overlays y etiquetas de vista previa (Open Graph)
 style.css       interfaz pixel (botones biselados, iconos, adaptación a móvil/notch)
 js/             el juego, dividido por temas y cargado en este orden:
+  i18n.js         idioma (español/inglés) y traducción de la página
   sprites.js      constantes, sprites de animales y obstáculos
   helpers.js      utilidades, paletas de día/noche y zonas
   canvas.js       canvas a resolución nativa y márgenes del notch

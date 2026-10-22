@@ -32,154 +32,156 @@
 <body>
 <main id="menu">
   <div class="corner-left">
-    <div class="daily-chip" id="daily-chip" role="button" tabindex="0" title="Reto del día"><i data-icon="target"></i><span>Reto</span></div>
-    <div class="daily-chip cloud-chip" id="cloud-chip" role="button" tabindex="0" title="Guardado en el servidor"><i data-icon="cloud"></i><span>Guardado</span></div>
+    <div class="daily-chip" id="daily-chip" role="button" tabindex="0" title="Reto del día" data-en-title="Daily challenge" data-en="Daily"><i data-icon="target"></i><span>Reto</span></div>
+    <div class="daily-chip cloud-chip" id="cloud-chip" role="button" tabindex="0" title="Guardado en el servidor" data-en-title="Saved on the server" data-en="Save"><i data-icon="cloud"></i><span>Guardado</span></div>
   </div>
-  <div class="wallet" id="wallet" title="Tus monedas: toca para ir a la tienda" role="button" tabindex="0"><i data-icon="coin"></i><span id="coins-total">0</span></div>
+  <div class="wallet" id="wallet" title="Tus monedas: toca para ir a la tienda" data-en-title="Your coins: tap to open the shop" role="button" tabindex="0"><i data-icon="coin"></i><span id="coins-total">0</span></div>
   <h1>DINO<span>PIXEL</span></h1>
-  <p class="tag" id="tag">Corre, salta y esquiva</p>
-  <p class="label">Elige tu animal</p>
+  <p class="tag" id="tag" data-en="Run, jump and dodge">Corre, salta y esquiva</p>
+  <p class="label" data-en="Pick your animal">Elige tu animal</p>
   <div id="picker" class="picker"></div>
   <p class="ability" id="ability"></p>
-  <button id="play" class="big" type="button"><i data-icon="play"></i><span>JUGAR</span></button>
-  <p class="hint kb">
+  <button id="play" class="big" type="button" data-en="PLAY"><i data-icon="play"></i><span>JUGAR</span></button>
+  <p class="hint kb" data-en-html="<b>SPACE</b> <b><i data-icon=&quot;up&quot;></i></b> jump (hold: higher) &nbsp; <b>P</b> pause &nbsp; <b>F</b> fullscreen &nbsp; <b>M</b> sounds &nbsp; <b>N</b> music">
     <b>ESPACIO</b> <b><i data-icon="up"></i></b> saltar (mantén: más alto) &nbsp;
     <b>P</b> pausa &nbsp; <b>F</b> pantalla completa &nbsp; <b>M</b> efectos &nbsp; <b>N</b> música
   </p>
-  <p class="hint touch">
+  <p class="hint touch" data-en-html="<b>TAP</b> jump &nbsp; <b>HOLD</b> jump higher">
     <b>TOCA</b> saltar &nbsp; <b>MANTÉN</b> saltar más alto
   </p>
   <div class="actions">
-    <button id="pace" class="small" type="button"><i data-icon="bolt"></i><span>Velocidad</span></button>
-    <button id="mute" class="small" type="button"><i data-icon="sound"></i><span>Efectos</span></button>
-    <button id="music" class="small" type="button"><i data-icon="note"></i><span>Música</span></button>
-    <button id="vol" class="small" type="button"><i data-icon="volume"></i><span>Volumen</span></button>
-    <button id="vibe" class="small" type="button" hidden><i data-icon="vibrate"></i><span>Vibración</span></button>
-    <button id="shop-btn" class="small" type="button"><i data-icon="cart"></i><span>Tienda</span></button>
-    <button id="ach-btn" class="small" type="button"><i data-icon="medal"></i><span>Logros</span></button>
-    <button id="rank-btn" class="small" type="button"><i data-icon="trophy"></i><span>Ranking</span></button>
-    <button id="help-btn" class="small" type="button"><i data-icon="help"></i><span>Ayuda</span></button>
-    <button id="install" class="small" type="button" hidden><i data-icon="download"></i><span>Instalar</span></button>
+    <button id="pace" class="small" type="button" data-en="Speed"><i data-icon="bolt"></i><span>Velocidad</span></button>
+    <button id="mute" class="small" type="button" data-en="Sounds"><i data-icon="sound"></i><span>Efectos</span></button>
+    <button id="music" class="small" type="button" data-en="Music"><i data-icon="note"></i><span>Música</span></button>
+    <button id="vol" class="small" type="button" data-en="Volume"><i data-icon="volume"></i><span>Volumen</span></button>
+    <button id="vibe" class="small" type="button" hidden data-en="Vibration"><i data-icon="vibrate"></i><span>Vibración</span></button>
+    <button id="shop-btn" class="small" type="button" data-en="Shop"><i data-icon="cart"></i><span>Tienda</span></button>
+    <button id="ach-btn" class="small" type="button" data-en="Achievements"><i data-icon="medal"></i><span>Logros</span></button>
+    <button id="rank-btn" class="small" type="button" data-en="Ranking"><i data-icon="trophy"></i><span>Ranking</span></button>
+    <button id="help-btn" class="small" type="button" data-en="Help"><i data-icon="help"></i><span>Ayuda</span></button>
+    <button id="lang" class="small" type="button"><i data-icon="globe"></i><span>English</span></button>
+    <button id="install" class="small" type="button" hidden data-en="Install"><i data-icon="download"></i><span>Instalar</span></button>
   </div>
 </main>
 
 <div id="stage" hidden>
-  <canvas id="game" width="600" height="200" aria-label="Juego"></canvas>
-  <button id="pause-btn" class="round" type="button" aria-label="Pausa"><i data-icon="pause"></i></button>
-  <button id="share-btn" class="small" type="button" hidden><i data-icon="share"></i><span>Compartir</span></button>
+  <canvas id="game" width="600" height="200" aria-label="Juego" data-en-label="Game"></canvas>
+  <button id="pause-btn" class="round" type="button" aria-label="Pausa" data-en-label="Pause"><i data-icon="pause"></i></button>
+  <button id="share-btn" class="small" type="button" hidden data-en="Share"><i data-icon="share"></i><span>Compartir</span></button>
   <div id="pause" class="overlay" hidden>
-    <h2>PAUSA</h2>
-    <button id="resume" class="big" type="button"><i data-icon="play"></i><span>SEGUIR</span></button>
+    <h2 data-en="PAUSED">PAUSA</h2>
+    <button id="resume" class="big" type="button" data-en="RESUME"><i data-icon="play"></i><span>SEGUIR</span></button>
     <div class="pause-opts">
-      <button id="pace2" class="small" type="button"><i data-icon="bolt"></i><span>Velocidad</span></button>
-      <button id="vol2" class="small" type="button"><i data-icon="volume"></i><span>Volumen</span></button>
-      <button id="fs" class="small" type="button"><i data-icon="fullscreen"></i><span>Pantalla completa</span></button>
-      <button id="rank-btn2" class="small" type="button"><i data-icon="trophy"></i><span>Ranking</span></button>
-      <button id="ach-btn2" class="small" type="button"><i data-icon="medal"></i><span>Logros</span></button>
-      <button id="help-btn2" class="small" type="button"><i data-icon="help"></i><span>Ayuda</span></button>
-      <button id="home" class="small" type="button"><i data-icon="home"></i><span>Menú</span></button>
+      <button id="pace2" class="small" type="button" data-en="Speed"><i data-icon="bolt"></i><span>Velocidad</span></button>
+      <button id="vol2" class="small" type="button" data-en="Volume"><i data-icon="volume"></i><span>Volumen</span></button>
+      <button id="fs" class="small" type="button" data-en="Fullscreen"><i data-icon="fullscreen"></i><span>Pantalla completa</span></button>
+      <button id="rank-btn2" class="small" type="button" data-en="Ranking"><i data-icon="trophy"></i><span>Ranking</span></button>
+      <button id="ach-btn2" class="small" type="button" data-en="Achievements"><i data-icon="medal"></i><span>Logros</span></button>
+      <button id="help-btn2" class="small" type="button" data-en="Help"><i data-icon="help"></i><span>Ayuda</span></button>
+      <button id="home" class="small" type="button" data-en="Menu"><i data-icon="home"></i><span>Menú</span></button>
     </div>
   </div>
   <div id="rotate" class="overlay">
     <div class="phone"><i data-icon="phone"></i></div>
-    <p>Gira el móvil para jugar en horizontal</p>
+    <p data-en="Turn your phone sideways to play">Gira el móvil para jugar en horizontal</p>
   </div>
 </div>
-<div id="ach" class="help" hidden role="dialog" aria-modal="true" aria-label="Logros">
+<div id="ach" class="help" hidden role="dialog" aria-modal="true" aria-label="Logros" data-en-label="Achievements">
   <div class="help-box">
-    <h2>LOGROS <span id="ach-count"></span></h2>
+    <h2 data-en-html="ACHIEVEMENTS <span id=&quot;ach-count&quot;></span>">LOGROS <span id="ach-count"></span></h2>
     <div class="tabs" id="ach-tabs" role="tablist">
-      <button class="small tab on" type="button" data-atab="ach" role="tab">Logros</button>
-      <button class="small tab" type="button" data-atab="stats" role="tab">Estadísticas</button>
+      <button class="small tab on" type="button" data-atab="ach" role="tab" data-en="Achievements">Logros</button>
+      <button class="small tab" type="button" data-atab="stats" role="tab" data-en="Stats">Estadísticas</button>
     </div>
     <div class="help-body" id="ach-body" tabindex="0"></div>
-    <button id="ach-close" class="small" type="button"><i data-icon="close"></i><span>Cerrar</span></button>
+    <button id="ach-close" class="small" type="button" data-en="Close"><i data-icon="close"></i><span>Cerrar</span></button>
   </div>
 </div>
-<div id="daily" class="help" hidden role="dialog" aria-modal="true" aria-label="Reto del día">
+<div id="daily" class="help" hidden role="dialog" aria-modal="true" aria-label="Reto del día" data-en-label="Daily challenge">
   <div class="help-box daily-box">
-    <h2>RETO DEL DÍA</h2>
+    <h2 data-en="DAILY CHALLENGE">RETO DEL DÍA</h2>
     <div class="help-body" id="daily-body" tabindex="0"></div>
-    <button id="daily-close" class="small" type="button"><i data-icon="close"></i><span>Cerrar</span></button>
+    <button id="daily-close" class="small" type="button" data-en="Close"><i data-icon="close"></i><span>Cerrar</span></button>
   </div>
 </div>
-<div id="cloud" class="help" hidden role="dialog" aria-modal="true" aria-label="Guardado">
+<div id="cloud" class="help" hidden role="dialog" aria-modal="true" aria-label="Guardado" data-en-label="Cloud save">
   <div class="help-box daily-box">
-    <h2>GUARDADO</h2>
+    <h2 data-en="CLOUD SAVE">GUARDADO</h2>
     <div class="help-body" id="cloud-body" tabindex="0">
       <div id="cloud-off">
-        <p>Guarda tu partida en el servidor para no perderla y poder pasarla a otro móvil: récords, monedas, compras, logros y racha. Te daremos un código: anótalo.</p>
-        <button id="cloud-on" class="big" type="button"><i data-icon="cloud"></i><span>ACTIVAR</span></button>
+        <p data-en="Save your progress on the server so you never lose it and can move it to another phone: records, coins, purchases, achievements and streak. You will get a code: write it down.">Guarda tu partida en el servidor para no perderla y poder pasarla a otro móvil: récords, monedas, compras, logros y racha. Te daremos un código: anótalo.</p>
+        <button id="cloud-on" class="big" type="button" data-en="TURN ON"><i data-icon="cloud"></i><span>ACTIVAR</span></button>
       </div>
       <div id="cloud-active" hidden>
-        <p>Tu código de recuperación:</p>
+        <p data-en="Your recovery code:">Tu código de recuperación:</p>
         <p class="code" id="cloud-code"></p>
-        <div class="row"><button id="cloud-copy" class="small" type="button">Copiar</button><button id="cloud-now" class="small" type="button">Guardar ahora</button></div>
+        <div class="row"><button id="cloud-copy" class="small" type="button" data-en="Copy">Copiar</button><button id="cloud-now" class="small" type="button" data-en="Save now">Guardar ahora</button></div>
         <p class="note" id="cloud-when"></p>
-        <p class="note">Se guarda solo al terminar cada partida. Si juegas en dos móviles con el mismo código, vale la última partida guardada.</p>
+        <p class="note" data-en="It saves by itself after every run. If you play on two phones with the same code, the last saved run wins.">Se guarda solo al terminar cada partida. Si juegas en dos móviles con el mismo código, vale la última partida guardada.</p>
       </div>
-      <h3>¿Tienes un código?</h3>
-      <div class="nickrow"><input id="cloud-input" type="text" maxlength="11" placeholder="XXXXX-XXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Código de recuperación"><button id="cloud-restore" class="small" type="button">Recuperar</button></div>
-      <div id="cloud-danger" hidden><button id="cloud-del" class="small" type="button"><i data-icon="trash"></i><span>Borrar copia del servidor</span></button></div>
+      <h3 data-en="Got a code?">¿Tienes un código?</h3>
+      <div class="nickrow"><input id="cloud-input" type="text" maxlength="11" placeholder="XXXXX-XXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Código de recuperación" data-en-label="Recovery code"><button id="cloud-restore" class="small" type="button" data-en="Restore">Recuperar</button></div>
+      <div id="cloud-danger" hidden><button id="cloud-del" class="small" type="button" data-en="Delete server copy"><i data-icon="trash"></i><span>Borrar copia del servidor</span></button></div>
     </div>
     <p class="rank-msg" id="cloud-msg" role="status"></p>
-    <button id="cloud-close" class="small" type="button"><i data-icon="close"></i><span>Cerrar</span></button>
+    <button id="cloud-close" class="small" type="button" data-en="Close"><i data-icon="close"></i><span>Cerrar</span></button>
   </div>
 </div>
-<div id="shop" class="help" hidden role="dialog" aria-modal="true" aria-label="Tienda">
+<div id="shop" class="help" hidden role="dialog" aria-modal="true" aria-label="Tienda" data-en-label="Shop">
   <div class="help-box">
-    <h2>TIENDA <span class="shop-balance"><i data-icon="coin"></i><span id="shop-balance">0</span></span></h2>
+    <h2><span data-en="SHOP">TIENDA</span> <span class="shop-balance"><i data-icon="coin"></i><span id="shop-balance">0</span></span></h2>
     <div class="tabs" id="shop-tabs" role="tablist">
-      <button class="small tab on" type="button" data-stab="animals" role="tab">Animales</button>
-      <button class="small tab" type="button" data-stab="skins" role="tab">Colores</button>
-      <button class="small tab" type="button" data-stab="hats" role="tab">Sombreros</button>
+      <button class="small tab on" type="button" data-stab="animals" role="tab" data-en="Animals">Animales</button>
+      <button class="small tab" type="button" data-stab="skins" role="tab" data-en="Colors">Colores</button>
+      <button class="small tab" type="button" data-stab="hats" role="tab" data-en="Hats">Sombreros</button>
     </div>
     <div class="help-body" id="shop-body" tabindex="0"></div>
     <p class="rank-msg" id="shop-msg" role="status"></p>
-    <button id="shop-close" class="small" type="button"><i data-icon="close"></i><span>Cerrar</span></button>
+    <button id="shop-close" class="small" type="button" data-en="Close"><i data-icon="close"></i><span>Cerrar</span></button>
   </div>
 </div>
 <div id="rank" class="help" hidden role="dialog" aria-modal="true" aria-label="Ranking">
   <div class="help-box">
     <h2>RANKING</h2>
     <div class="tabs" id="rank-period" role="tablist">
-      <button class="small tab on" type="button" data-period="week" role="tab">Semana</button>
-      <button class="small tab" type="button" data-period="all" role="tab">Histórico</button>
+      <button class="small tab on" type="button" data-period="week" role="tab" data-en="Week">Semana</button>
+      <button class="small tab" type="button" data-period="all" role="tab" data-en="All time">Histórico</button>
     </div>
     <div class="tabs" id="rank-tabs" role="tablist"></div>
     <div class="help-body" id="rank-body" tabindex="0"></div>
     <p class="rank-msg" id="rank-msg" role="status"></p>
     <div class="nickrow">
-      <input id="nick-input" type="text" maxlength="10" placeholder="Tu apodo" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Tu apodo">
-      <button id="nick-save" class="small" type="button">Guardar</button>
+      <input id="nick-input" type="text" maxlength="10" placeholder="Tu apodo" data-en-ph="Your nickname" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Tu apodo" data-en-label="Your nickname">
+      <button id="nick-save" class="small" type="button" data-en="Save">Guardar</button>
     </div>
     <div class="rank-actions">
-      <button id="rank-del" class="small" type="button"><i data-icon="trash"></i><span>Borrar mis datos</span></button>
-      <button id="rank-close" class="small" type="button"><i data-icon="close"></i><span>Cerrar</span></button>
+      <button id="rank-del" class="small" type="button" data-en="Delete my data"><i data-icon="trash"></i><span>Borrar mis datos</span></button>
+      <button id="rank-close" class="small" type="button" data-en="Close"><i data-icon="close"></i><span>Cerrar</span></button>
     </div>
-    <p class="rank-privacy">Se guardan tu apodo, tu mejor puntuación y un id aleatorio. Nada más.</p>
+    <p class="rank-privacy" data-en="We store your nickname, your best score and a random id. Nothing else.">Se guardan tu apodo, tu mejor puntuación y un id aleatorio. Nada más.</p>
   </div>
 </div>
-<div id="help" class="help" hidden role="dialog" aria-modal="true" aria-label="Ayuda">
+<div id="help" class="help" hidden role="dialog" aria-modal="true" aria-label="Ayuda" data-en-label="Help">
   <div class="help-box">
-    <h2>AYUDA</h2>
+    <h2 data-en="HELP">AYUDA</h2>
     <div class="tabs" role="tablist">
-      <button class="small tab on" type="button" data-tab="controls" role="tab">Controles</button>
-      <button class="small tab" type="button" data-tab="animals" role="tab">Animales</button>
-      <button class="small tab" type="button" data-tab="tips" role="tab">Consejos</button>
+      <button class="small tab on" type="button" data-tab="controls" role="tab" data-en="Controls">Controles</button>
+      <button class="small tab" type="button" data-tab="animals" role="tab" data-en="Animals">Animales</button>
+      <button class="small tab" type="button" data-tab="tips" role="tab" data-en="Tips">Consejos</button>
     </div>
     <div class="help-body" id="help-body" tabindex="0"></div>
-    <button id="help-close" class="small" type="button"><i data-icon="close"></i><span>Cerrar</span></button>
+    <button id="help-close" class="small" type="button" data-en="Close"><i data-icon="close"></i><span>Cerrar</span></button>
   </div>
 </div>
 <div id="update" class="toast" role="status" hidden>
-  <span><i data-icon="star"></i> Nueva versión</span>
-  <button id="update-now" class="small" type="button">Actualizar</button>
-  <button id="update-later" class="small" type="button" aria-label="Más tarde"><i data-icon="close"></i></button>
+  <span data-en-html="<i data-icon=&quot;star&quot;></i> New version"><i data-icon="star"></i> Nueva versión</span>
+  <button id="update-now" class="small" type="button" data-en="Update">Actualizar</button>
+  <button id="update-later" class="small" type="button" aria-label="Más tarde" data-en-label="Later"><i data-icon="close"></i></button>
 </div>
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>
 <!-- game code, split by topic; order matters (each file uses what the previous ones define) -->
+<script src="js/i18n.js"></script>
 <script src="js/sprites.js"></script>
 <script src="js/helpers.js"></script>
 <script src="js/canvas.js"></script>

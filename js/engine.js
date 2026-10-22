@@ -111,9 +111,9 @@ function collect(it) {
     score += COIN_POINTS; coinsRun++; stats.coins++;
     sfx.coin(); checkAch();
   } else if (it.kind === 'shield') {
-    P.shield++; sfx.power(); banner = { text: P.shield > 1 ? 'Escudo x' + P.shield + '!' : 'Escudo!', t: 90 };   // shields stack
+    P.shield++; sfx.power(); banner = { text: (P.shield > 1 ? L('Escudo x', 'Shield x') + P.shield : L('Escudo', 'Shield')) + '!', t: 90 };   // shields stack
   } else {
-    magnetT = MAGNET_TIME; sfx.power(); banner = { text: 'Imán!', t: 90 };
+    magnetT = MAGNET_TIME; sfx.power(); banner = { text: L('Imán!', 'Magnet!'), t: 90 };
   }
   for (let i = 0; i < 6; i++) dust.push({ x: it.x + it.w / 2, y: GROUND + it.dy + it.h / 2, vx: rnd(-1.5, 1.5), vy: rnd(-1.5, 1), life: rnd(10, 18) });
 }
@@ -220,7 +220,7 @@ function update(dt) {
       best = Math.floor(score);
       store.set('dp-best', String(best));
       newlyUnlocked.push(a.name);
-      banner = { text: a.name + ' desbloqueado!', t: 200 };
+      banner = { text: a.name + L(' desbloqueado!', ' unlocked!'), t: 200 };
       sfx.unlock();
       haptic([40, 60, 40, 60, 90]);
     }
@@ -230,7 +230,7 @@ function update(dt) {
 
   // zones
   const bi = Math.floor(score / BIOME_LEN) % BIOMES.length;
-  if (bi !== biome) { biomePrev = biome; biome = bi; biomeT = 0; banner = { text: 'Zona: ' + BIOMES[bi].name, t: 150 }; }
+  if (bi !== biome) { biomePrev = biome; biome = bi; biomeT = 0; banner = { text: L('Zona: ', 'Zone: ') + BIOMES[bi].name, t: 150 }; }
   if (biomeT < 1) biomeT = Math.min(1, biomeT + dt / 120);
 
   // milestone
@@ -262,7 +262,7 @@ function update(dt) {
       if (P.shield > 0) {
         P.shield--; P.inv = INVULN; o.hit = true;
         if (P.ownShield) { P.ownShield = 0; stats.shields++; checkAch(); }   // the achievement is about the dog's own shield
-        banner = { text: 'Escudo roto!', t: 90 };
+        banner = { text: L('Escudo roto!', 'Shield broken!'), t: 90 };
         sfx.die();
         haptic(60);
       } else { die(); break; }

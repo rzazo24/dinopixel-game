@@ -31,13 +31,19 @@ function makeDaily(date, pool) {
 }
 function dailyText(d) {
   const a = d.animal && ANIMALS.find((x) => x.id === d.animal);
-  return {
+  return (LANG === 'en' ? {
+    animal: 'Reach ' + d.n + ' points with the ' + (a ? a.name.toLowerCase() : 'dino'),
+    coins: 'Collect ' + d.n + ' coins in one run',
+    birds: 'Dodge ' + d.n + ' birds in one run',
+    dodge: 'Dodge ' + d.n + ' obstacles in one run',
+    time: 'Last ' + d.n + ' seconds in one run',
+  } : {
     animal: 'Llega a ' + d.n + ' puntos con ' + (a ? a.name : 'el dino'),
     coins: 'Recoge ' + d.n + ' monedas en una partida',
     birds: 'Esquiva ' + d.n + ' pájaros en una partida',
     dodge: 'Esquiva ' + d.n + ' obstáculos en una partida',
     time: 'Aguanta ' + d.n + ' segundos en una partida',
-  }[d.type];
+  })[d.type];
 }
 function loadDaily() {
   let d = null;
@@ -77,7 +83,7 @@ function dailyCheck() {                                // called every frame whi
   stats.bonus += dailyDoneRun;
   daily.best = Math.max(daily.best, daily.n);
   saveDaily(); saveStats();
-  banner = { text: 'Reto del día! +' + dailyDoneRun, t: 220 };
+  banner = { text: L('Reto del día! +', 'Daily challenge! +') + dailyDoneRun, t: 220 };
   sfx.unlock(); haptic([40, 60, 40, 60, 90]);
   checkAch();
 }
@@ -96,7 +102,7 @@ function showDaily() {
   if (daily.date !== todayStr()) daily = loadDaily();
   $('daily-chip').classList.toggle('done', daily.done);
   setIcon($('daily-chip').querySelector('i'), daily.done ? 'check' : 'target');
-  $('daily-chip').setAttribute('aria-label', 'Reto del día: ' + dailyText(daily) + (daily.done ? ' (completado)' : ''));
+  $('daily-chip').setAttribute('aria-label', L('Reto del día: ', 'Daily challenge: ') + dailyText(daily) + (daily.done ? L(' (completado)', ' (done)') : ''));
 }
 function renderDaily() {
   const body = $('daily-body');
@@ -106,14 +112,14 @@ function renderDaily() {
   if (a) { const f = document.createElement('div'); f.className = 'face'; f.appendChild(spriteCanvas(lookOf(a).frames[0], 4)); body.appendChild(f); }
   p('goal', dailyText(daily));
   const streakNext = Math.min(DAILY_STREAK_MAX, (stats.dailyLast === yesterdayStr() ? stats.dailyStreak : 0)) * DAILY_STREAK_BONUS;
-  if (daily.done) p('state ok', '¡Completado! Vuelve mañana para el siguiente.');
+  if (daily.done) p('state ok', L('¡Completado! Vuelve mañana para el siguiente.', 'Done! Come back tomorrow for the next one.'));
   else {
-    p('state', 'Tu mejor intento hoy: ' + daily.best + ' / ' + daily.n);
-    p('reward', 'Premio: ' + (daily.reward + streakNext) + ' monedas' + (streakNext ? ' (incluye +' + streakNext + ' por tu racha)' : ''));
-    if (a && !unlocked(a)) p('note', 'Necesitas tener a ' + a.name + ': desbloquéalo o cómpralo en la tienda.');
+    p('state', L('Tu mejor intento hoy: ', 'Your best try today: ') + daily.best + ' / ' + daily.n);
+    p('reward', L('Premio: ', 'Prize: ') + (daily.reward + streakNext) + L(' monedas', ' coins') + (streakNext ? L(' (incluye +' + streakNext + ' por tu racha)', ' (includes +' + streakNext + ' for your streak)') : ''));
+    if (a && !unlocked(a)) p('note', L('Necesitas tener a ' + a.name + ': desbloquéalo o cómpralo en la tienda.', 'You need the ' + a.name.toLowerCase() + ': unlock it or buy it in the shop.'));
   }
-  p('note', 'Racha: ' + (stats.dailyStreak || 0) + (stats.dailyStreak === 1 ? ' día' : ' días') + ' - Retos completados: ' + (stats.dailyDone || 0));
-  p('note', 'Nuevo reto en ' + untilMidnight());
+  p('note', L('Racha: ', 'Streak: ') + (stats.dailyStreak || 0) + (stats.dailyStreak === 1 ? L(' día', ' day') : L(' días', ' days')) + L(' - Retos completados: ', ' - Challenges done: ') + (stats.dailyDone || 0));
+  p('note', L('Nuevo reto en ', 'New challenge in ') + untilMidnight());
 }
 function openDaily() { renderDaily(); dailyEl.hidden = false; $('daily-close').focus(); }
 function closeDaily() { dailyEl.hidden = true; $('daily-chip').focus(); }

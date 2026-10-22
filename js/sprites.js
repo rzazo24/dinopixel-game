@@ -37,7 +37,7 @@ const ANIMALS = [
     ],
   },
   {
-    id: 'cat', name: 'Gato',
+    id: 'cat', name: L('Gato', 'Cat'),
     pal: { a: '#f0a030', b: '#fcd58a', c: '#e0607e', k: '#1a1a1a' },
     body: [
       '..........a....a', '..........aa..aa', '..........aaaaaa', '..........akaaka',
@@ -48,7 +48,7 @@ const ANIMALS = [
     legs: QUAD_LEGS,
   },
   {
-    id: 'dog', name: 'Perro',
+    id: 'dog', name: L('Perro', 'Dog'),
     pal: { a: '#b9783c', b: '#7a4a20', c: '#1a1a1a', k: '#1a1a1a' },
     body: [
       '..........aaaa..', '.........aaaaaa.', '.........baakaaa', '.........baaaaac',
@@ -59,7 +59,7 @@ const ANIMALS = [
     legs: QUAD_LEGS,
   },
   {
-    id: 'bunny', name: 'Conejo',
+    id: 'bunny', name: L('Conejo', 'Bunny'),
     pal: { a: '#d9c7f0', b: '#f4a6b8', c: '#e0607e', w: '#ffffff', k: '#1a1a1a' },
     body: [
       '..........aa.aa.', '..........ab.ab.', '..........ab.ab.', '..........aa.aa.',
@@ -70,7 +70,7 @@ const ANIMALS = [
     legs: QUAD_LEGS,
   },
   {
-    id: 'chick', name: 'Gallina',
+    id: 'chick', name: L('Gallina', 'Chicken'),
     pal: { a: '#fafafa', w: '#cfcfcf', r: '#e03030', c: '#f5a623', k: '#1a1a1a' },
     body: [
       '..........rrr...', '.........aaaaa..', '.........aakaaac', '.........aaaaac.',
@@ -87,7 +87,7 @@ const ANIMALS = [
     legs: BIPED_LEGS('c'),
   },
   {
-    id: 'peng', name: 'Pingüino',
+    id: 'peng', name: L('Pingüino', 'Penguin'),
     pal: { a: '#34548f', w: '#f5f5f5', c: '#f5a623', k: '#ffffff' },
     body: [
       '.......aaaaaa...', '......aaaaaaaa..', '......aaaaakaaac', '......aaaaaaacc.',
@@ -101,7 +101,7 @@ const ANIMALS = [
     ],
   },
   {
-    id: 'frog', name: 'Rana',
+    id: 'frog', name: L('Rana', 'Frog'),
     pal: { a: '#5fbf4a', b: '#cdeb8b', d: '#2e6b2a', k: '#1a1a1a', w: '#ffffff' },
     body: [
       '................', '................', '................', '.........aa.aa..',
@@ -115,7 +115,7 @@ const ANIMALS = [
     ],
   },
   {
-    id: 'fox', name: 'Zorro',
+    id: 'fox', name: L('Zorro', 'Fox'),
     pal: { a: '#e8762c', w: '#fff3e0', d: '#4a2a14', k: '#1a1a1a' },
     body: [
       '...........a..a.', '..........aa.aa.', '..........aaaaa.', '..........akaaww',
@@ -129,7 +129,7 @@ const ANIMALS = [
     ],
   },
   {
-    id: 'turtle', name: 'Tortuga',
+    id: 'turtle', name: L('Tortuga', 'Turtle'),
     pal: { s: '#3f8f4a', S: '#2a6a35', h: '#9ccf6e', k: '#1a1a1a', b: '#d8c78a' },
     body: [
       '................', '................', '................', '................',
@@ -201,11 +201,11 @@ ANIMALS.forEach((a) => Object.assign(a, buildLooks(a, a.pal)));
 
 // Colour skins (bought in the shop): recolour every palette entry except near-black and near-white (eyes, outlines, teeth)
 const SKINS = [
-  { id: 'base', name: 'Original', price: 0 },
-  { id: 'gold', name: 'Dorado', price: 300, f: (h, s, l) => [45, Math.max(s, 0.75), l] },
-  { id: 'shadow', name: 'Sombra', price: 300, f: (h, s, l) => [h, s * 0.15, l * 0.55] },
-  { id: 'ice', name: 'Hielo', price: 300, f: (h, s, l) => [195, s * 0.8, Math.min(0.85, l + 0.1)] },
-  { id: 'candy', name: 'Chicle', price: 300, f: (h, s, l) => [320, Math.max(s, 0.6), Math.min(0.8, l + 0.05)] },
+  { id: 'base', name: L('Original', 'Original'), price: 0 },
+  { id: 'gold', name: L('Dorado', 'Gold'), price: 300, f: (h, s, l) => [45, Math.max(s, 0.75), l] },
+  { id: 'shadow', name: L('Sombra', 'Shadow'), price: 300, f: (h, s, l) => [h, s * 0.15, l * 0.55] },
+  { id: 'ice', name: L('Hielo', 'Ice'), price: 300, f: (h, s, l) => [195, s * 0.8, Math.min(0.85, l + 0.1)] },
+  { id: 'candy', name: L('Chicle', 'Bubblegum'), price: 300, f: (h, s, l) => [320, Math.max(s, 0.6), Math.min(0.8, l + 0.05)] },
 ];
 function hexToHsl(hex) {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.substr(i, 2), 16) / 255);
@@ -242,12 +242,12 @@ function looksOf(a, skinId) {
 const HEAD = { dino: [10.5, 0], cat: [12.5, 1], dog: [11.5, 0], bunny: [12.5, 0], chick: [11, 1], peng: [9.5, 0], frog: [11.5, 3], fox: [12.5, 1], turtle: [14.5, 7] };
 const HAT_PAD = 6;                                       // extra rows above the 16x16 grid so tall hats fit
 const HATS = [
-  { id: 'none', name: 'Sin sombrero', price: 0 },
-  { id: 'cap', name: 'Gorra', price: 150, rows: ['..rrrr....', '.rrwrrr...', '.rrrrrrrrr'], pal: { r: '#e53935', w: '#ffffff' }, dx: 1 },
-  { id: 'top', name: 'Chistera', price: 250, rows: ['.kkkkk.', '.kkkkk.', '.kkkkk.', '.rrrrr.', 'kkkkkkk'], pal: { k: '#2c2c3a', r: '#c62828' } },
-  { id: 'cowboy', name: 'Vaquero', price: 300, rows: ['...bbb...', '..bbbbb..', '..ddddd..', 'bbbbbbbbb'], pal: { b: '#a0672e', d: '#5e3a1e' } },
-  { id: 'santa', name: 'Papá Noel', price: 400, rows: ['......ww', '....rrrw', '...rrrr.', '..rrrrr.', '.wwwwwww'], pal: { r: '#d32f2f', w: '#f5f5f5' } },
-  { id: 'crown', name: 'Corona', price: 600, rows: ['y..y..y', 'yy.y.yy', 'yyyyyyy', 'yryybyy'], pal: { y: '#ffd23f', r: '#e53935', b: '#3f7fe0' } },
+  { id: 'none', name: L('Sin sombrero', 'No hat'), price: 0 },
+  { id: 'cap', name: L('Gorra', 'Cap'), price: 150, rows: ['..rrrr....', '.rrwrrr...', '.rrrrrrrrr'], pal: { r: '#e53935', w: '#ffffff' }, dx: 1 },
+  { id: 'top', name: L('Chistera', 'Top hat'), price: 250, rows: ['.kkkkk.', '.kkkkk.', '.kkkkk.', '.rrrrr.', 'kkkkkkk'], pal: { k: '#2c2c3a', r: '#c62828' } },
+  { id: 'cowboy', name: L('Vaquero', 'Cowboy'), price: 300, rows: ['...bbb...', '..bbbbb..', '..ddddd..', 'bbbbbbbbb'], pal: { b: '#a0672e', d: '#5e3a1e' } },
+  { id: 'santa', name: L('Papá Noel', 'Santa'), price: 400, rows: ['......ww', '....rrrw', '...rrrr.', '..rrrrr.', '.wwwwwww'], pal: { r: '#d32f2f', w: '#f5f5f5' } },
+  { id: 'crown', name: L('Corona', 'Crown'), price: 600, rows: ['y..y..y', 'yy.y.yy', 'yyyyyyy', 'yryybyy'], pal: { y: '#ffd23f', r: '#e53935', b: '#3f7fe0' } },
 ];
 HATS.forEach((h) => { if (h.rows) h.img = sprite(h.rows, h.pal); });
 // an animal frame with a hat on it: a taller canvas (HAT_PAD more rows on top)

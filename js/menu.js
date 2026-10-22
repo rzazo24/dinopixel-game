@@ -9,8 +9,8 @@ function showAbility() {
   $('ability').textContent = animal.name + ': ' + n + ' - ' + d;
 }
 function showCoins() {                                   // total coins ever collected (kept with the other stats)
-  $('coins-total').textContent = balance().toLocaleString('es-ES');
-  $('wallet').setAttribute('aria-label', balance() + ' monedas. Toca para ir a la tienda');
+  $('coins-total').textContent = balance().toLocaleString(LOCALE);
+  $('wallet').setAttribute('aria-label', balance() + L(' monedas. Toca para ir a la tienda', ' coins. Tap to open the shop'));
 }
 function drawCard(b, a) {
   const c = b.querySelector('canvas'), g = c.getContext('2d');
@@ -35,7 +35,7 @@ function refreshPicker() {
   });
   showAbility();
   const next = ANIMALS.filter((a) => !unlocked(a)).sort((x, y) => x.unlock - y.unlock)[0];
-  $('tag').textContent = next ? 'Próximo animal a los ' + next.unlock : 'Todos desbloqueados!';
+  $('tag').textContent = next ? L('Próximo animal a los ', 'Next animal at ') + next.unlock : L('Todos desbloqueados!', 'All unlocked!');
 }
 function selectAnimal(id) {
   const a = ANIMALS.find((x) => x.id === id) || ANIMALS[0];
@@ -70,12 +70,12 @@ function setMuted(m) {
   muted = m;
   store.set('dp-muted', m ? '1' : '0');
   setIcon($('mute').querySelector('i'), m ? 'mute' : 'sound');
-  $('mute').querySelector('span').textContent = m ? 'Sin efectos' : 'Efectos';
+  $('mute').querySelector('span').textContent = m ? L('Sin efectos', 'No sounds') : L('Efectos', 'Sounds');
 }
 function setVibe(v) {
   vibeOn = v;
   store.set('dp-vibe', v ? '1' : '0');
-  $('vibe').querySelector('span').textContent = v ? 'Vibración' : 'Sin vibración';
+  $('vibe').querySelector('span').textContent = v ? L('Vibración', 'Vibration') : L('Sin vibración', 'No vibration');
   $('vibe').classList.toggle('off', !v);
 }
 if (canVibrate) $('vibe').hidden = false;      // hide the button on devices without vibration (iOS, desktop)
@@ -85,7 +85,7 @@ $('mute').addEventListener('click', (e) => { setMuted(!muted); e.currentTarget.b
 function setMusic(on) {
   music.on = on;
   store.set('dp-music', on ? '1' : '0');
-  $('music').querySelector('span').textContent = on ? 'Música' : 'Sin música';
+  $('music').querySelector('span').textContent = on ? L('Música', 'Music') : L('Sin música', 'No music');
   $('music').classList.toggle('off', !on);
   if (!on) stopMusic(0.15);
   else if (inGame && state === 'running' && !paused) startMusic(false);
@@ -93,6 +93,8 @@ function setMusic(on) {
 $('music').addEventListener('click', (e) => { setMusic(!music.on); e.currentTarget.blur(); });
 setMusic(music.on);
 setMuted(muted);
+$('lang').querySelector('span').textContent = L('English', 'Español');   // shows the language you switch to
+$('lang').addEventListener('click', () => { store.set('dp-lang', L('en', 'es')); location.reload(); });
 
 let installEvt = null;
 window.addEventListener('beforeinstallprompt', (e) => {

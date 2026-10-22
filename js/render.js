@@ -264,13 +264,13 @@ function drawHUD() {
   pixText('HI ' + pad(hi), W - 86 - insetR, 12, 2, 'right', c, false);
   ctx.globalAlpha = 1;
   if (!blink) pixText(pad(score), W - 12 - insetR, 12, 2, 'right', c, false);
-  if (P.shield > 0) pixText(P.shield > 1 ? 'Escudo x' + P.shield : 'Escudo', W - 212 - insetR, 12, 2, 'right', '#4fc3f7');
+  if (P.shield > 0) pixText(L('Escudo', 'Shield') + (P.shield > 1 ? ' x' + P.shield : ''), W - 212 - insetR, 12, 2, 'right', '#4fc3f7');
   if (state === 'running' || state === 'over') {                   // coins this run, under the score
     const t = String(coinsRun), w = t.length * 12 - 2;
     pixText(t, W - 12 - insetR, 32, 2, 'right', '#ffd23f', false);
     blit(COIN_IMGS[0], W - 12 - insetR - w - 18, 32, 14, 14);
   }
-  if (magnetT > 0 && state === 'running') pixText('Imán ' + Math.ceil(magnetT / 60), W - 12 - insetR, 52, 2, 'right', '#e53935');
+  if (magnetT > 0 && state === 'running') pixText(L('Imán ', 'Magnet ') + Math.ceil(magnetT / 60), W - 12 - insetR, 52, 2, 'right', '#e53935');
 }
 
 function draw() {
@@ -295,7 +295,7 @@ function draw() {
   drawHUD();
   // in-run banners only while running: the game over screen lists unlocks and achievements itself (they used to overlap)
   if (banner.t > 0 && state === 'running' && !paused) pixFit(banner.text, 44, 2, '#ffd23f');
-  if (achShow.t > 0 && state === 'running' && !paused) pixFit('Logro: ' + achShow.text, 68, 2, '#9be564');
+  if (achShow.t > 0 && state === 'running' && !paused) pixFit(L('Logro: ', 'Achievement: ') + achShow.text, 68, 2, '#9be564');
 
   const ty = GROUND * 0.38;
   if (paused) {
@@ -303,22 +303,22 @@ function draw() {
   } else if (state === 'ready') {
     let y = ty - 14;
     y += pixFit(animal.name, y, 4) + 4;
-    y += pixFit('Toca la pantalla o pulsa espacio', y, 2);
+    y += pixFit(L('Toca la pantalla o pulsa espacio', 'Tap the screen or press space'), y, 2);
     y += pixFit(ABILITY[animal.id][0] + ': ' + ABILITY[animal.id][1], y, 2, '#ffd23f') + 4;
-    pixFit((daily.done ? 'Reto del día: completado' : 'Reto: ' + dailyText(daily)), y, 2, '#9be564');
+    pixFit((daily.done ? L('Reto del día: completado', 'Daily challenge: done') : L('Reto: ', 'Challenge: ') + dailyText(daily)), y, 2, '#9be564');
   } else if (state === 'over') {
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, 0, W, H);
     let y = ty - 14;                                   // lines stack, so a wrapped line never runs into the next one
     y += pixFit('Game over', y, 4, '#ffd23f') + 4;
-    y += pixFit('Toca o pulsa espacio para reintentar', y, 2) + 6;
-    if (coinsRun) y += pixFit('Monedas: ' + coinsRun, y, 2, '#ffd23f');
-    if (dailyDoneRun) y += pixFit('Reto del día completado! +' + dailyDoneRun, y, 2, '#9be564');
-    else if (!daily.done) y += pixFit('Reto: ' + Math.min(daily.n, dailyProgress()) + ' / ' + daily.n, y, 2, '#9be564');
-    if (newlyUnlocked.length) y += pixFit('Nuevo: ' + newlyUnlocked.join(', '), y, 2, '#ffd23f');
+    y += pixFit(L('Toca o pulsa espacio para reintentar', 'Tap or press space to retry'), y, 2) + 6;
+    if (coinsRun) y += pixFit(L('Monedas: ', 'Coins: ') + coinsRun, y, 2, '#ffd23f');
+    if (dailyDoneRun) y += pixFit(L('Reto del día completado! +', 'Daily challenge done! +') + dailyDoneRun, y, 2, '#9be564');
+    else if (!daily.done) y += pixFit(L('Reto: ', 'Challenge: ') + Math.min(daily.n, dailyProgress()) + ' / ' + daily.n, y, 2, '#9be564');
+    if (newlyUnlocked.length) y += pixFit(L('Nuevo: ', 'New: ') + newlyUnlocked.join(', '), y, 2, '#ffd23f');
     if (lastRank) {
-      const wk = lastRank.week ? 'Semana #' + lastRank.week.all.rank + ' - ' : '';
+      const wk = lastRank.week ? L('Semana #', 'Week #') + lastRank.week.all.rank + ' - ' : '';
       y += pixFit(wk + 'Global #' + lastRank.all.rank + ' - ' + animal.name + ' #' + lastRank.animal.rank, y, 2, '#7fd0ff');
     }
-    if (newAch.length) pixFit('Logros: ' + newAch[0] + (newAch.length > 1 ? ' +' + (newAch.length - 1) : ''), y, 2, '#9be564');
+    if (newAch.length) pixFit(L('Logros: ', 'Achievements: ') + newAch[0] + (newAch.length > 1 ? ' +' + (newAch.length - 1) : ''), y, 2, '#9be564');
   }
 }

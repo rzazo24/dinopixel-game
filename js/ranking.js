@@ -41,7 +41,7 @@ function submitRun() {
     if (!pendingRun || run.score > pendingRun.score) pendingRun = run;
     if (!nagged) {                                   // ask for a nickname once per session
       nagged = true;
-      setTimeout(() => { if (inGame && state === 'over' && rankEl.hidden) openRank('¡Buena partida! Elige un apodo para guardar tu puntuación.'); }, 700);
+      setTimeout(() => { if (inGame && state === 'over' && rankEl.hidden) openRank(L('¡Buena partida! Elige un apodo para guardar tu puntuación.', 'Nice run! Pick a nickname to save your score.')); }, 700);
     }
     return;
   }
@@ -115,12 +115,12 @@ async function loadRank(board) {
   const mine = ++rankReq;
   $('rank-tabs').querySelectorAll('.tab').forEach((b) => b.classList.toggle('on', b.dataset.board === board));
   $('rank-period').querySelectorAll('.tab').forEach((b) => b.classList.toggle('on', b.dataset.period === rankPeriod));
-  rankBody.innerHTML = '<p class="note">Cargando...</p>';
+  rankBody.innerHTML = '<p class="note">' + L('Cargando...', 'Loading...') + '</p>';
   const r = await api('/api/ranking?board=' + board + '&period=' + rankPeriod + '&pid=' + pid);
   if (mine !== rankReq) return;                      // a newer tab was opened meanwhile
   if (!r.ok) {
-    const why = r.status === 0 ? 'Sin conexión. Inténtalo más tarde.'
-      : (r.status === 503 || r.status === 404) ? 'El ranking aún no está disponible.' : 'No se pudo cargar el ranking.';
+    const why = r.status === 0 ? L('Sin conexión. Inténtalo más tarde.', 'No connection. Try again later.')
+      : (r.status === 503 || r.status === 404) ? L('El ranking aún no está disponible.', 'The ranking is not available yet.') : L('No se pudo cargar el ranking.', 'The ranking could not be loaded.');
     rankBody.innerHTML = '<p class="note"></p>';
     rankBody.firstChild.textContent = why;
     return;
@@ -135,7 +135,7 @@ function countdown(ts) {
 function renderRank(d) {
   rankBody.replaceChildren();
   if (!d.rows.length) {
-    const p = document.createElement('p'); p.className = 'note'; p.textContent = rankPeriod === 'week' ? 'Esta semana aún no hay puntuaciones. ¡Sé el primero!' : 'Aún no hay puntuaciones. ¡Sé el primero!';
+    const p = document.createElement('p'); p.className = 'note'; p.textContent = rankPeriod === 'week' ? L('Esta semana aún no hay puntuaciones. ¡Sé el primero!', 'No scores yet this week. Be the first!') : L('Aún no hay puntuaciones. ¡Sé el primero!', 'No scores yet. Be the first!');
     rankBody.appendChild(p);
     return;
   }
@@ -155,24 +155,24 @@ function renderRank(d) {
     add(d.me.r, d.me.n, d.me.s, true, d.me.a);
   }
   const foot = document.createElement('p'); foot.className = 'note';
-  foot.textContent = d.total + (d.total === 1 ? ' jugador' : ' jugadores') + (d.endsAt ? ' - Se reinicia en ' + countdown(d.endsAt) : '');
+  foot.textContent = d.total + (d.total === 1 ? L(' jugador', ' player') : L(' jugadores', ' players')) + (d.endsAt ? L(' - Se reinicia en ', ' - Resets in ') + countdown(d.endsAt) : '');
   rankBody.append(tbl, foot);
 }
 async function saveNick() {
   const v = nickInput.value.normalize('NFC').replace(/\s+/g, ' ').trim().toUpperCase();
   const len = [...v].length;
-  if (!len || len > 10 || !NICK_RE.test(v)) { rankMsg.textContent = 'Apodo no válido: 1-10 letras o números (se permite . _ -).'; return; }
-  rankMsg.textContent = 'Guardando...';
+  if (!len || len > 10 || !NICK_RE.test(v)) { rankMsg.textContent = L('Apodo no válido: 1-10 letras o números (se permite . _ -).', 'Invalid nickname: 1-10 letters or numbers (. _ - allowed).'); return; }
+  rankMsg.textContent = L('Guardando...', 'Saving...');
   const r = await api('/api/name', { pid, nick: v });
-  if (r.status === 400) { rankMsg.textContent = r.data.error === 'banned' ? 'Ese apodo no está permitido.' : 'Apodo no válido.'; return; }
+  if (r.status === 400) { rankMsg.textContent = r.data.error === 'banned' ? L('Ese apodo no está permitido.', 'That nickname is not allowed.') : L('Apodo no válido.', 'Invalid nickname.'); return; }
   nick = v;
   store.set('dp-nick', nick);
   cloudSaveSoon();
-  rankMsg.textContent = 'Apodo guardado.';
+  rankMsg.textContent = L('Apodo guardado.', 'Nickname saved.');
   if (pendingRun) {
     const run = pendingRun; pendingRun = null;
     await sendScore(run);
-    if (lastRank) rankMsg.textContent = '¡Guardado! Eres el #' + lastRank.all.rank + ' del ranking global.';
+    if (lastRank) rankMsg.textContent = L('¡Guardado! Eres el #' + lastRank.all.rank + ' del ranking global.', 'Saved! You are #' + lastRank.all.rank + ' in the global ranking.');
   }
   loadRank(rankBoard);
 }
@@ -180,24 +180,24 @@ let delTimer = null;
 function resetDeleteLabel() {
   clearTimeout(delTimer); delTimer = null;
   $('rank-del').classList.remove('confirm');
-  $('rank-del').querySelector('span').textContent = 'Borrar mis datos';
+  $('rank-del').querySelector('span').textContent = L('Borrar mis datos', 'Delete my data');
 }
 async function deleteMyData() {
   if (!delTimer) {                                  // first click: ask for confirmation
     $('rank-del').classList.add('confirm');
-    $('rank-del').querySelector('span').textContent = '¿Seguro? Pulsa otra vez';
+    $('rank-del').querySelector('span').textContent = L('¿Seguro? Pulsa otra vez', 'Sure? Tap again');
     delTimer = setTimeout(resetDeleteLabel, 4000);
     return;
   }
   resetDeleteLabel();
-  rankMsg.textContent = 'Borrando...';
+  rankMsg.textContent = L('Borrando...', 'Deleting...');
   const r = await api('/api/delete', { pid });
-  if (!r.ok) { rankMsg.textContent = 'No se pudo borrar. Inténtalo más tarde.'; return; }
+  if (!r.ok) { rankMsg.textContent = L('No se pudo borrar. Inténtalo más tarde.', 'Could not delete. Try again later.'); return; }
   nick = ''; pendingRun = null; lastRank = null;
   store.set('dp-nick', ''); store.set('dp-queue', '[]');
   pid = newPid(); store.set('dp-pid', pid);        // a fresh id: nothing links the old data to this device
   nickInput.value = '';
-  rankMsg.textContent = 'Tus datos se han borrado del ranking.';
+  rankMsg.textContent = L('Tus datos se han borrado del ranking.', 'Your data has been deleted from the ranking.');
   loadRank(rankBoard);
 }
 $('rank-del').addEventListener('click', deleteMyData);

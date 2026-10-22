@@ -30,6 +30,7 @@ const ICONS = {
   cart: ['11000000', '01111111', '01000001', '01000001', '01111111', '01000000', '00100100', '00100100'],
   target: ['00111100', '01000010', '10011001', '10111101', '10111101', '10011001', '01000010', '00111100'],
   check: ['00000000', '00000001', '00000011', '10000110', '11001100', '01111000', '00110000', '00000000'],
+  globe: ['00111100', '01011010', '10011001', '11111111', '10011001', '10011001', '01011010', '00111100'],
   cloud: ['00000000', '00111000', '01111100', '01111110', '11111111', '11111111', '01111110', '00000000'],
   phone: [                                       // a phone: thin bezel, big screen, speaker slit, home button
     '011111110', '111111111', '111000111', '111111111', '100000001', '100000001', '100000001', '100000001',
@@ -50,7 +51,7 @@ document.querySelectorAll('i[data-icon]').forEach((el) => setIcon(el, el.dataset
 const VOLS = [0.25, 0.5, 0.75, 1];
 let vol = Number(store.get('dp-vol', '1'));
 if (!VOLS.includes(vol)) vol = 1;
-function showVol() { ['vol', 'vol2'].forEach((id) => { $(id).querySelector('span').textContent = 'Volumen ' + Math.round(vol * 100) + '%'; }); }
+function showVol() { ['vol', 'vol2'].forEach((id) => { $(id).querySelector('span').textContent = L('Volumen ', 'Volume ') + Math.round(vol * 100) + '%'; }); }
 function cycleVol(e) {
   vol = VOLS[(VOLS.indexOf(vol) + 1) % VOLS.length];
   store.set('dp-vol', String(vol));
@@ -70,7 +71,7 @@ const fine = !window.matchMedia('(pointer: coarse)').matches;   // mouse/keyboar
 let pace = Number(store.get('dp-pace', fine ? '0.8' : '1'));
 if (!PACES.includes(pace)) pace = fine ? 0.8 : 1;
 function showPace() {
-  ['pace', 'pace2'].forEach((id) => { $(id).querySelector('span').textContent = 'Velocidad ' + Math.round(pace * 100) + '%'; });
+  ['pace', 'pace2'].forEach((id) => { $(id).querySelector('span').textContent = L('Velocidad ', 'Speed ') + Math.round(pace * 100) + '%'; });
 }
 function cyclePace(e) {
   pace = PACES[(PACES.indexOf(pace) + 1) % PACES.length];

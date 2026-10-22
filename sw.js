@@ -1,9 +1,10 @@
 // Bump this on every release: it is what makes browsers see a "new version".
-const CACHE = 'dinopixel-v67';
+const CACHE = 'dinopixel-v68';
 const ASSETS = [
   './',
   'index.html',
   'style.css',
+  'js/i18n.js',
   'js/sprites.js',
   'js/helpers.js',
   'js/canvas.js',

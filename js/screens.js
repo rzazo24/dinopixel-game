@@ -18,19 +18,20 @@ const HELP = {
     const keys = (...k) => k.map((x) => '<b>' + x + '</b>').join(' ');
     return `
       <table class="keys">
-        <tr><th></th><th>Teclado</th><th>Táctil</th></tr>
-        <tr><td>Saltar</td><td>${keys('ESPACIO', '<i data-icon="up"></i>', 'W')}</td><td>Toca</td></tr>
-        <tr><td>Pausa</td><td>${keys('P', 'ESC')}</td><td>Botón arriba</td></tr>
-        <tr><td>Pantalla completa</td><td>${keys('F')}</td><td></td></tr>
-        <tr><td>Efectos</td><td>${keys('M')}</td><td>Botón del menú</td></tr>
-        <tr><td>Música</td><td>${keys('N')}</td><td>Botón del menú</td></tr>
-        <tr><td>Ayuda</td><td>${keys('H')}</td><td>Botón del menú</td></tr>
+        <tr><th></th><th>${L('Teclado', 'Keyboard')}</th><th>${L('Táctil', 'Touch')}</th></tr>
+        <tr><td>${L('Saltar', 'Jump')}</td><td>${keys(L('ESPACIO', 'SPACE'), '<i data-icon="up"></i>', 'W')}</td><td>${L('Toca', 'Tap')}</td></tr>
+        <tr><td>${L('Pausa', 'Pause')}</td><td>${keys('P', 'ESC')}</td><td>${L('Botón arriba', 'Top button')}</td></tr>
+        <tr><td>${L('Pantalla completa', 'Fullscreen')}</td><td>${keys('F')}</td><td></td></tr>
+        <tr><td>${L('Efectos', 'Sounds')}</td><td>${keys('M')}</td><td>${L('Botón del menú', 'Menu button')}</td></tr>
+        <tr><td>${L('Música', 'Music')}</td><td>${keys('N')}</td><td>${L('Botón del menú', 'Menu button')}</td></tr>
+        <tr><td>${L('Ayuda', 'Help')}</td><td>${keys('H')}</td><td>${L('Botón del menú', 'Menu button')}</td></tr>
       </table>
-      <p class="note">Mantén pulsado para saltar más alto; suelta pronto para un salto corto.</p>
-      <h3>Obstáculos</h3>
-      <div class="obs"><span data-sprite="cactus"></span><p><em>Cactus:</em> salta por encima.</p></div>
-      <div class="obs"><span data-sprite="bird"></span><p><em>Pájaro alto:</em> pasa por debajo sin hacer nada.<br>
-        <em>Pájaro medio:</em> salta (un poco más alto).<br><em>Pájaro bajo:</em> salta.</p></div>`;
+      <p class="note">${L('Mantén pulsado para saltar más alto; suelta pronto para un salto corto.', 'Hold to jump higher; let go early for a short hop.')}</p>
+      <h3>${L('Obstáculos', 'Obstacles')}</h3>
+      <div class="obs"><span data-sprite="cactus"></span><p>${L('<em>Cactus:</em> salta por encima.', '<em>Cactus:</em> jump over it.')}</p></div>
+      <div class="obs"><span data-sprite="bird"></span><p>${L(`<em>Pájaro alto:</em> pasa por debajo sin hacer nada.<br>
+        <em>Pájaro medio:</em> salta (un poco más alto).<br><em>Pájaro bajo:</em> salta.`, `<em>High bird:</em> just run under it.<br>
+        <em>Middle bird:</em> jump (a bit higher).<br><em>Low bird:</em> jump.`)}</p></div>`;
   },
   animals() {
     return '<div class="ani">' + ANIMALS.map((a) => {
@@ -39,12 +40,12 @@ const HELP = {
       return `<div class="row${open ? '' : ' locked'}" data-animal="${a.id}">
         <span class="face"></span>
         <p><em>${a.name}</em> - ${n}<br>${d}<br>
-        <span class="req">${a.unlock ? (open ? 'Desbloqueado' : '<i data-icon="lock"></i> Con ' + a.unlock + ' puntos') : 'Desde el principio'}</span></p>
+        <span class="req">${a.unlock ? (open ? L('Desbloqueado', 'Unlocked') : '<i data-icon="lock"></i> ' + L('Con ' + a.unlock + ' puntos', 'At ' + a.unlock + ' points')) : L('Desde el principio', 'From the start')}</span></p>
       </div>`;
     }).join('') + '</div>';
   },
   tips() {
-    const t = [
+    const t = L([
       'Tu <em>mejor puntuación</em> con cualquier animal desbloquea a los demás: uno nuevo cada 1000 puntos.',
       'Cada <em>700 puntos</em> cambia entre día y noche, y el juego va cada vez más rápido.',
       'Los <em>pájaros</em> aparecen a partir de 300 puntos.',
@@ -56,7 +57,19 @@ const HELP = {
       '<em>Gato:</em> guarda el segundo salto para corregir un salto corto.',
       '<em>Pingüino:</em> cada punto le vale un 50% más: ideal para subir en el ranking.',
       '<em>Gallina:</em> mantén pulsado al caer para planear sobre grupos de cactus.',
-    ];
+    ], [
+      'Your <em>best score</em> with any animal unlocks the others: a new one every 1000 points.',
+      'Every <em>700 points</em> day turns to night and back, and the game keeps getting faster.',
+      '<em>Birds</em> show up from 300 points.',
+      '<em>Coins</em> give 10 points and are spent in the <em>shop</em>: animals, colors and hats. Each <em>shield</em> takes one hit (they stack) and the <em>magnet</em> pulls coins in for 6 seconds.',
+      'Every <em>1500 points</em> you change zone: desert, snow, city, jungle and volcano, each with its own obstacles.',
+      'From 800 points there are <em>moving obstacles</em> (tumbleweed, snowball, car, coconut, boulder): they arrive sooner, so jump a little earlier.',
+      'Each animal keeps its <em>own record</em>.',
+      'If the game feels too fast, lower the <em>speed</em> in the menu or the pause screen.',
+      '<em>Cat:</em> save the second jump to fix a short one.',
+      '<em>Penguin:</em> every point is worth 50% more: great for climbing the ranking.',
+      '<em>Chicken:</em> hold while falling to glide over groups of cacti.',
+    ]);
     return '<ul class="tips">' + t.map((x) => '<li>' + bullet + '<p>' + x + '</p></li>').join('') + '</ul>';
   },
 };
@@ -86,17 +99,17 @@ let shareWanted = false;                            // a run just ended and is w
 function refreshShare() { shareBtn.hidden = !(shareWanted && !paused); }   // hidden behind the pause menu
 function showShare(on) { shareWanted = on; refreshShare(); }
 function flashShare(msg) {
-  const span = shareBtn.querySelector('span'), old = 'Compartir';
+  const span = shareBtn.querySelector('span'), old = L('Compartir', 'Share');
   span.textContent = msg;
   setTimeout(() => { span.textContent = old; }, 1800);
 }
 async function shareRun() {
-  const text = 'He llegado a ' + Math.floor(score) + ' puntos con ' + animal.name + ' en DinoPixel. ¿Puedes superarme?';
+  const text = L('He llegado a ' + Math.floor(score) + ' puntos con ' + animal.name + ' en DinoPixel. ¿Puedes superarme?', 'I scored ' + Math.floor(score) + ' points with the ' + animal.name.toLowerCase() + ' in DinoPixel. Can you beat me?');
   const url = location.origin + '/';
   try {
     if (navigator.share) { await navigator.share({ title: 'DinoPixel', text, url }); stats.shared = 1; checkAch(); return; }
   } catch (e) { if (e && e.name === 'AbortError') return; }       // user closed the share sheet
-  try { await navigator.clipboard.writeText(text + ' ' + url); flashShare('¡Copiado!'); stats.shared = 1; checkAch(); } catch { flashShare('No se pudo copiar'); }
+  try { await navigator.clipboard.writeText(text + ' ' + url); flashShare(L('¡Copiado!', 'Copied!')); stats.shared = 1; checkAch(); } catch { flashShare(L('No se pudo copiar', 'Could not copy')); }
 }
 shareBtn.addEventListener('click', shareRun);
 
@@ -107,19 +120,19 @@ function fmtTime(sec) {
   const m = Math.floor(sec / 60), h = Math.floor(m / 60);
   return h ? h + ' h ' + (m % 60) + ' min' : m ? m + ' min' : Math.floor(sec) + ' s';
 }
-const num = (n) => Math.floor(n).toLocaleString('es-ES');
+const num = (n) => Math.floor(n).toLocaleString(LOCALE);
 function renderStats() {
   const done = ACH.filter((a) => ach[a.id]).length;
   const rows = [
-    ['Partidas jugadas', num(stats.runs)], ['Tiempo jugado', fmtTime(stats.timeSec)], ['Mejor puntuación', num(best)],
-    ['Saltos', num(stats.jumps)], ['Obstáculos esquivados', num(stats.dodged)], ['Pájaros esquivados', num(stats.birds)],
-    ['Monedas recogidas', num(stats.coins)], ['Monedas gastadas', num(stats.spent)],
-    ['Monedas de premios', num(stats.bonus)], ['Retos diarios completados', num(stats.dailyDone)], ['Racha de retos', num(stats.dailyStreak) + (stats.dailyStreak === 1 ? ' día' : ' días')],
-    ['Logros', done + '/' + ACH.length], ['Animales', ANIMALS.filter(unlocked).length + '/' + ANIMALS.length],
+    [L('Partidas jugadas', 'Runs played'), num(stats.runs)], [L('Tiempo jugado', 'Time played'), fmtTime(stats.timeSec)], [L('Mejor puntuación', 'Best score'), num(best)],
+    [L('Saltos', 'Jumps'), num(stats.jumps)], [L('Obstáculos esquivados', 'Obstacles dodged'), num(stats.dodged)], [L('Pájaros esquivados', 'Birds dodged'), num(stats.birds)],
+    [L('Monedas recogidas', 'Coins collected'), num(stats.coins)], [L('Monedas gastadas', 'Coins spent'), num(stats.spent)],
+    [L('Monedas de premios', 'Prize coins'), num(stats.bonus)], [L('Retos diarios completados', 'Daily challenges done'), num(stats.dailyDone)], [L('Racha de retos', 'Challenge streak'), num(stats.dailyStreak) + (stats.dailyStreak === 1 ? L(' día', ' day') : L(' días', ' days'))],
+    [L('Logros', 'Achievements'), done + '/' + ACH.length], [L('Animales', 'Animals'), ANIMALS.filter(unlocked).length + '/' + ANIMALS.length],
   ];
   const tbl = document.createElement('table'); tbl.className = 'stats';
   rows.forEach(([k, v]) => { const tr = tbl.insertRow(); tr.insertCell().textContent = k; tr.insertCell().textContent = v; });
-  const h = document.createElement('h3'); h.textContent = 'Récord por animal';
+  const h = document.createElement('h3'); h.textContent = L('Récord por animal', 'Record per animal');
   const grid = document.createElement('div'); grid.className = 'recs';
   ANIMALS.forEach((a) => {
     const open = unlocked(a), cell = document.createElement('div'); cell.className = 'rec' + (open ? '' : ' locked');
@@ -148,7 +161,7 @@ function renderAch() {
     const txt = document.createElement('p');
     const em = document.createElement('em'); em.textContent = a.name;
     const prog = document.createElement('span'); prog.className = 'req';
-    prog.textContent = got ? 'Conseguido' : v + ' / ' + a.goal;
+    prog.textContent = got ? L('Conseguido', 'Earned') : v + ' / ' + a.goal;
     txt.append(em, document.createElement('br'), a.desc, document.createElement('br'), prog);
     row.append(ic, txt);
     if (!got && a.goal > 1) {                         // progress bar
@@ -197,11 +210,11 @@ function shopRow(img, title, sub, btn) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'small buy';
     if (btn.price) {
       b.innerHTML = iconSvg('coin');
-      b.append(' ' + btn.price.toLocaleString('es-ES'));
+      b.append(' ' + btn.price.toLocaleString(LOCALE));
       if (balance() < btn.price) b.classList.add('short');
     } else b.textContent = btn.label;
     b.addEventListener('click', () => {
-      if (btn.price && !spend(btn.price)) { shopMsg.textContent = 'Te faltan ' + (btn.price - balance()).toLocaleString('es-ES') + ' monedas.'; return; }
+      if (btn.price && !spend(btn.price)) { shopMsg.textContent = L('Te faltan ', 'You need ') + (btn.price - balance()).toLocaleString(LOCALE) + L(' monedas.', ' more coins.'); return; }
       if (btn.price) sfx.power();
       shopMsg.textContent = btn.action() || '';
       cloudSaveSoon();
@@ -212,7 +225,7 @@ function shopRow(img, title, sub, btn) {
   return row;
 }
 function renderShop() {
-  $('shop-balance').textContent = balance().toLocaleString('es-ES');
+  $('shop-balance').textContent = balance().toLocaleString(LOCALE);
   showCoins();
   $('shop-tabs').querySelectorAll('.tab').forEach((b) => b.classList.toggle('on', b.dataset.stab === shopTab));
   const list = document.createElement('div'); list.className = 'shop';
@@ -220,43 +233,43 @@ function renderShop() {
     ANIMALS.filter((a) => a.unlock > 0).forEach((a) => {
       const open = unlocked(a);
       list.appendChild(shopRow(spriteCanvas(a.frames[0], 3), a.name,
-        ABILITY[a.id][0] + (open ? ' - desbloqueado' : ' - o llega a ' + a.unlock.toLocaleString('es-ES') + ' puntos'),
+        ABILITY[a.id][0] + (open ? L(' - desbloqueado', ' - unlocked') : L(' - o llega a ', ' - or reach ') + a.unlock.toLocaleString(LOCALE) + L(' puntos', ' points')),
         open ? null : { price: animalPrice(a), action: () => {
           bought.push(a.id); store.set('dp-bought', JSON.stringify(bought));
           refreshPicker(); checkAch();
-          return '¡' + a.name + ' desbloqueado!';
+          return L('¡' + a.name + ' desbloqueado!', a.name + ' unlocked!');
         } }));
     });
   } else if (shopTab === 'hats') {
     const a = animal;                                   // hats are chosen for the animal selected in the menu
     const note = document.createElement('p'); note.className = 'note';
-    note.textContent = 'Sombreros para: ' + a.name + ' (cada sombrero se compra una vez y sirve para todos los animales)';
+    note.textContent = L('Sombreros para: ' + a.name + ' (cada sombrero se compra una vez y sirve para todos los animales)', 'Hats for: ' + a.name + ' (buy each hat once and use it on every animal)');
     list.appendChild(note);
     HATS.forEach((h) => {
       const owned = h.price === 0 || ownedHats.includes(h.id), using = hatOf(a.id) === h.id;
       list.appendChild(shopRow(spriteCanvas(dressedLooks(a, skinOf(a.id), h.id).frames[0], 3), h.name,
-        using ? 'En uso' : owned ? 'Comprado' : h.price + ' monedas',
-        using ? null : owned ? { label: 'Usar', action: () => { setHat(a.id, h.id); return h.id === 'none' ? a.name + ' ya no lleva sombrero.' : a.name + ' lleva ' + h.name.toLowerCase() + '.'; } }
+        using ? L('En uso', 'In use') : owned ? L('Comprado', 'Owned') : h.price + L(' monedas', ' coins'),
+        using ? null : owned ? { label: L('Usar', 'Use'), action: () => { setHat(a.id, h.id); return h.id === 'none' ? a.name + L(' ya no lleva sombrero.', ' has no hat now.') : a.name + L(' lleva ', ' wears: ') + h.name.toLowerCase() + '.'; } }
           : { price: h.price, action: () => {
             ownedHats.push(h.id); store.set('dp-hats', JSON.stringify(ownedHats));
             setHat(a.id, h.id);
-            return '¡' + h.name + ' comprado!';
+            return L('¡' + h.name + ' comprado!', h.name + ' bought!');
           } }));
     });
   } else {
     const a = animal;                                   // skins are chosen for the animal selected in the menu
     const note = document.createElement('p'); note.className = 'note';
-    note.textContent = 'Colores para: ' + a.name + ' (cada color se compra una vez y sirve para todos los animales)';
+    note.textContent = L('Colores para: ' + a.name + ' (cada color se compra una vez y sirve para todos los animales)', 'Colors for: ' + a.name + ' (buy each color once and use it on every animal)');
     list.appendChild(note);
     SKINS.forEach((sk) => {
       const owned = sk.price === 0 || ownedSkins.includes(sk.id), using = skinOf(a.id) === sk.id;
       list.appendChild(shopRow(spriteCanvas(dressedLooks(a, sk.id, hatOf(a.id)).frames[0], 3), sk.name,
-        using ? 'En uso' : owned ? 'Comprado' : sk.price + ' monedas',
-        using ? null : owned ? { label: 'Usar', action: () => { setSkin(a.id, sk.id); return a.name + ' ahora es ' + sk.name.toLowerCase() + '.'; } }
+        using ? L('En uso', 'In use') : owned ? L('Comprado', 'Owned') : sk.price + L(' monedas', ' coins'),
+        using ? null : owned ? { label: L('Usar', 'Use'), action: () => { setSkin(a.id, sk.id); return a.name + L(' ahora es ', ' is now ') + sk.name.toLowerCase() + '.'; } }
           : { price: sk.price, action: () => {
             ownedSkins.push(sk.id); store.set('dp-skins', JSON.stringify(ownedSkins));
             setSkin(a.id, sk.id);
-            return '¡Color ' + sk.name + ' comprado!';
+            return L('¡Color ' + sk.name + ' comprado!', sk.name + ' color bought!');
           } }));
     });
   }

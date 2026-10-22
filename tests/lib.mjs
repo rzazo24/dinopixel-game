@@ -132,7 +132,7 @@ function chromeBin() {
 export async function launchChrome({ width = 1000, height = 560, mobile = false } = {}) {
   const port = await freePort();
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dinopixel-chrome-'));
-  const proc = spawn(chromeBin(), ['--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--autoplay-policy=no-user-gesture-required',
+  const proc = spawn(chromeBin(), ['--headless=new', '--lang=es-ES', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--autoplay-policy=no-user-gesture-required',
     `--remote-debugging-port=${port}`, `--user-data-dir=${dir}`, 'about:blank'], { stdio: 'ignore' });
   let target;
   for (let i = 0; i < 80 && !target; i++) {
