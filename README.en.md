@@ -62,7 +62,8 @@ obstacles are the same size, so the landscape changes, not the difficulty.
 During those days the game dresses up by itself:
 
 - **Atmosphere:** birds become **bats**, coins become **candies**, **pumpkins** show up among the cacti, and night
-  comes sooner (at 350 points), purple, with a full orange moon.
+  comes sooner (at 350 points), purple, with a full orange moon. The menu turns purple and orange, with bats,
+  pumpkins and a *Happy Halloween!*.
 - **Graveyard zone:** a sixth zone after the volcano, with tombstones and pumpkins, a floating **ghost** as its
   moving obstacle and its own spooky song.
 - **Seasonal shop:** **Witch** (250) and **Pumpkin** (350) hats, and **Zombie** and **Ghost** colors (300). They are
@@ -211,7 +212,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v70';   // -> 'dinopixel-v71', ...
+const CACHE = 'dinopixel-v71';   // -> 'dinopixel-v72', ...
 ```
 
 Install notes:

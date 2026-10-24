@@ -63,7 +63,8 @@ al desierto. Todos los obstáculos del suelo tienen el mismo tamaño, así que c
 Durante esos días el juego se disfraza solo, sin tocar nada:
 
 - **Ambiente:** los pájaros son **murciélagos**, las monedas son **caramelos**, salen **calabazas** entre los cactus,
-  la noche llega antes (a los 350 puntos) y es morada, con luna llena naranja.
+  la noche llega antes (a los 350 puntos) y es morada, con luna llena naranja. El menú se tiñe de morado y naranja,
+  con murciélagos, calabazas y un *¡Feliz Halloween!*.
 - **Zona Cementerio:** sexta zona después del volcán, con lápidas y calabazas, un **fantasma** flotante como obstáculo
   que se mueve y su propia canción tétrica.
 - **Tienda de temporada:** sombreros **Bruja** (250) y **Calabaza** (350), y colores **Zombi** y **Fantasma** (300).
@@ -207,7 +208,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v70';   // -> 'dinopixel-v71', ...
+const CACHE = 'dinopixel-v71';   // -> 'dinopixel-v72', ...
 ```
 
 Notas de instalación:

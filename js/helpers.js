@@ -23,6 +23,7 @@ const HALLOWEEN = (() => {
   const d = new Date(), m = d.getMonth(), day = d.getDate();
   return (m === 9 && day >= 24) || (m === 10 && day <= 2);
 })();
+document.documentElement.classList.toggle('halloween', HALLOWEEN);   // Halloween colors for the menu and screens (style.css)
 const pad = (n) => String(Math.floor(n)).padStart(5, '0');
 
 const DAY = { skyT: '#6ec6f0', skyB: '#d4f1fc', hill1: '#a8dba0', hill2: '#7cc47a', ground: '#e0c48a', lip: '#8a6a3a', speck: '#b89860', cloud: '#ffffff', hud: '#2c2c2c' };

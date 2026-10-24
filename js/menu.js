@@ -35,7 +35,7 @@ function refreshPicker() {
   });
   showAbility();
   const next = ANIMALS.filter((a) => !unlocked(a)).sort((x, y) => x.unlock - y.unlock)[0];
-  $('tag').textContent = next ? L('Próximo animal a los ', 'Next animal at ') + next.unlock : L('Todos desbloqueados!', 'All unlocked!');
+  $('tag').textContent = (HALLOWEEN ? L('¡Feliz Halloween! - ', 'Happy Halloween! - ') : '') + (next ? L('Próximo animal a los ', 'Next animal at ') + next.unlock : L('Todos desbloqueados!', 'All unlocked!'));
 }
 function selectAnimal(id) {
   const a = ANIMALS.find((x) => x.id === id) || ANIMALS[0];
@@ -65,6 +65,16 @@ ANIMALS.forEach((a) => {
 });
 selectAnimal(animal.id);
 refreshPicker();
+if (HALLOWEEN) {                                         // menu decoration: bats at the top, pumpkins in the bottom corners
+  const deco = document.createElement('div'); deco.className = 'spooky'; deco.setAttribute('aria-hidden', 'true');
+  const put = (img, cls, k, css) => { const c = spriteCanvas(img, k); c.className = cls; Object.assign(c.style, css); deco.appendChild(c); };
+  put(batNightImgs[0], 'bat', 3, { top: '14%', left: '8%' });   // night bats: the pale outline shows on the dark menu
+  put(batNightImgs[1], 'bat', 2, { top: '8%', right: '22%' });
+  put(batNightImgs[0], 'bat', 2, { top: '4%', left: '28%' });
+  put(OBST.pumpkin, 'pumpkin', 4, { left: 'calc(12px + env(safe-area-inset-left))' });
+  put(OBST.pumpkin, 'pumpkin', 3, { right: 'calc(12px + env(safe-area-inset-right))' });
+  $('menu').before(deco);
+}
 
 function setMuted(m) {
   muted = m;

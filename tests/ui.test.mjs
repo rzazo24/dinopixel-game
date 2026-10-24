@@ -626,6 +626,9 @@ try {
   const hurl = base + '/index.html?test=1&season=halloween';
   await fresh(); await chrome.goto(hurl, 1400);
   t.check('halloween: graveyard is a sixth zone, after the volcano', (await ev(`__dp.BIOMES.map(b => b.id).join()`)) === 'desert,snow,city,jungle,volcano,graveyard');
+  t.check('halloween: menu in Halloween colors, with bats and pumpkins and a greeting', (await ev(`document.documentElement.classList.contains('halloween')`))
+    && (await ev(`getComputedStyle(document.body).backgroundColor`)) === 'rgb(28, 15, 46)' && (await ev(`document.querySelectorAll('.spooky .bat').length`)) === 3
+    && (await ev(`document.querySelectorAll('.spooky .pumpkin').length`)) === 2 && /Feliz Halloween/.test(await ev(`document.getElementById('tag').textContent`)));
   await click('shop-btn'); await ev(`document.querySelector('[data-stab=hats]').click()`);
   const hatTxt = await ev(`document.getElementById('shop-body').textContent`);
   t.check('halloween: witch and pumpkin hats on sale, marked as seasonal', /Bruja/.test(hatTxt) && /Calabaza/.test(hatTxt) && /solo en Halloween/.test(hatTxt), hatTxt);
@@ -634,6 +637,7 @@ try {
   t.check('halloween: zombie and ghost colors on sale', /Zombi/.test(skinTxt) && /Fantasma/.test(skinTxt));
   await click('shop-close');
   await startRun(); await noObstacles();
+  t.check('halloween: the menu decoration hides during the run', (await ev(`getComputedStyle(document.querySelector('.spooky')).display`)) === 'none');
   t.check('halloween: the run starts with a greeting', /Halloween/.test((await ev(`__dp.banner.text`)) || ''));
   await grounded();
   const candy0 = await ev(`__dp.stats.candy`);
@@ -657,6 +661,7 @@ try {
   t.check('halloween: other days keep the normal challenges', !(await ev(`__dp.makeDaily('2026-10-30', ['dino'])`)).special);
   await fresh();
   t.check('off season: no graveyard and no seasonal shop items for new players', (await ev(`__dp.BIOMES.length`)) === 5);
+  t.check('off season: normal menu (no Halloween colors or decoration)', !(await ev(`document.documentElement.classList.contains('halloween')`)) && !(await ev(`document.querySelector('.spooky')`)) && !/Halloween/.test(await ev(`document.getElementById('tag').textContent`)));
   await click('shop-btn'); await ev(`document.querySelector('[data-stab=hats]').click()`);
   t.check('off season: witch hat not on sale', !/Bruja/.test(await ev(`document.getElementById('shop-body').textContent`)));
   await click('shop-close');

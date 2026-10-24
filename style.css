@@ -556,3 +556,28 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
 }
 #cloud-input:focus { box-shadow: 0 -4px 0 0 var(--accent), -4px 0 0 0 var(--accent), 4px 0 0 0 var(--accent), 0 4px 0 0 var(--accent); }
 @media (max-height: 500px) { #cloud-body .code { font-size: 14px; margin-bottom: 8px; } #cloud-body h3 { margin: 10px 0 6px; } }
+
+/* ---------- Halloween (html.halloween while HALLOWEEN is on, see helpers.js) ---------- */
+.halloween {
+  --bg: #1c0f2e;
+  --panel: #3a1f4c;
+  --accent: #ff8a1a;
+  --shadow: #0c0616;
+}
+.halloween body { background: radial-gradient(ellipse at 50% 0%, #3b1a4f 0%, var(--bg) 60%) fixed var(--bg); }
+.halloween .big:hover { --face: #ffa64d; }
+.halloween .small:hover, .halloween .pick:hover, .halloween .pick.on { --face: #4e2a63; }
+.halloween .pick.on { --edge: var(--accent); }
+.halloween h1 { text-shadow: 4px 4px 0 #5a1f6a; }
+/* decoration: pixel bats flutter at the top, pumpkins glow in the bottom corners (drawn by menu.js) */
+.spooky { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.spooky:has(+ main[hidden]) { display: none; }                  /* only behind the menu, not in the game */
+.spooky canvas { position: absolute; image-rendering: pixelated; }
+.spooky .bat { animation: flutter 3.2s ease-in-out infinite; opacity: .85; }
+.spooky .bat:nth-child(2) { animation-delay: -1.1s; animation-duration: 2.7s; }
+.spooky .bat:nth-child(3) { animation-delay: -2s; animation-duration: 3.6s; }
+.spooky .pumpkin { bottom: max(10px, env(safe-area-inset-bottom)); animation: glow 2.4s ease-in-out infinite; }
+@keyframes flutter { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(14px, -10px); } }
+@keyframes glow { 0%, 100% { filter: drop-shadow(0 0 2px #ff8a1a); } 50% { filter: drop-shadow(0 0 10px #ffb347); } }
+main { position: relative; z-index: 1; }
+@media (prefers-reduced-motion: reduce) { .spooky canvas { animation: none; } }
