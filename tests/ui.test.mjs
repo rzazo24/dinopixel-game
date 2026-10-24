@@ -7,12 +7,17 @@ const redisPort = await freePort(), sitePort = await freePort();
 const redis = await startMockRedis(redisPort);
 const site = await startSite(sitePort, redisPort);
 const chrome = await launchChrome({ width: 1000, height: 560 });
-const base = site.base, url = base + '/index.html?test=1';
+const base = site.base, url = base + '/index.html?test=1&season=off';   // seasonal events are tested on their own (see Halloween)
 const ev = chrome.ev;
 
 async function fresh(seed = '') {                // clean storage (seeded before the game loads, so pagehide cannot overwrite it)
   await chrome.goto(base + '/manifest.json', 300);
-  await ev(`localStorage.clear(); localStorage.setItem('dp-lang', 'es'); ${seed}`);   // the suite checks the Spanish texts
+  // Spanish texts; and today's daily challenge already done, so a random challenge can't fire its prize mid-test
+  // (daily tests seed their own dp-daily)
+  await ev(`localStorage.clear(); localStorage.setItem('dp-lang', 'es');
+    { const d = new Date(), p = (n) => String(n).padStart(2, '0');
+      localStorage.setItem('dp-daily', JSON.stringify({ date: d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()), type: 'time', n: 9999, animal: null, reward: 50, done: true, best: 0 })); }
+    ${seed}`);
   await chrome.goto(url, 1400);
 }
 const click = (id) => ev(`document.getElementById('${id}').click()`);
@@ -68,7 +73,7 @@ try {
   await esc(); await sleep(100);
   t.check('Esc closes help', await hidden('help'));
   await click('ach-btn'); await sleep(200);
-  t.check('achievements screen: 0/24 on a fresh profile', (await ev(`document.getElementById('ach-count').textContent`)) === '0/24' && (await ev(`document.querySelectorAll('.ach').length`)) === 24);
+  t.check('achievements screen: 0/25 on a fresh profile', (await ev(`document.getElementById('ach-count').textContent`)) === '0/25' && (await ev(`document.querySelectorAll('.ach').length`)) === 25);
   await esc(); await sleep(100);
   t.check('Esc closes achievements', await hidden('ach'));
 
@@ -616,6 +621,45 @@ try {
   t.check('ranking is empty again, local nickname cleared', /Aún no hay|Esta semana aún no hay/.test(await ev(`document.getElementById('rank-body').textContent`)) && (await ev(`localStorage.getItem('dp-nick')`)) === '');
   const gone = await (await fetch(`${base}/api/ranking?board=all&period=week`)).json();
   t.check('API confirms the data is gone', gone.rows.length === 0 && gone.total === 0);
+
+  // Halloween (forced with ?season=halloween; ?season=off everywhere else)
+  const hurl = base + '/index.html?test=1&season=halloween';
+  await fresh(); await chrome.goto(hurl, 1400);
+  t.check('halloween: graveyard is a sixth zone, after the volcano', (await ev(`__dp.BIOMES.map(b => b.id).join()`)) === 'desert,snow,city,jungle,volcano,graveyard');
+  await click('shop-btn'); await ev(`document.querySelector('[data-stab=hats]').click()`);
+  const hatTxt = await ev(`document.getElementById('shop-body').textContent`);
+  t.check('halloween: witch and pumpkin hats on sale, marked as seasonal', /Bruja/.test(hatTxt) && /Calabaza/.test(hatTxt) && /solo en Halloween/.test(hatTxt), hatTxt);
+  await ev(`document.querySelector('[data-stab=skins]').click()`);
+  const skinTxt = await ev(`document.getElementById('shop-body').textContent`);
+  t.check('halloween: zombie and ghost colors on sale', /Zombi/.test(skinTxt) && /Fantasma/.test(skinTxt));
+  await click('shop-close');
+  await startRun(); await noObstacles();
+  t.check('halloween: the run starts with a greeting', /Halloween/.test((await ev(`__dp.banner.text`)) || ''));
+  await grounded();
+  const candy0 = await ev(`__dp.stats.candy`);
+  await ev(`(() => { __dp.items.push({ kind: 'coin', x: 60, dy: -30, w: 14, h: 14 }); })()`);
+  await chrome.waitFor(`__dp.coinsRun > 0`, 3000);
+  t.check('halloween: coins count as candies for "Truco o trato"', (await ev(`__dp.stats.candy`)) === candy0 + 1 && (await ev(`__dp.ACH.some(a => a.id === 'halloween')`)));
+  await ev(`__dp.setScore(400)`); await sleep(3500);   // the sky fades over ~3 s
+  t.check('halloween: night comes sooner (dark at 400 points)', (await ev(`__dp.night`)) > 0.5);
+  await ev(`clearInterval(window.__clr)`);
+  const kinds = await ev(`(() => { const s = new Set(); for (let i = 0; i < 400; i++) { __dp.o.length = 0; __dp.spawn(); __dp.o.forEach(o => (o.parts || []).forEach(p => s.add(p.kind))); } __dp.o.length = 0; return [...s]; })()`);
+  t.check('halloween: pumpkins show up among the cacti', kinds.includes('pumpkin') && kinds.includes('cactus'), kinds);
+  await ev(`__dp.setScore(7600)`); await sleep(600);
+  t.check('halloween: graveyard zone after the volcano, with its ghost mover', (await ev(`__dp.biome`)) === 'graveyard' && (await ev(`(() => { __dp.o.length = 0; return __dp.spawnMover(); })()`))?.kind === 'ghost');
+  t.check('halloween: the graveyard has its own song', await ev(`!!__dp.SONGS.graveyard`));
+  const hd = await ev(`__dp.makeDaily('2026-10-31', ['dino'])`);
+  t.check('halloween: special daily challenge on the 31st (31 candies, 100 coins)', hd.special === 'halloween' && hd.n === 31 && hd.reward === 100 && hd.type === 'coins');
+  t.check('halloween: other days keep the normal challenges', !(await ev(`__dp.makeDaily('2026-10-30', ['dino'])`)).special);
+  await fresh();
+  t.check('off season: no graveyard and no seasonal shop items for new players', (await ev(`__dp.BIOMES.length`)) === 5);
+  await click('shop-btn'); await ev(`document.querySelector('[data-stab=hats]').click()`);
+  t.check('off season: witch hat not on sale', !/Bruja/.test(await ev(`document.getElementById('shop-body').textContent`)));
+  await click('shop-close');
+  await fresh(`localStorage.setItem('dp-hats', '["witch"]')`);
+  await click('shop-btn'); await ev(`document.querySelector('[data-stab=hats]').click()`);
+  t.check('off season: a witch hat you bought stays yours', /Bruja/.test(await ev(`document.getElementById('shop-body').textContent`)));
+  await click('shop-close');
 
   // language: the menu button switches to English (and back); the choice stays on this device only
   await fresh();

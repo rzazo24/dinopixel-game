@@ -70,6 +70,8 @@ const HELP = {
       '<em>Penguin:</em> every point is worth 50% more: great for climbing the ranking.',
       '<em>Chicken:</em> hold while falling to glide over groups of cacti.',
     ]);
+    if (HALLOWEEN) t.unshift(L('<em>Halloween</em> (hasta el 2 de noviembre): murciélagos, caramelos, calabazas, la zona <em>Cementerio</em> después del volcán, y sombreros y colores de temporada en la tienda. El 31 hay un reto especial.',
+      '<em>Halloween</em> (until November 2): bats, candies, pumpkins, the <em>Graveyard</em> zone after the volcano, and seasonal hats and colors in the shop. On the 31st there is a special challenge.'));
     return '<ul class="tips">' + t.map((x) => '<li>' + bullet + '<p>' + x + '</p></li>').join('') + '</ul>';
   },
 };
@@ -79,7 +81,7 @@ function renderHelp(tab) {
   help.querySelectorAll('.tab').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
   helpBody.querySelectorAll('i[data-icon]').forEach((el) => setIcon(el, el.dataset.icon));
   helpBody.querySelectorAll('[data-sprite]').forEach((el) => {
-    el.appendChild(spriteCanvas(el.dataset.sprite === 'cactus' ? cactusImg : birdImgs[0], 2));
+    el.appendChild(spriteCanvas(el.dataset.sprite === 'cactus' ? cactusImg : (HALLOWEEN ? batImgs : birdImgs)[0], 2));
   });
   helpBody.querySelectorAll('[data-animal]').forEach((el) => {
     const a = ANIMALS.find((x) => x.id === el.dataset.animal);
@@ -245,10 +247,11 @@ function renderShop() {
     const note = document.createElement('p'); note.className = 'note';
     note.textContent = L('Sombreros para: ' + a.name + ' (cada sombrero se compra una vez y sirve para todos los animales)', 'Hats for: ' + a.name + ' (buy each hat once and use it on every animal)');
     list.appendChild(note);
-    HATS.forEach((h) => {
+    const season = (x, owned) => !x.season || HALLOWEEN || owned.includes(x.id);   // seasonal items: on sale only in season, kept forever
+    HATS.filter((h) => season(h, ownedHats)).forEach((h) => {
       const owned = h.price === 0 || ownedHats.includes(h.id), using = hatOf(a.id) === h.id;
       list.appendChild(shopRow(spriteCanvas(dressedLooks(a, skinOf(a.id), h.id).frames[0], 3), h.name,
-        using ? L('En uso', 'In use') : owned ? L('Comprado', 'Owned') : h.price + L(' monedas', ' coins'),
+        using ? L('En uso', 'In use') : owned ? L('Comprado', 'Owned') : h.price + L(' monedas', ' coins') + (h.season ? L(' - solo en Halloween', ' - Halloween only') : ''),
         using ? null : owned ? { label: L('Usar', 'Use'), action: () => { setHat(a.id, h.id); return h.id === 'none' ? a.name + L(' ya no lleva sombrero.', ' has no hat now.') : a.name + L(' lleva ', ' wears: ') + h.name.toLowerCase() + '.'; } }
           : { price: h.price, action: () => {
             ownedHats.push(h.id); store.set('dp-hats', JSON.stringify(ownedHats));
@@ -261,10 +264,10 @@ function renderShop() {
     const note = document.createElement('p'); note.className = 'note';
     note.textContent = L('Colores para: ' + a.name + ' (cada color se compra una vez y sirve para todos los animales)', 'Colors for: ' + a.name + ' (buy each color once and use it on every animal)');
     list.appendChild(note);
-    SKINS.forEach((sk) => {
+    SKINS.filter((sk) => !sk.season || HALLOWEEN || ownedSkins.includes(sk.id)).forEach((sk) => {
       const owned = sk.price === 0 || ownedSkins.includes(sk.id), using = skinOf(a.id) === sk.id;
       list.appendChild(shopRow(spriteCanvas(dressedLooks(a, sk.id, hatOf(a.id)).frames[0], 3), sk.name,
-        using ? L('En uso', 'In use') : owned ? L('Comprado', 'Owned') : sk.price + L(' monedas', ' coins'),
+        using ? L('En uso', 'In use') : owned ? L('Comprado', 'Owned') : sk.price + L(' monedas', ' coins') + (sk.season ? L(' - solo en Halloween', ' - Halloween only') : ''),
         using ? null : owned ? { label: L('Usar', 'Use'), action: () => { setSkin(a.id, sk.id); return a.name + L(' ahora es ', ' is now ') + sk.name.toLowerCase() + '.'; } }
           : { price: sk.price, action: () => {
             ownedSkins.push(sk.id); store.set('dp-skins', JSON.stringify(ownedSkins));

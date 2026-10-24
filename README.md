@@ -58,6 +58,21 @@ monedas recogidas y gastadas, y el récord de cada animal.
 (rocas y rocas de lava). Después vuelve
 al desierto. Todos los obstáculos del suelo tienen el mismo tamaño, así que cambia el paisaje, no la dificultad.
 
+## Halloween (del 24 de octubre al 2 de noviembre)
+
+Durante esos días el juego se disfraza solo, sin tocar nada:
+
+- **Ambiente:** los pájaros son **murciélagos**, las monedas son **caramelos**, salen **calabazas** entre los cactus,
+  la noche llega antes (a los 350 puntos) y es morada, con luna llena naranja.
+- **Zona Cementerio:** sexta zona después del volcán, con lápidas y calabazas, un **fantasma** flotante como obstáculo
+  que se mueve y su propia canción tétrica.
+- **Tienda de temporada:** sombreros **Bruja** (250) y **Calabaza** (350), y colores **Zombi** y **Fantasma** (300).
+  Solo se venden esos días, pero lo que compres se queda para siempre.
+- **Reto especial el 31:** *Truco o trato*, recoge 31 caramelos en una partida (100 monedas).
+- **Logro *Truco o trato*:** recoge 100 caramelos en Halloween.
+
+Para probarlo fuera de fecha: `?season=halloween` en la URL (y `?season=off` para quitarlo).
+
 ## Animales y habilidades
 
 Empiezas con el dino; el resto se desbloquea con tu **mejor puntuación** (con cualquier animal): uno nuevo cada 1000 puntos.
@@ -78,9 +93,9 @@ Los récords se guardan por animal en el navegador (`localStorage`).
 
 ## Logros
 
-24 logros con aviso en pantalla al conseguirlos y una pantalla **Logros** (botón del menú) con el progreso de cada
+25 logros con aviso en pantalla al conseguirlos y una pantalla **Logros** (botón del menú) con el progreso de cada
 uno. Entre ellos: puntuaciones (500 a 7000), partidas jugadas, saltos, obstáculos y pájaros esquivados, monedas (100 y 1000), aguantar 2 minutos, uno por habilidad (doble salto del gato, escudo del perro, planeo de la gallina, deslizar del
-pingüino), 1500 con cada animal, desbloquear los 9, entrar en el top 3 del ranking, ser el número 1 de la semana, completar 7 retos diarios y compartir. Se guardan en el
+pingüino), 1500 con cada animal, desbloquear los 9, entrar en el top 3 del ranking, ser el número 1 de la semana, completar 7 retos diarios, compartir y recoger 100 caramelos en Halloween. Se guardan en el
 navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos, sin avisos.
 
 ## Ajustes
@@ -192,7 +207,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v68';   // -> 'dinopixel-v69', ...
+const CACHE = 'dinopixel-v69';   // -> 'dinopixel-v70', ...
 ```
 
 Notas de instalación:

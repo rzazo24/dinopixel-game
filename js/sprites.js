@@ -206,6 +206,9 @@ const SKINS = [
   { id: 'shadow', name: L('Sombra', 'Shadow'), price: 300, f: (h, s, l) => [h, s * 0.15, l * 0.55] },
   { id: 'ice', name: L('Hielo', 'Ice'), price: 300, f: (h, s, l) => [195, s * 0.8, Math.min(0.85, l + 0.1)] },
   { id: 'candy', name: L('Chicle', 'Bubblegum'), price: 300, f: (h, s, l) => [320, Math.max(s, 0.6), Math.min(0.8, l + 0.05)] },
+  // seasonal: only on sale during Halloween (see HALLOWEEN in helpers.js); once bought they stay
+  { id: 'zombie', name: L('Zombi', 'Zombie'), price: 300, season: 'halloween', f: (h, s, l) => [95, s * 0.4 + 0.1, l * 0.85] },
+  { id: 'ghost', name: L('Fantasma', 'Ghost'), price: 300, season: 'halloween', f: (h, s, l) => [235, s * 0.12, Math.min(0.88, l * 0.45 + 0.5)] },
 ];
 function hexToHsl(hex) {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.substr(i, 2), 16) / 255);
@@ -248,6 +251,8 @@ const HATS = [
   { id: 'cowboy', name: L('Vaquero', 'Cowboy'), price: 300, rows: ['...bbb...', '..bbbbb..', '..ddddd..', 'bbbbbbbbb'], pal: { b: '#a0672e', d: '#5e3a1e' } },
   { id: 'santa', name: L('Papá Noel', 'Santa'), price: 400, rows: ['......ww', '....rrrw', '...rrrr.', '..rrrrr.', '.wwwwwww'], pal: { r: '#d32f2f', w: '#f5f5f5' } },
   { id: 'crown', name: L('Corona', 'Crown'), price: 600, rows: ['y..y..y', 'yy.y.yy', 'yyyyyyy', 'yryybyy'], pal: { y: '#ffd23f', r: '#e53935', b: '#3f7fe0' } },
+  { id: 'witch', name: L('Bruja', 'Witch'), price: 250, season: 'halloween', rows: ['.....k...', '....kk...', '...kkk...', '...kkkk..', '..kpppk..', 'kkkkkkkkk'], pal: { k: '#2c1f3a', p: '#8e44ad' } },
+  { id: 'pumpkin', name: L('Calabaza', 'Pumpkin'), price: 350, season: 'halloween', rows: ['...gg..', '.ooOoo.', 'ooyOyoo', 'oOoOoOo', '.ooOoo.'], pal: { o: '#f28a1a', O: '#c4600e', g: '#3a7a2a', y: '#ffd23f' } },
 ];
 HATS.forEach((h) => { if (h.rows) h.img = sprite(h.rows, h.pal); });
 // an animal frame with a hat on it: a taller canvas (HAT_PAD more rows on top)
@@ -279,6 +284,12 @@ const COIN_PAL = { o: '#b8860b', y: '#ffd23f', w: '#fff6b0' };
 const COIN_IMGS = [
   sprite(['..ooo..', '.oyyyo.', 'oywyyyo', 'oywyyyo', 'oyyyyyo', '.oyyyo.', '..ooo..'], COIN_PAL),
   sprite(['...o...', '..oyo..', '..owo..', '..owo..', '..oyo..', '..oyo..', '...o...'], COIN_PAL),
+];
+// Halloween: coins become wrapped candies (same spin: face / edge)
+const CANDY_PAL = { o: '#b06ad8', c: '#ff8a1a', w: '#fff2c0', b: '#ffd23f' };
+const CANDY_IMGS = [
+  sprite(['o.....o', 'oocccoo', 'ocwccco', 'occcbco', 'ocbccco', 'oocccoo', 'o.....o'], CANDY_PAL),
+  sprite(['...o...', '..ooo..', '..cwc..', '..ccc..', '..cbc..', '..ooo..', '...o...'], CANDY_PAL),
 ];
 const SHIELD_IMG = sprite([
   '..ccccc..', '.cwwbbbc.', 'cwbbbbbbc', 'cbbbbbbbc', 'cbbbbbbbc', 'cbbbbbbbc', 'cbbbbbbbc', '.cbbbbbc.', '..ccccc..',
@@ -314,7 +325,9 @@ const MOVERS = {                                         // w/h in logical px; e
   boulder: { w: 36, h: 36, extra: [0.3, 0.45], bounce: 0, imgs: [ballRows(12, [[3, 4], [4, 5], [8, 7], [6, 2]]), ballRows(12, [[7, 3], [6, 4], [3, 7], [9, 6]])].map((r) => sprite(r, BOULDER_PAL)) },
   car: { w: 54, h: 27, extra: [0.4, 0.55], bounce: 0, imgs: ['g', 'k'].map((h) => sprite(CAR_ROWS(h), { r: '#2f6fd6', w: '#bfe6ff', y: '#ffe680', t: '#ff4d4d', k: '#1a1a1a', g: '#cfd8dc' })) },
 };
-const ZONE_MOVER = { desert: 'tumbleweed', snow: 'snowball', city: 'car', jungle: 'coconut', volcano: 'boulder' };
+const GHOST_ROWS = (tail) => ['..wwwwww..', '.wwwwwwww.', 'wwwwwwwwww', 'wwkkwwkkww', 'wwkkwwkkww', 'wwwwwwwwww', 'wwwwkkwwww', 'wwwwwwwwww', 'wwwwwwwwww', tail];
+MOVERS.ghost = { w: 30, h: 30, extra: [0.25, 0.4], bounce: 18, imgs: ['w.ww.ww.ww', 'ww.ww.ww.w'].map((t) => sprite(GHOST_ROWS(t), { w: '#f4f4ff', k: '#2a2a3a' })) };
+const ZONE_MOVER = { desert: 'tumbleweed', snow: 'snowball', city: 'car', jungle: 'coconut', volcano: 'boulder', graveyard: 'ghost' };
 const OBST = {
   cactus: cactusImg,
   snowman: sprite([
@@ -349,6 +362,19 @@ const OBST = {
     '....oo....', '...oyo....', '....o.....', '...rrr....', '..rrorr...', '.rrrorrr..', '.rRroorrr.',
     'rrrrorRrr.', 'rrRroorrrr', 'rrrrrorRrr', 'rRrroorrrr', 'rrrrrorrrr', 'RRRRRRRRRR',
   ], { r: '#3e3436', R: '#241e20', o: '#ff6a1a', y: '#ffd23f' }),
+  pumpkin: sprite([                                     // Halloween: next to the cacti, and in the graveyard
+    '..........', '..........', '..........', '....g.....', '....gg....', '..oOooOo..', '.oOooooOo.',
+    'oOyooooyOo', 'oOooooooOo', 'oOyyyyyyOo', 'oOoyoyoyOo', '.oOooooOo.', '..oooooo..',
+  ], { o: '#f28a1a', O: '#c4600e', g: '#3a7a2a', y: '#ffd23f' }),
+  tomb: sprite([
+    '..........', '..........', '...ssss...', '..ssssss..', '.ssssssss.', '.ssssSsss.', '.sssSSSss.',
+    '.ssssSsss.', '.ssssSsss.', '.ssssssss.', '.ssssssss.', '.ssssssss.', 'gggggggggg',
+  ], { s: '#9aa0a8', S: '#5c626a', g: '#3e5a2e' }),
 };
 const birdImgs = BIRD.map((b) => sprite(b, BIRD_PAL));
+// Halloween: birds become bats (same size and flight); rows are left halves, mirrored
+const batImgs = [
+  ['b......', 'bb.....', 'bbb..b.', '.bbb.bb', '.bbbbbr', '..bbbbb', '...b..b', '.......', '.......'],
+  ['.......', '.......', '.....b.', '.....bb', '..bbbbr', '.bbbbbb', 'bbb.bbb', 'bb.....', 'b......'],
+].map((half) => sprite(half.map((r) => r + [...r].reverse().join('')), { b: '#3d2c5c', r: '#ff4d4d' }));
 const cloudImg = sprite(CLOUD, { w: '#ffffff' }, null);

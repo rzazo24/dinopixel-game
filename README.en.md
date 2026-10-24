@@ -57,6 +57,21 @@ spent, and each animal's record.
 **Jungle** (bushes and stumps) and **Volcano** (rocks and lava rocks). Then it goes back to the desert. All ground
 obstacles are the same size, so the landscape changes, not the difficulty.
 
+## Halloween (October 24 to November 2)
+
+During those days the game dresses up by itself:
+
+- **Atmosphere:** birds become **bats**, coins become **candies**, **pumpkins** show up among the cacti, and night
+  comes sooner (at 350 points), purple, with a full orange moon.
+- **Graveyard zone:** a sixth zone after the volcano, with tombstones and pumpkins, a floating **ghost** as its
+  moving obstacle and its own spooky song.
+- **Seasonal shop:** **Witch** (250) and **Pumpkin** (350) hats, and **Zombie** and **Ghost** colors (300). They are
+  only on sale those days, but whatever you buy stays forever.
+- **Special challenge on the 31st:** *Trick or treat*, collect 31 candies in one run (100 coins).
+- ***Trick or treat* achievement:** collect 100 candies at Halloween.
+
+To try it out of season: `?season=halloween` in the URL (and `?season=off` to turn it off).
+
 ## Animals and abilities
 
 You start with the dino; the rest unlock with your **best score** (with any animal): a new one every 1000 points.
@@ -77,11 +92,11 @@ Records are saved per animal in the browser (`localStorage`).
 
 ## Achievements
 
-24 achievements with an on-screen notice when you earn them and an **Achievements** screen (menu button) with the
+25 achievements with an on-screen notice when you earn them and an **Achievements** screen (menu button) with the
 progress of each one. Among them: scores (500 to 7000), runs played, jumps, obstacles and birds dodged, coins (100
 and 1000), lasting 2 minutes, one per ability (cat's double jump, dog's shield, chicken's glide, penguin's slide),
 1500 with every animal, unlocking all 9, reaching the top 3 of the ranking, being number 1 of the week, completing 7
-daily challenges and sharing. They are saved in the browser (`localStorage`); the ones you already meet when you
+daily challenges, sharing and collecting 100 candies at Halloween. They are saved in the browser (`localStorage`); the ones you already meet when you
 open the game are marked by themselves, without notices.
 
 ## Settings
@@ -196,7 +211,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v68';   // -> 'dinopixel-v69', ...
+const CACHE = 'dinopixel-v69';   // -> 'dinopixel-v70', ...
 ```
 
 Install notes:

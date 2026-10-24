@@ -38,6 +38,7 @@ reset();
 function start() {
   dailyStart();
   reset();
+  if (HALLOWEEN) banner = { text: L('Feliz Halloween!', 'Happy Halloween!'), t: 150 };
   state = 'running';
   stopMusic(0.05); startMusic(true);
   lastRank = null;
@@ -109,6 +110,7 @@ function addItems(o) {
 function collect(it) {
   if (it.kind === 'coin') {
     score += COIN_POINTS; coinsRun++; stats.coins++;
+    if (HALLOWEEN) stats.candy++;                       // coins are candies at Halloween ("Truco o trato")
     sfx.coin(); checkAch();
   } else if (it.kind === 'shield') {
     P.shield++; sfx.power(); banner = { text: (P.shield > 1 ? L('Escudo x', 'Shield x') + P.shield : L('Escudo', 'Shield')) + '!', t: 90 };   // shields stack
@@ -153,7 +155,8 @@ function spawn() {
     for (let i = 0; i < n; i++) {
       const big = n < 3 && Math.random() < 0.4;   // 3-cactus groups stay small so they remain jumpable
       const k = big ? 4 : 3;
-      const kinds = BIOMES[biome].obs, kind = kinds[(Math.random() * kinds.length) | 0];
+      const kinds = BIOMES[biome].obs;
+      const kind = HALLOWEEN && Math.random() < 0.2 ? 'pumpkin' : kinds[(Math.random() * kinds.length) | 0];   // Halloween: pumpkins among the cacti
       parts.push({ k, dx: w, kind });
       w += 10 * k + 6;
       h = Math.max(h, 13 * k);
@@ -178,7 +181,7 @@ function playerBox() {
 const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
 function update(dt) {
-  nightTarget = Math.floor(score / 700) % 2;
+  nightTarget = Math.floor((score + (HALLOWEEN ? 350 : 0)) / 700) % 2;   // Halloween: night comes sooner
   night += Math.sign(nightTarget - night) * Math.min(Math.abs(nightTarget - night), 0.006 * dt);
   dust.forEach((d) => { d.x += d.vx * dt; d.y += d.vy * dt; d.life -= dt; });
   dust = dust.filter((d) => d.life > 0);

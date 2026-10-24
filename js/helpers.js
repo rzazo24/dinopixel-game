@@ -15,6 +15,14 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, v); } catch { /* storage unavailable */ } },
 };
+// Halloween season: Oct 24 - Nov 2 (bats, candies, pumpkins, a graveyard zone, seasonal shop items).
+// ?season=halloween / ?season=off forces it (tests).
+const HALLOWEEN = (() => {
+  const q = /[?&]season=(\w+)/.exec(location.search);
+  if (q) return q[1] === 'halloween';
+  const d = new Date(), m = d.getMonth(), day = d.getDate();
+  return (m === 9 && day >= 24) || (m === 10 && day <= 2);
+})();
 const pad = (n) => String(Math.floor(n)).padStart(5, '0');
 
 const DAY = { skyT: '#6ec6f0', skyB: '#d4f1fc', hill1: '#a8dba0', hill2: '#7cc47a', ground: '#e0c48a', lip: '#8a6a3a', speck: '#b89860', cloud: '#ffffff', hud: '#2c2c2c' };
@@ -36,3 +44,9 @@ const BIOMES = [
     night: { skyT: '#1e0c14', skyB: '#4a1e2a', hill1: '#4a2228', hill2: '#33161c', ground: '#2e2020', lip: '#c2401e', speck: '#ff7030' } },
 ];
 const NIGHT = { skyT: '#0d0f2b', skyB: '#2a2d5c', hill1: '#2d3a63', hill2: '#212b4d', ground: '#3b3452', lip: '#1c1830', speck: '#554c72', cloud: '#4a5080', hud: '#e8e8ff' };
+if (HALLOWEEN) {
+  Object.assign(NIGHT, { skyT: '#1a0a2a', skyB: '#6a2a4a', hill1: '#3a2050', hill2: '#2a1640', cloud: '#5a3a6a' });   // purple-orange nights
+  BIOMES.push({ id: 'graveyard', name: L('Cementerio', 'Graveyard'), obs: ['tomb', 'pumpkin'],
+    day: { skyT: '#8a6a9a', skyB: '#e8b88a', hill1: '#5a4a6a', hill2: '#3e3250', ground: '#4a4238', lip: '#2a2420', speck: '#6a5e50' },
+    night: { hill1: '#2a1f3a', hill2: '#1e1630', ground: '#2a2420', lip: '#14100c', speck: '#4a3e30' } });
+}

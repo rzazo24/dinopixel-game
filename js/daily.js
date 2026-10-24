@@ -24,12 +24,14 @@ function seeded(str) {                                 // small deterministic PR
   };
 }
 function makeDaily(date, pool) {
+  if (date.slice(5) === '10-31') return { date, type: 'coins', special: 'halloween', n: 31, animal: null, reward: 100, done: false, best: 0 };   // Halloween night
   const r = seeded('dinopixel:' + date), pick = (arr) => arr[Math.floor(r() * arr.length)];
   const type = pick(DAILY_TYPES);
   const n = { animal: [800, 1000, 1200, 1500], coins: [15, 20, 25, 30], birds: [4, 6, 8], dodge: [20, 30, 40], time: [60, 90, 120] }[type];
   return { date, type, n: pick(n), animal: type === 'animal' ? pick(pool) : null, reward: DAILY_REWARD[type], done: false, best: 0 };
 }
 function dailyText(d) {
+  if (d.special === 'halloween') return L('Truco o trato: recoge ' + d.n + ' caramelos en una partida', 'Trick or treat: collect ' + d.n + ' candies in one run');
   const a = d.animal && ANIMALS.find((x) => x.id === d.animal);
   return (LANG === 'en' ? {
     animal: 'Reach ' + d.n + ' points with the ' + (a ? a.name.toLowerCase() : 'dino'),

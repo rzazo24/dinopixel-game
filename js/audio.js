@@ -71,6 +71,10 @@ const SONGS = {
     day: { base: 57, scale: PENT_MIN, chords: [[38, MIN], [41, MAJ], [36, MAJ], [43, MAJ]], lead: ['sawtooth', 0.035], arp: ['square', 0.016, 0], bass: 'pump', drums: 'city', tempo: 1.12 },
     night: { base: 55, scale: PENT_MIN, chords: [[36, MIN], [39, MAJ], [34, MAJ], [41, MAJ]], lead: ['sawtooth', 0.035], arp: ['square', 0.016, 0], bass: 'pump', drums: 'city', tempo: 1.05 },
   },
+  graveyard: {                                           // Halloween: spooky organ-ish minor, slow, soft drums
+    day: { base: 57, scale: PENT_MIN, chords: [[45, MIN], [41, MAJ], [44, MAJ], [40, MAJ]], lead: ['square', 0.04], arp: ['triangle', 0.035, 12], bass: 'long', drums: 'soft', tempo: 0.86 },
+    night: { base: 54, scale: PENT_MIN, chords: [[42, MIN], [38, MAJ], [41, MAJ], [37, MAJ]], lead: ['square', 0.04], arp: ['triangle', 0.035, 12], bass: 'long', drums: 'soft', tempo: 0.8 },
+  },
   city: {                                                // driving: pumping bass, four-on-the-floor, offbeat hats
     day: { base: 64, scale: PENT_MIN, chords: [[40, MIN], [45, MAJ], [40, MIN], [50, MAJ]], lead: ['sawtooth', 0.03], arp: ['square', 0.016, 12], bass: 'pump', drums: 'city', tempo: 1.08 },
     night: { base: 60, scale: PENT_MIN, chords: [[48, MIN], [44, MAJ], [51, MAJ], [46, MAJ]], lead: ['square', 0.045], arp: ['square', 0.016, 12], bass: 'pump', drums: 'city', tempo: 1 },
