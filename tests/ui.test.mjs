@@ -642,6 +642,10 @@ try {
   t.check('halloween: coins count as candies for "Truco o trato"', (await ev(`__dp.stats.candy`)) === candy0 + 1 && (await ev(`__dp.ACH.some(a => a.id === 'halloween')`)));
   await ev(`__dp.setScore(400)`); await sleep(3500);   // the sky fades over ~3 s
   t.check('halloween: night comes sooner (dark at 400 points)', (await ev(`__dp.night`)) > 0.5);
+  await ev(`clearInterval(window.__clr); __dp.o.length = 0; __dp.o.push({ type: 'bird', x: 500, dy: -100, w: 42, h: 27 })`); await sleep(100);
+  const pale = await ev(`(() => { const c = document.getElementById('game'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0;
+    for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - 240) < 4 && Math.abs(d[i + 1] - 224) < 4 && Math.abs(d[i + 2] - 255) < 4) n++; return n; })()`);
+  t.check('halloween: at night bats get a pale outline so they stand out', pale > 20, pale);
   await ev(`clearInterval(window.__clr)`);
   const kinds = await ev(`(() => { const s = new Set(); for (let i = 0; i < 400; i++) { __dp.o.length = 0; __dp.spawn(); __dp.o.forEach(o => (o.parts || []).forEach(p => s.add(p.kind))); } __dp.o.length = 0; return [...s]; })()`);
   t.check('halloween: pumpkins show up among the cacti', kinds.includes('pumpkin') && kinds.includes('cactus'), kinds);

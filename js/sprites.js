@@ -373,8 +373,12 @@ const OBST = {
 };
 const birdImgs = BIRD.map((b) => sprite(b, BIRD_PAL));
 // Halloween: birds become bats (same size and flight); rows are left halves, mirrored
-const batImgs = [
+const BAT = [
   ['b......', 'bb.....', 'bbb..b.', '.bbb.bb', '.bbbbbr', '..bbbbb', '...b..b', '.......', '.......'],
   ['.......', '.......', '.....b.', '.....bb', '..bbbbr', '.bbbbbb', 'bbb.bbb', 'bb.....', 'b......'],
-].map((half) => sprite(half.map((r) => r + [...r].reverse().join('')), { b: '#3d2c5c', r: '#ff4d4d' }));
+].map((half) => half.map((r) => r + [...r].reverse().join('')));
+const batImgs = BAT.map((b) => sprite(b, { b: '#3d2c5c', r: '#ff4d4d' }));
+// at night a dark bat vanishes against the purple sky: lighter body, pale outline, brighter eyes
+const BAT_NIGHT_LINE = '#f0e0ff';
+const batNightImgs = BAT.map((b) => sprite(b, { b: '#7a5aa8', r: '#ffe04d' }, BAT_NIGHT_LINE));
 const cloudImg = sprite(CLOUD, { w: '#ffffff' }, null);
