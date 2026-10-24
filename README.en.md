@@ -87,7 +87,7 @@ You start with the dino; the rest unlock with your **best score** (with any anim
 | Penguin | 5000 | **Skater**: scores 50 % more points |
 | Frog | 6000 | **Super jump**: charges by itself while running on the ground; after ~¾ s without jumping, the next jump is much higher (a yellow bar above it tells you) |
 | Fox | 7000 | **Dodge**: passes through the first bird that hits it; then recharges in 8 s (orange bar = ready) |
-| Turtle | 8000 | **Shell**: birds can't hurt it, but the game runs 15 % slower (and it scores fewer points) |
+| Turtle | 8000 | **Shell**: birds can't hurt it |
 
 Records are saved per animal in the browser (`localStorage`).
 
@@ -212,7 +212,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v71';   // -> 'dinopixel-v72', ...
+const CACHE = 'dinopixel-v72';   // -> 'dinopixel-v73', ...
 ```
 
 Install notes:

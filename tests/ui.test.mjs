@@ -182,7 +182,7 @@ try {
   const rTurtle = await rt();
   await fresh(ALL); await startRun('dino'); await noObstacles(); await grounded();
   const rDino = await rt();
-  t.check('turtle: the game runs about 15% slower (points per second)', rTurtle / rDino > 0.75 && rTurtle / rDino < 0.95, [rTurtle, rDino]);
+  t.check('turtle: same speed as everyone else (points per second)', rTurtle / rDino > 0.93 && rTurtle / rDino < 1.07, [rTurtle, rDino]);
 
   /* ---- no crouching: one action only ---- */
   await fresh(); await startRun(); await noObstacles(); await grounded();

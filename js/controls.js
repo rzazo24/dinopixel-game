@@ -65,7 +65,7 @@ function cycleVol(e) {
 showVol();
 
 /* ---------- game speed ---------- */
-const simPace = () => pace * (animal.id === 'turtle' ? 0.85 : 1);   // the turtle plays 15% slower
+const simPace = () => pace;                                     // (the turtle used to play 15% slower: too easy with its shell)
 const PACES = [0.6, 0.7, 0.8, 0.9, 1];
 const fine = !window.matchMedia('(pointer: coarse)').matches;   // mouse/keyboard devices default to 80%
 let pace = Number(store.get('dp-pace', fine ? '0.8' : '1'));

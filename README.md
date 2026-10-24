@@ -88,7 +88,7 @@ Empiezas con el dino; el resto se desbloquea con tu **mejor puntuación** (con c
 | Pingüino | 5000 | **Patinador**: suma un 50 % más de puntos |
 | Rana | 6000 | **Supersalto**: se carga sola mientras corre por el suelo; tras ~¾ s sin saltar, el siguiente salto es mucho más alto (una barra amarilla encima avisa) |
 | Zorro | 7000 | **Esquiva**: el primer pájaro que le toca lo atraviesa; luego se recarga en 8 s (barra naranja = lista) |
-| Tortuga | 8000 | **Caparazón**: los pájaros no le hacen daño, pero el juego va un 15 % más lento (y suma menos puntos) |
+| Tortuga | 8000 | **Caparazón**: los pájaros no le hacen daño |
 
 Los récords se guardan por animal en el navegador (`localStorage`).
 
@@ -208,7 +208,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v71';   // -> 'dinopixel-v72', ...
+const CACHE = 'dinopixel-v72';   // -> 'dinopixel-v73', ...
 ```
 
 Notas de instalación:

@@ -82,7 +82,7 @@ const ABILITY = {
   peng: L(['Patinador', 'Suma un 50% más de puntos'], ['Skater', 'Scores 50% more points']),
   frog: L(['Supersalto', 'Espera un momento en el suelo y salta altísimo'], ['Super jump', 'Wait a moment on the ground and jump sky-high']),
   fox: L(['Esquiva', 'El primer pájaro que le toca lo atraviesa; se recarga en 8 s'], ['Dodge', 'Passes through the first bird that hits it; recharges in 8 s']),
-  turtle: L(['Caparazón', 'Los pájaros no le hacen daño; va más despacio'], ['Shell', 'Birds can\'t hurt it; it runs slower']),
+  turtle: L(['Caparazón', 'Los pájaros no le hacen daño'], ['Shell', 'Birds can\'t hurt it']),
 };
 const INVULN = 90;
 const FROG_READY = 45;                                  // frames on the ground (~3/4 s) the frog needs before a super jump                                      // frames of invulnerability after the dog's shield breaks
