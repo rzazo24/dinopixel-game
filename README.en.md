@@ -42,8 +42,8 @@ the coins of the run, and the **wallet** in the corner of the menu shows the coi
 score (it costs its score divided by 10: cat 100, …, turtle 800), buy **colors** (Gold, Shadow, Ice, Bubblegum;
 300 each) or **hats** (Cap 150, Top hat 250, Cowboy 300, Santa 400, Crown 600). **Gear with powers** (one per animal): **Spring boots** (500, jump 15 % higher), **Magnet scarf** (400, the magnet
 lasts 10 s and reaches further), **Lucky collar** (600, coins after many more obstacles) and **Aviator goggles**
-(700, birds start further away and a red **!** at the edge warns they are coming). On the global ranking, the gear
-used for a score shows next to the animal.
+(700, birds start further away and a red **!** at the edge warns they are coming). On the ranking (global and per
+animal), scores made with gear show its icon next to the animal and a **\***, in orange, with a legend below.
 Colors, hats and gear are bought once,
 work on every animal and you choose which one each animal wears; they show in the game and in the menu. Spending
 coins does not take away progress from the coin achievements.
@@ -216,7 +216,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v74';   // -> 'dinopixel-v75', ...
+const CACHE = 'dinopixel-v75';   // -> 'dinopixel-v76', ...
 ```
 
 Install notes:

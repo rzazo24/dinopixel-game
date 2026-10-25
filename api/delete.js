@@ -17,6 +17,7 @@ module.exports = async (req, res) => {
       ...weeks.flatMap((id) => boards.map((x) => ['ZREM', L.weekKey(x, id), b.pid])),
       ['HDEL', 'dp:names', b.pid], ['HDEL', L.animalHashKey('all'), b.pid],
       ...weeks.map((id) => ['HDEL', L.animalHashKey('week', id), b.pid]),
+      ...L.ANIMALS.flatMap((x) => [['HDEL', L.gearHashKey(x, 'all'), b.pid], ...weeks.map((id) => ['HDEL', L.gearHashKey(x, 'week', id), b.pid])]),
     ];
     const r = await L.pipe(cmds);
     const zrems = boards.length * (1 + weeks.length);

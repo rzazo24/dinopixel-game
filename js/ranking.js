@@ -140,6 +140,7 @@ function renderRank(d) {
     return;
   }
   const tbl = document.createElement('table'); tbl.className = 'lb';
+  let boosted = false;
   const add = (rk, n, sc, me, aid, gid) => {
     const tr = tbl.insertRow(); if (me) tr.className = 'me';
     tr.insertCell().textContent = '#' + rk;
@@ -149,7 +150,8 @@ function renderRank(d) {
     const gr = GEAR.find((x) => x.id === gid && x.img);
     if (gr) { const gc = spriteCanvas(gr.img, 1); gc.className = 'gear'; gc.title = gr.name; ic.appendChild(gc); }   // and the gear it wore
     tr.insertCell().textContent = n;                 // textContent: nicknames are never interpreted as HTML
-    tr.insertCell().textContent = sc;
+    tr.insertCell().textContent = sc + (gr ? ' *' : '');   // * = made with a power-up accessory (legend below)
+    if (gr) { tr.classList.add('boosted'); boosted = true; }
   };
   d.rows.forEach((x) => add(x.r, x.n, x.s, x.me, x.a, x.g));
   if (d.me && !d.rows.some((x) => x.me)) {
@@ -158,6 +160,7 @@ function renderRank(d) {
   }
   const foot = document.createElement('p'); foot.className = 'note';
   foot.textContent = d.total + (d.total === 1 ? L(' jugador', ' player') : L(' jugadores', ' players')) + (d.endsAt ? L(' - Se reinicia en ', ' - Resets in ') + countdown(d.endsAt) : '');
+  if (boosted) foot.textContent = L('* Con accesorio potenciador - ', '* With a power-up accessory - ') + foot.textContent;
   rankBody.append(tbl, foot);
 }
 async function saveNick() {

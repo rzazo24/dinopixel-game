@@ -71,10 +71,13 @@ try {
   await submit({ pid: pid('b'), nick: 'leo', animal: 'fox', gear: 'goggles', score: 70 });
   g = (await get('/api/ranking?board=all&period=all')).body;
   t.check('the gear worn is remembered next to the animal', g.rows[0].a === 'fox' && g.rows[0].g === 'goggles', g.rows[0]);
-  t.check('per-animal boards show no gear', (await get('/api/ranking?board=fox&period=all')).body.rows[0].g === null);
+  t.check('per-animal boards show the gear too (all-time and weekly)', (await get('/api/ranking?board=fox&period=all')).body.rows[0].g === 'goggles' && (await get('/api/ranking?board=fox&period=week')).body.rows[0].g === 'goggles');
   await submit({ pid: pid('b'), nick: 'leo', animal: 'dog', gear: '<b>hack</b>', score: 80 });
   g = (await get('/api/ranking?board=all&period=all')).body;
   t.check('unknown gear is ignored (score still counts)', g.rows[0].s === 80 && g.rows[0].a === 'dog' && g.rows[0].g === null, g.rows[0]);
+  await submit({ pid: pid('b'), nick: 'leo', animal: 'fox', gear: 'boots', score: 90 });
+  await submit({ pid: pid('b'), nick: 'leo', animal: 'fox', score: 95 });
+  t.check('a new best without gear clears the mark on the animal board', (await get('/api/ranking?board=fox&period=all')).body.rows[0].g === null);
   t.check('invalid board / period', (await get('/api/ranking?board=zzz')).status === 400 && (await get('/api/ranking?board=all&period=nonsense')).body.period === 'all');
 
   /* ---- rename + delete ---- */

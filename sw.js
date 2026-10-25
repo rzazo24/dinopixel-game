@@ -1,5 +1,5 @@
 // Bump this on every release: it is what makes browsers see a "new version".
-const CACHE = 'dinopixel-v74';
+const CACHE = 'dinopixel-v75';
 const ASSETS = [
   './',
   'index.html',

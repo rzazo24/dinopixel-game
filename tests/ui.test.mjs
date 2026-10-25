@@ -610,6 +610,16 @@ try {
   await ev(`document.querySelector('[data-period=all]').click()`); await sleep(700);
   t.check('"Histórico" lists the player too (no countdown)', /ANA LÓPEZ/.test(await ev(`document.getElementById('rank-body').textContent`)) && !/Se reinicia/.test(await ev(`document.getElementById('rank-body').textContent`)));
   await ev(`document.querySelector('[data-board=dino]').click()`); await sleep(700);
+  { // another player's score made with gear: marked with the gear icon, a * and a legend
+    const tk = (await (await fetch(`${base}/api/start`)).json()).t;
+    await fetch(`${base}/api/score`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid: 'f'.repeat(32), nick: 'BOTAS', animal: 'dino', gear: 'boots', score: 30, t: tk }) });
+    await ev(`document.querySelector('[data-board=all]').click()`); await sleep(700);
+    t.check('ranking: a score made with gear shows its icon, a * and the legend', (await ev(`document.querySelectorAll('#rank-body tr.boosted td.ico canvas.gear').length`)) === 1
+      && /30 \*/.test(await ev(`document.querySelector('#rank-body tr.boosted').textContent`)) && /Con accesorio potenciador/.test(await ev(`document.getElementById('rank-body').textContent`)));
+    await ev(`document.querySelector('[data-board=dino]').click()`); await sleep(700);
+    t.check('ranking: the mark shows on the animal board too', (await ev(`document.querySelectorAll('#rank-body tr.boosted').length`)) === 1);
+    await fetch(`${base}/api/delete`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid: 'f'.repeat(32) }) });
+  }
   t.check('dino tab lists the player', /ANA LÓPEZ/.test(await ev(`document.getElementById('rank-body').textContent`)));
   await ev(`document.querySelector('[data-board=cat]').click()`); await sleep(700);
   t.check('cat tab is empty', /Aún no hay/.test(await ev(`document.getElementById('rank-body').textContent`)));

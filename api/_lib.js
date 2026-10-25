@@ -101,6 +101,8 @@ function weekInfo(now = Date.now()) {
 const weekKey = (board, id) => `dp:wk:${id}:${board}`;
 // which animal set each score on the global boards (so rows can show an icon)
 const animalHashKey = (period, id) => (period === 'week' ? `dp:ba:wk:${id}` : 'dp:ba:all');
+// gear worn for each score on the per-animal boards (the global boards keep it with the animal: "dino+boots")
+const gearHashKey = (board, period, id) => (period === 'week' ? `dp:bg:wk:${id}:${board}` : `dp:bg:${board}`);
 const recentWeekIds = (n = 3, now = Date.now()) => Array.from({ length: n }, (_, i) => weekInfo(now - i * WEEK_MS).id);
 const validBoard = (b) => b === 'all' || ANIMALS.includes(b);
 
@@ -121,6 +123,6 @@ const saveKey = (code) => 'dp:save:' + crypto.createHash('sha256').update('dinop
 module.exports = {
   CODE_LEN, SAVE_TTL, SAVE_MAX, newCode, cleanCode, validCode, prettyCode, saveKey,
   ANIMALS, GEAR, PID_RE, TOP, MAX_SCORE, MAX_RATE, SLACK,
-  WEEK_TTL, weekInfo, weekKey, animalHashKey, recentWeekIds,
+  WEEK_TTL, weekInfo, weekKey, animalHashKey, gearHashKey, recentWeekIds,
   configured, cmd, pipe, newToken, verifyToken, cleanNick, isBanned, ipHash, rateLimit, body, boardKey, validBoard,
 };

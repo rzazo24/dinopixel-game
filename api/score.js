@@ -46,6 +46,9 @@ module.exports = async (req, res) => {
     const tail = [];
     if (r[0]) tail.push(['HSET', L.animalHashKey('all'), pid, who]);
     if (r[2]) tail.push(['HSET', L.animalHashKey('week', wk.id), pid, who], ['EXPIRE', L.animalHashKey('week', wk.id), L.WEEK_TTL]);
+    const gearCmd = (k) => (who.includes('+') ? ['HSET', k, pid, b.gear] : ['HDEL', k, pid]);   // a new best without gear clears the mark
+    if (r[1]) tail.push(gearCmd(L.gearHashKey(animal, 'all')));
+    if (r[3]) tail.push(gearCmd(L.gearHashKey(animal, 'week', wk.id)), ['EXPIRE', L.gearHashKey(animal, 'week', wk.id), L.WEEK_TTL]);
     if (tail.length) await L.pipe(tail);
 
     const row = (o) => ({ rank: r[o] + 1, best: Number(r[o + 1]), total: r[o + 2] });

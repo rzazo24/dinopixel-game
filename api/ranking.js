@@ -33,13 +33,14 @@ module.exports = async (req, res) => {
     let names = [], animals = [];
     if (wanted.length) {
       const lookups = [['HMGET', 'dp:names', ...wanted]];
-      if (board === 'all') lookups.push(['HMGET', L.animalHashKey(period, wk.id), ...wanted]);   // icon: the animal that set the score
+      lookups.push(board === 'all' ? ['HMGET', L.animalHashKey(period, wk.id), ...wanted]   // icon: the animal (and gear) that set the score
+        : ['HMGET', L.gearHashKey(board, period, wk.id), ...wanted]);                         // per-animal board: just the gear
       const got = await L.pipe(lookups);
       names = got[0];
       animals = got[1] || [];
     }
     const animalOf = (i) => (board === 'all' ? (animals[i] || '').split('+')[0] || null : board);
-    const gearOf = (i) => (board === 'all' ? (animals[i] || '').split('+')[1] || null : null);   // stored as "animal+gear"
+    const gearOf = (i) => (board === 'all' ? (animals[i] || '').split('+')[1] : animals[i]) || null;   // global: stored as "animal+gear"
 
     const out = rows.map((x, i) => ({ r: i + 1, n: names[i] || '???', s: x.s, me: x.pid === pid, a: animalOf(i), g: gearOf(i) }));
     const mi = wanted.indexOf(pid);
