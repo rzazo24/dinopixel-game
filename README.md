@@ -41,7 +41,11 @@ puntuación muestra las monedas de la partida, y el **monedero** de la esquina d
 **Tienda:** las monedas se gastan en la **Tienda** (botón del menú, o tocando el monedero): desbloquear un animal antes
 de llegar a su puntuación (cuesta su puntuación entre 10: gato 100, …, tortuga 800) comprar **colores** (Dorado,
 Sombra, Hielo, Chicle; 300 cada uno) o **sombreros** (Gorra 150, Chistera 250, Vaquero 300, Papá Noel 400, Corona 600).
-Colores y sombreros se compran una vez, sirven para todos los animales y se elige cuál lleva cada uno; se ven en la
+**Accesorios con poderes** (uno por animal): **Botas con muelles** (500, saltas un 15 % más alto),
+**Bufanda magnética** (400, el imán dura 10 s y atrae desde más lejos), **Collar de la suerte** (600, salen monedas
+tras muchos más obstáculos) y **Gafas de aviador** (700, los pájaros salen más lejos y un **!** rojo en el borde avisa
+de que vienen). En el ranking global, junto al animal se ve el accesorio con el que se hizo la puntuación.
+Colores, sombreros y accesorios se compran una vez, sirven para todos los animales y se elige cuál lleva cada uno; se ven en la
 partida y en el menú. El monedero
 muestra el saldo; lo gastado no resta progreso a los logros de monedas.
 
@@ -208,7 +212,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v73';   // -> 'dinopixel-v74', ...
+const CACHE = 'dinopixel-v74';   // -> 'dinopixel-v75', ...
 ```
 
 Notas de instalación:

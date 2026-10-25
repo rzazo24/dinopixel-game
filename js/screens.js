@@ -49,7 +49,7 @@ const HELP = {
       'Tu <em>mejor puntuación</em> con cualquier animal desbloquea a los demás: uno nuevo cada 1000 puntos.',
       'Cada <em>700 puntos</em> cambia entre día y noche, y el juego va cada vez más rápido.',
       'Los <em>pájaros</em> aparecen a partir de 300 puntos.',
-      'Las <em>monedas</em> dan 10 puntos y se gastan en la <em>tienda</em>: animales, colores y sombreros. Cada <em>escudo</em> aguanta un golpe (se acumulan) y el <em>imán</em> atrae monedas 6 segundos (si coges otro, se suman).',
+      'Las <em>monedas</em> dan 10 puntos y se gastan en la <em>tienda</em>: animales, colores, sombreros y <em>accesorios con poderes</em> (botas que saltan más, bufanda que alarga el imán, collar con más monedas y gafas que avisan de los pájaros). Cada <em>escudo</em> aguanta un golpe (se acumulan) y el <em>imán</em> atrae monedas 6 segundos (si coges otro, se suman).',
       'Cada <em>1500 puntos</em> cambias de zona: desierto, nieve, ciudad, selva y volcán, cada una con sus obstáculos.',
       'Desde 800 puntos hay <em>obstáculos que se mueven</em> (planta rodadora, bola de nieve, coche, coco, roca): llegan antes, salta un poco antes.',
       'Cada animal guarda su <em>propio récord</em>.',
@@ -61,7 +61,7 @@ const HELP = {
       'Your <em>best score</em> with any animal unlocks the others: a new one every 1000 points.',
       'Every <em>700 points</em> day turns to night and back, and the game keeps getting faster.',
       '<em>Birds</em> show up from 300 points.',
-      '<em>Coins</em> give 10 points and are spent in the <em>shop</em>: animals, colors and hats. Each <em>shield</em> takes one hit (they stack) and the <em>magnet</em> pulls coins in for 6 seconds (another one adds 6 more).',
+      '<em>Coins</em> give 10 points and are spent in the <em>shop</em>: animals, colors, hats and <em>gear with powers</em> (boots that jump higher, a scarf that boosts the magnet, a collar with more coins and goggles that warn of birds). Each <em>shield</em> takes one hit (they stack) and the <em>magnet</em> pulls coins in for 6 seconds (another one adds 6 more).',
       'Every <em>1500 points</em> you change zone: desert, snow, city, jungle and volcano, each with its own obstacles.',
       'From 800 points there are <em>moving obstacles</em> (tumbleweed, snowball, car, coconut, boulder): they arrive sooner, so jump a little earlier.',
       'Each animal keeps its <em>own record</em>.',
@@ -196,6 +196,11 @@ function setSkin(id, skinId) {
   store.set('dp-skin-' + id, skinId);
   refreshPicker();
 }
+function setGear(id, gearId) {
+  gearSel[id] = gearId;
+  store.set('dp-gear-' + id, gearId);
+  refreshPicker();
+}
 function setHat(id, hatId) {
   hatSel[id] = hatId;
   store.set('dp-hat-' + id, hatId);
@@ -242,6 +247,22 @@ function renderShop() {
           return L('¡' + a.name + ' desbloqueado!', a.name + ' unlocked!');
         } }));
     });
+  } else if (shopTab === 'gear') {
+    const a = animal;                                   // gear is chosen for the animal selected in the menu, one at a time
+    const note = document.createElement('p'); note.className = 'note';
+    note.textContent = L('Accesorios para: ' + a.name + ' (cada uno tiene un poder; se compra una vez y sirve para todos los animales)', 'Gear for: ' + a.name + ' (each one has a power; buy it once and use it on every animal)');
+    list.appendChild(note);
+    GEAR.forEach((g) => {
+      const owned = g.price === 0 || ownedGear.includes(g.id), using = gearOf(a.id) === g.id;
+      list.appendChild(shopRow(spriteCanvas(dressedLooks(a, skinOf(a.id), hatOf(a.id), g.id).frames[0], 3), g.name,
+        (g.desc ? g.desc + ' - ' : '') + (using ? L('En uso', 'In use') : owned ? L('Comprado', 'Owned') : g.price + L(' monedas', ' coins')),
+        using ? null : owned ? { label: L('Usar', 'Use'), action: () => { setGear(a.id, g.id); return g.id === 'none' ? a.name + L(' ya no lleva accesorio.', ' has no gear now.') : a.name + L(' lleva ', ' wears: ') + g.name.toLowerCase() + '.'; } }
+          : { price: g.price, action: () => {
+            ownedGear.push(g.id); store.set('dp-gear', JSON.stringify(ownedGear));
+            setGear(a.id, g.id);
+            return L('¡' + g.name + ' comprado!', g.name + ' bought!');
+          } }));
+    });
   } else if (shopTab === 'hats') {
     const a = animal;                                   // hats are chosen for the animal selected in the menu
     const note = document.createElement('p'); note.className = 'note';
@@ -250,7 +271,7 @@ function renderShop() {
     const season = (x, owned) => !x.season || HALLOWEEN || owned.includes(x.id);   // seasonal items: on sale only in season, kept forever
     HATS.filter((h) => season(h, ownedHats)).forEach((h) => {
       const owned = h.price === 0 || ownedHats.includes(h.id), using = hatOf(a.id) === h.id;
-      list.appendChild(shopRow(spriteCanvas(dressedLooks(a, skinOf(a.id), h.id).frames[0], 3), h.name,
+      list.appendChild(shopRow(spriteCanvas(dressedLooks(a, skinOf(a.id), h.id, gearOf(a.id)).frames[0], 3), h.name,
         using ? L('En uso', 'In use') : owned ? L('Comprado', 'Owned') : h.price + L(' monedas', ' coins') + (h.season ? L(' - solo en Halloween', ' - Halloween only') : ''),
         using ? null : owned ? { label: L('Usar', 'Use'), action: () => { setHat(a.id, h.id); return h.id === 'none' ? a.name + L(' ya no lleva sombrero.', ' has no hat now.') : a.name + L(' lleva ', ' wears: ') + h.name.toLowerCase() + '.'; } }
           : { price: h.price, action: () => {
@@ -266,7 +287,7 @@ function renderShop() {
     list.appendChild(note);
     SKINS.filter((sk) => !sk.season || HALLOWEEN || ownedSkins.includes(sk.id)).forEach((sk) => {
       const owned = sk.price === 0 || ownedSkins.includes(sk.id), using = skinOf(a.id) === sk.id;
-      list.appendChild(shopRow(spriteCanvas(dressedLooks(a, sk.id, hatOf(a.id)).frames[0], 3), sk.name,
+      list.appendChild(shopRow(spriteCanvas(dressedLooks(a, sk.id, hatOf(a.id), gearOf(a.id)).frames[0], 3), sk.name,
         using ? L('En uso', 'In use') : owned ? L('Comprado', 'Owned') : sk.price + L(' monedas', ' coins') + (sk.season ? L(' - solo en Halloween', ' - Halloween only') : ''),
         using ? null : owned ? { label: L('Usar', 'Use'), action: () => { setSkin(a.id, sk.id); return a.name + L(' ahora es ', ' is now ') + sk.name.toLowerCase() + '.'; } }
           : { price: sk.price, action: () => {

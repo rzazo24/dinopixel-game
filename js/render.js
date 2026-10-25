@@ -150,6 +150,10 @@ function drawItems() {
     }
   });
 }
+function drawBirdWarnings() {                                     // aviator goggles: a blinking "!" at the edge for birds still off screen
+  if (gear !== 'goggles' || state !== 'running' || Math.floor(flapT / 8) % 2) return;
+  obstacles.forEach((o) => { if (o.type === 'bird' && o.x > W - 4) pixText('!', W - 14 - insetR, GROUND + o.dy + 4, 3, 'right', '#ff4d4d'); });
+}
 function drawShieldBubble() {
   if (P.shield <= 0 || state !== 'running') return;
   const cx = PX + 24, cy = GROUND - P.h - 24, r = 34;
@@ -286,6 +290,7 @@ function draw() {
   drawItems();
   drawPlayer();
   drawShieldBubble();
+  drawBirdWarnings();
   ctx.fillStyle = '#fff';
   dust.forEach((d) => {
     ctx.globalAlpha = Math.min(1, d.life / 14) * 0.8;

@@ -19,7 +19,11 @@ const ownedHats = jsonList('dp-hats');                  // hats bought (they wor
 const hatSel = {};                                      // chosen hat per animal
 ANIMALS.forEach((a) => { hatSel[a.id] = store.get('dp-hat-' + a.id, 'none'); });
 const hatOf = (id) => hatSel[id] || 'none';
-const lookOf = (a) => dressedLooks(a, skinOf(a.id), hatOf(a.id));   // skin + hat, for the game and the menus
+const ownedGear = jsonList('dp-gear');                  // gear bought (it works on every animal)
+const gearSel = {};                                     // chosen gear per animal
+ANIMALS.forEach((a) => { gearSel[a.id] = store.get('dp-gear-' + a.id, 'none'); });
+const gearOf = (id) => (GEAR.some((g) => g.id === gearSel[id]) ? gearSel[id] : 'none');
+const lookOf = (a) => dressedLooks(a, skinOf(a.id), hatOf(a.id), gearOf(a.id));   // skin + hat + gear, for the game and the menus
 
 /* ---------- achievements ---------- */
 const jsonStore = (k, d) => { try { return Object.assign(d, JSON.parse(store.get(k, '{}'))); } catch { return d; } };

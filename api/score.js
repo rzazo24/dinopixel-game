@@ -41,10 +41,11 @@ module.exports = async (req, res) => {
       ['HSET', 'dp:names', pid, nick],                   // 6
       ...standing(ka), ...standing(kb), ...standing(kaw), ...standing(kbw),   // 7..18
     ]);
-    // remember which animal set the score on the global boards
+    // remember which animal (and gear: "dino+boots") set the score on the global boards
+    const who = L.GEAR.includes(b.gear) ? animal + '+' + b.gear : animal;
     const tail = [];
-    if (r[0]) tail.push(['HSET', L.animalHashKey('all'), pid, animal]);
-    if (r[2]) tail.push(['HSET', L.animalHashKey('week', wk.id), pid, animal], ['EXPIRE', L.animalHashKey('week', wk.id), L.WEEK_TTL]);
+    if (r[0]) tail.push(['HSET', L.animalHashKey('all'), pid, who]);
+    if (r[2]) tail.push(['HSET', L.animalHashKey('week', wk.id), pid, who], ['EXPIRE', L.animalHashKey('week', wk.id), L.WEEK_TTL]);
     if (tail.length) await L.pipe(tail);
 
     const row = (o) => ({ rank: r[o] + 1, best: Number(r[o + 1]), total: r[o + 2] });

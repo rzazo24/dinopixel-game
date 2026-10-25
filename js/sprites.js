@@ -191,8 +191,8 @@ function blit(img, x, y, w, h) {
 }
 
 // All the frames of an animal for a given palette (running, and wings up for animals that flap)
-function buildLooks(a, pal) {
-  const mk = (body, legs) => sprite([...body, ...legs].map((r) => r.padEnd(SP, '.')), pal);
+function buildLooks(a, pal, gear) {
+  const mk = (body, legs) => { const rows = [...body, ...legs].map((r) => r.padEnd(SP, '.')); return sprite(gear ? gearRows(rows, gear) : rows, gear ? { ...pal, ...GEAR_PAL } : pal); };
   const looks = { frames: a.legs.map((l) => mk(a.body, l)) };
   if (a.bodyUp) looks.framesUp = a.legs.map((l) => mk(a.bodyUp, l));   // animals with flapping wings get a second set
   return looks;
@@ -233,11 +233,40 @@ function skinPal(pal, skin) {
   return out;
 }
 const lookCache = {};
-function looksOf(a, skinId) {
-  const skin = SKINS.find((x) => x.id === skinId);
-  if (!skin || !skin.f) return a;
-  const key = a.id + ':' + skinId;
-  return lookCache[key] || (lookCache[key] = buildLooks(a, skinPal(a.pal, skin)));
+function looksOf(a, skinId, gearId = 'none') {
+  const skin = SKINS.find((x) => x.id === skinId), gear = GEAR.find((x) => x.id === gearId && x.id !== 'none');
+  if ((!skin || !skin.f) && !gear) return a;
+  const key = a.id + ':' + skinId + ':' + gearId;
+  return lookCache[key] || (lookCache[key] = buildLooks(a, skin && skin.f ? skinPal(a.pal, skin) : a.pal, gear && gear.id));
+}
+
+// Gear (shop "Accesorios"): one per animal, each with a small power (see engine.js). Drawn by recolouring cells of the
+// animal's own rows: goggles across the eye row, collar / scarf around the neck (2 rows below the eyes), boots on the feet.
+const GEAR = [
+  { id: 'none', name: L('Sin accesorio', 'No gear'), price: 0 },
+  { id: 'boots', name: L('Botas con muelles', 'Spring boots'), price: 500, desc: L('Saltas un 15% más alto', 'Jump 15% higher'), icon: ['.BB.....', '.BB.....', '.BBBBB..', '.BBBBBB.', '..N..N..', '.N..N...'] },
+  { id: 'scarf', name: L('Bufanda magnética', 'Magnet scarf'), price: 400, desc: L('El imán dura 10 s y atrae desde más lejos', 'The magnet lasts 10 s and reaches further'), icon: ['RRRRRRR.', 'RWRWRWR.', '.....RR.', '.....RW.', '.....RR.'] },
+  { id: 'collar', name: L('Collar de la suerte', 'Lucky collar'), price: 600, desc: L('Salen muchas más monedas', 'Many more coins show up'), icon: ['C......C', '.C....C.', '..CCCC..', '...YY...', '...YY...'] },
+  { id: 'goggles', name: L('Gafas de aviador', 'Aviator goggles'), price: 700, desc: L('Los pájaros avisan antes de llegar', 'Birds are announced before they arrive'), icon: ['.GG..GG.', 'GLLGGLLG', 'GLLGGLLG', '.GG..GG.'] },
+];
+const GEAR_PAL = { G: '#2c2c3a', L: '#7fe0ff', C: '#ffd23f', Y: '#ffd23f', R: '#e53935', W: '#ffffff', B: '#c0392b', N: '#cfd8dc' };   // capitals only: animal palettes use lowercase (and the turtle's S, unused here)
+GEAR.forEach((g) => { if (g.icon) g.img = sprite(g.icon, GEAR_PAL); });
+function gearRows(rows, gear) {
+  const r = rows.map((x) => [...x]), eye = r.findIndex((x) => x.includes('k'));
+  const set = (y, x, c) => { if (y >= 0 && y < r.length && x >= 0 && x < SP) r[y][x] = c; };
+  if (gear === 'boots') [SP - 2, SP - 1].forEach((y) => r[y].forEach((c, x) => { if (c !== '.') r[y][x] = 'B'; }));
+  else if (gear === 'goggles' && eye >= 0) {
+    const ks = r[eye].map((c, x) => (c === 'k' ? x : -1)).filter((x) => x >= 0);
+    for (let x = Math.min(...ks) - 1; x <= Math.max(...ks) + 1; x++) set(eye, x, ks.includes(x) ? 'L' : 'G');
+  } else if (eye >= 0) {                                   // collar / scarf: the last few cells of the neck row
+    const y = eye + 2, row = r[y];
+    let end = row.length - 1; while (end > 0 && row[end] === '.') end--;
+    let start = end; while (start > 0 && row[start - 1] !== '.' && end - start < 4) start--;
+    for (let x = start; x <= end; x++) row[x] = gear === 'scarf' ? ((x - start) % 2 ? 'W' : 'R') : 'C';
+    if (gear === 'scarf') { set(y + 1, start - 1, 'R'); set(y + 2, start - 1, 'R'); }   // the scarf's tail flaps behind
+    else set(y + 1, (start + end) >> 1, 'Y');                                            // the lucky tag
+  }
+  return r.map((x) => x.join(''));
 }
 
 // Hats (bought in the shop, one per animal): drawn on top of the head. HEAD = [centre column, top row] of each
@@ -268,10 +297,10 @@ function withHat(frame, a, hat) {
 }
 const dressCache = {};
 // everything the player looks like: colour skin + hat. `pad` = extra rows on top (0 without a hat).
-function dressedLooks(a, skinId, hatId) {
-  const lk = looksOf(a, skinId), hat = HATS.find((x) => x.id === hatId);
+function dressedLooks(a, skinId, hatId, gearId = 'none') {
+  const lk = looksOf(a, skinId, gearId), hat = HATS.find((x) => x.id === hatId);
   if (!hat || !hat.rows) return Object.assign({ pad: 0 }, lk, { pad: 0 });
-  const key = a.id + ':' + skinId + ':' + hatId;
+  const key = a.id + ':' + skinId + ':' + hatId + ':' + gearId;
   if (!dressCache[key]) {
     dressCache[key] = { pad: HAT_PAD, frames: lk.frames.map((f) => withHat(f, a, hat)) };
     if (lk.framesUp) dressCache[key].framesUp = lk.framesUp.map((f) => withHat(f, a, hat));

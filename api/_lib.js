@@ -4,11 +4,12 @@
 const crypto = require('crypto');
 
 const ANIMALS = ['dino', 'cat', 'dog', 'bunny', 'chick', 'peng', 'frog', 'fox', 'turtle'];
+const GEAR = ['boots', 'scarf', 'collar', 'goggles'];      // shop accessories (shown next to the animal on the global boards)
 const PID_RE = /^[a-f0-9]{32}$/;
 const TOP = 20;
 const MAX_SCORE = 999999;
 // Anti-cheat: no animal can earn more than this many points per second (penguin sliding at top speed is ~190).
-const MAX_RATE = 230;                                   // coins (+10 each) add short bursts on top
+const MAX_RATE = 250;                                   // coins (+10 each, more with the lucky collar) add short bursts on top
 const SLACK = 100;
 const TOKEN_TTL_MS = 24 * 3600 * 1000;
 
@@ -119,7 +120,7 @@ const saveKey = (code) => 'dp:save:' + crypto.createHash('sha256').update('dinop
 
 module.exports = {
   CODE_LEN, SAVE_TTL, SAVE_MAX, newCode, cleanCode, validCode, prettyCode, saveKey,
-  ANIMALS, PID_RE, TOP, MAX_SCORE, MAX_RATE, SLACK,
+  ANIMALS, GEAR, PID_RE, TOP, MAX_SCORE, MAX_RATE, SLACK,
   WEEK_TTL, weekInfo, weekKey, animalHashKey, recentWeekIds,
   configured, cmd, pipe, newToken, verifyToken, cleanNick, isBanned, ipHash, rateLimit, body, boardKey, validBoard,
 };

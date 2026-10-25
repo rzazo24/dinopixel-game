@@ -35,7 +35,7 @@ const retryable = (r) => r.status === 0 || (r.status >= 500 && r.status !== 503)
 function submitRun() {
   const sc = Math.floor(score);
   if (sc < 20 || !runToken) return;                 // trivial runs and runs without a server token are not ranked
-  const run = { animal: animal.id, score: sc, t: runToken };
+  const run = { animal: animal.id, gear, score: sc, t: runToken };
   runToken = null;
   if (!nick) {
     if (!pendingRun || run.score > pendingRun.score) pendingRun = run;
@@ -140,19 +140,21 @@ function renderRank(d) {
     return;
   }
   const tbl = document.createElement('table'); tbl.className = 'lb';
-  const add = (rk, n, sc, me, aid) => {
+  const add = (rk, n, sc, me, aid, gid) => {
     const tr = tbl.insertRow(); if (me) tr.className = 'me';
     tr.insertCell().textContent = '#' + rk;
     const ic = tr.insertCell(); ic.className = 'ico';
     const an = ANIMALS.find((x) => x.id === aid);
     if (an) ic.appendChild(spriteCanvas(an.frames[0], 1));   // the animal that set this score
+    const gr = GEAR.find((x) => x.id === gid && x.img);
+    if (gr) { const gc = spriteCanvas(gr.img, 1); gc.className = 'gear'; gc.title = gr.name; ic.appendChild(gc); }   // and the gear it wore
     tr.insertCell().textContent = n;                 // textContent: nicknames are never interpreted as HTML
     tr.insertCell().textContent = sc;
   };
-  d.rows.forEach((x) => add(x.r, x.n, x.s, x.me, x.a));
+  d.rows.forEach((x) => add(x.r, x.n, x.s, x.me, x.a, x.g));
   if (d.me && !d.rows.some((x) => x.me)) {
     const c = tbl.insertRow().insertCell(); c.colSpan = 4; c.className = 'sep'; c.textContent = '...';
-    add(d.me.r, d.me.n, d.me.s, true, d.me.a);
+    add(d.me.r, d.me.n, d.me.s, true, d.me.a, d.me.g);
   }
   const foot = document.createElement('p'); foot.className = 'note';
   foot.textContent = d.total + (d.total === 1 ? L(' jugador', ' player') : L(' jugadores', ' players')) + (d.endsAt ? L(' - Se reinicia en ', ' - Resets in ') + countdown(d.endsAt) : '');

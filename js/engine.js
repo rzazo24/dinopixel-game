@@ -12,7 +12,7 @@ let obstacles, dust, animT, flapT = 0, jumpHeld = false, runTime = 0;
 let items = [], coinsRun = 0, magnetT = 0;                // pickups (see addItems)
 let banner = { text: '', t: 0 }, newlyUnlocked = [];
 let runToken = null, lastRank = null, pendingRun = null;
-let biome = 0, biomePrev = 0, biomeT = 1;   // online ranking (see the ranking section below)
+let biome = 0, biomePrev = 0, biomeT = 1, gear = 'none';   // gear: the accessory worn this run (fixed at the start)   // online ranking (see the ranking section below)
 const MIN_H = 75, CUT_V = 4;                           // variable jump: released early => cut once above MIN_H
 const P = { h: 0, vy: 0, doubled: false, shield: 0, ownShield: 0, inv: 0, charge: 0, dodge: 0 };
 
@@ -31,6 +31,7 @@ function reset() {
   banner = { text: '', t: 0 }; newlyUnlocked = [];
   newAch = []; achQ = []; achShow = { text: '', t: 0 }; runTime = 0;
   biome = 0; biomePrev = 0; biomeT = 1;
+  gear = gearOf(animal.id);
   hi = Number(store.get('dp-hi-' + animal.id, '0'));
 }
 reset();
@@ -64,16 +65,17 @@ function die() {
   showShare(score >= 20);
 }
 
+const BOOTS = () => (gear === 'boots' ? 1.07 : 1);       // spring boots: +7% take-off speed = ~15% higher
 function jump() {
   if (P.h > 0) {
     // cat: one extra jump in mid-air
-    if (animal.id === 'cat' && !P.doubled) { P.doubled = true; P.vy = JUMP_V * 0.8; sfx.jump(); puff(4); stats.jumps++; stats.doubles++; checkAch(); }
+    if (animal.id === 'cat' && !P.doubled) { P.doubled = true; P.vy = JUMP_V * 0.8 * BOOTS(); sfx.jump(); puff(4); stats.jumps++; stats.doubles++; checkAch(); }
     return;
   }
   stats.jumps++;
   checkAch();
   const charged = animal.id === 'frog' && P.charge >= FROG_READY;          // frog: ~3/4 s on the ground since the last jump -> super jump
-  P.vy = charged ? JUMP_V * 1.22 : animal.id === 'bunny' ? JUMP_V * 1.1 : JUMP_V;
+  P.vy = (charged ? JUMP_V * 1.22 : animal.id === 'bunny' ? JUMP_V * 1.1 : JUMP_V) * BOOTS();
   P.charge = 0;
   sfx.jump();
   puff(8);
@@ -88,14 +90,16 @@ function puff(n) {
 /* ---------- obstacles ---------- */
 // Pickups. Coins (+10 points) come in an arc over a cactus (collected by jumping it) or in a row after an obstacle
 // (low: just run through; high: jump). Rarely, a shield or a magnet floats at jump height.
-const COIN_POINTS = 10, MAGNET_TIME = 360;
+const COIN_POINTS = 10;
+const MAGNET_TIME = () => (gear === 'scarf' ? 600 : 360), MAGNET_REACH = () => (gear === 'scarf' ? 260 : 170);   // magnet scarf: 10 s and a longer reach
+const BIRD_LEAD = () => (gear === 'goggles' ? speed * 50 : 0);   // aviator goggles: birds start further out, announced at the edge
 function addItems(o) {
   const r = Math.random();
   if (score > 400 && r < 0.07) {
     items.push({ kind: Math.random() < 0.5 ? 'shield' : 'magnet', x: o.x + o.w + 120, dy: -80, w: 18, h: 18 });
     return;
   }
-  if (score < 50 || r > 0.5) return;
+  if (score < 50 || r > (gear === 'collar' ? 0.85 : 0.5)) return;   // lucky collar: coins after most obstacles
   if (o.type === 'cactus' && Math.random() < 0.6) {
     const n = 5, cx = o.x + o.w / 2, span = 150;
     for (let i = 0; i < n; i++) {
@@ -115,7 +119,7 @@ function collect(it) {
   } else if (it.kind === 'shield') {
     P.shield++; sfx.power(); banner = { text: (P.shield > 1 ? L('Escudo x', 'Shield x') + P.shield : L('Escudo', 'Shield')) + '!', t: 90 };   // shields stack
   } else {
-    magnetT += MAGNET_TIME; sfx.power(); banner = { text: L('Imán!', 'Magnet!') + ' ' + Math.ceil(magnetT / 60) + ' s', t: 90 };   // magnet time stacks
+    magnetT += MAGNET_TIME(); sfx.power(); banner = { text: L('Imán!', 'Magnet!') + ' ' + Math.ceil(magnetT / 60) + ' s', t: 90 };   // magnet time stacks
   }
   for (let i = 0; i < 6; i++) dust.push({ x: it.x + it.w / 2, y: GROUND + it.dy + it.h / 2, vx: rnd(-1.5, 1.5), vy: rnd(-1.5, 1), life: rnd(10, 18) });
 }
@@ -146,8 +150,12 @@ function spawn() {
   }
   if (birdOK) {
     const tops = [-100, -58, -34];              // high: run under it; mid and low: jump over it (there is no crouching)
-    obstacles.push({ type: 'bird', x: W + 20, dy: tops[(Math.random() * tops.length) | 0], w: 14 * S, h: 9 * S });
+    const lead = BIRD_LEAD();                    // goggles: the bird is placed further out and everything after it shifts too
+    obstacles.push({ type: 'bird', x: W + 20 + lead, dy: tops[(Math.random() * tops.length) | 0], w: 14 * S, h: 9 * S });
     addItems(obstacles[obstacles.length - 1]);
+    gap = speed * 30 + 120 + rnd(0, 260);
+    distSince = -lead;
+    return;
   } else {
     const n = 1 + ((Math.random() * (score > 150 ? 3 : 2)) | 0);
     const parts = [];
@@ -278,7 +286,7 @@ function update(dt) {
   const pcx = PX + 24, pcy = -(P.h + 24);
   for (const it of items) {
     it.x -= speed * dt;
-    if (magnetT > 0 && it.kind === 'coin' && Math.abs(it.x + 7 - pcx) < 170) {
+    if (magnetT > 0 && it.kind === 'coin' && Math.abs(it.x + 7 - pcx) < MAGNET_REACH()) {
       const k = Math.min(1, 0.15 * dt);
       it.x += (pcx - 7 - it.x) * k; it.dy += (pcy - 7 - it.dy) * k;
     }

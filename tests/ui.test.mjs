@@ -625,6 +625,46 @@ try {
   const gone = await (await fetch(`${base}/api/ranking?board=all&period=week`)).json();
   t.check('API confirms the data is gone', gone.rows.length === 0 && gone.total === 0);
 
+  /* ---- gear: shop accessories with small powers ---- */
+  await fresh(`localStorage.setItem('dp-stats', JSON.stringify({ coins: 3000 }))`);
+  await click('shop-btn'); await ev(`document.querySelector('[data-stab=gear]').click()`);
+  const gearTxt = await ev(`document.getElementById('shop-body').textContent`);
+  t.check('gear: tab lists the four accessories with their powers', ['Botas con muelles', 'Bufanda magnética', 'Collar de la suerte', 'Gafas de aviador'].every((n) => gearTxt.includes(n)) && /15% más alto/.test(gearTxt), gearTxt);
+  const plain = await ev(`__dp.ANIMALS[0].frames[0].toDataURL()`);
+  await buyFor('Gafas de aviador'); await sleep(150);
+  t.check('gear: buying it puts it on the selected animal and spends the coins', (await ev(`__dp.gearOf('dino')`)) === 'goggles' && (await ev(`document.getElementById('shop-balance').textContent`)) === '2300');
+  t.check('gear: it shows on the animal (menu card redrawn)', (await ev(`document.querySelector('[data-id=dino] canvas').toDataURL()`)) !== plain);
+  await buyFor('Botas con muelles'); await sleep(150);
+  t.check('gear: one at a time (boots replace the goggles; the goggles stay owned)', (await ev(`__dp.gearOf('dino')`)) === 'boots' && /Usar/.test(await ev(`document.getElementById('shop-body').textContent`)));
+  await click('shop-close');
+  t.check('gear: bought gear travels in the cloud save', /goggles/.test((await ev(`__dp.snapshot().keys['dp-gear']`)) || '') && (await ev(`__dp.snapshot().keys['dp-gear-dino']`)) === 'boots');
+  // boots: higher jump than the plain dino (same test as the dino jump above)
+  await startRun('dino'); await noObstacles(); await grounded();
+  t.check('gear: the run uses the gear of the animal', (await ev(`__dp.gear`)) === 'boots');
+  const hBoots = await maxHeight(`__dp.setJump(true); __dp.press()`, 1100); await ev(`__dp.setJump(false)`);
+  t.check('gear: spring boots jump about 15% higher', hBoots > hDino * 1.1 && hBoots < hDino * 1.2, [hBoots, hDino]);
+  // scarf: a 10 s magnet with a longer reach
+  await fresh(`localStorage.setItem('dp-gear', '["scarf","collar","goggles"]'); localStorage.setItem('dp-gear-dino', 'scarf')`);
+  await startRun('dino'); await noObstacles(); await grounded();
+  await ev(`__dp.items.push({ kind: 'magnet', x: 56, dy: -30, w: 18, h: 18 })`); await sleep(300);
+  t.check('gear: magnet scarf makes the magnet last 10 s', (await ev(`__dp.magnetT`)) > 540, await ev(`__dp.magnetT`));
+  // collar: coins after most obstacles
+  const coinRate = () => ev(`(() => { let n = 0; const keep = __dp.items.slice(); for (let i = 0; i < 400; i++) { __dp.items.length = 0; __dp.addItems({ type: 'bird', x: 300, w: 40, h: 20 }); if (__dp.items.some(it => it.kind === 'coin')) n++; } __dp.items.length = 0; keep.forEach(k => __dp.items.push(k)); return n / 400; })()`);
+  await ev(`__dp.setScore(1000)`);
+  const rScarf = await coinRate();
+  await chrome.goto(base + '/manifest.json', 300); await ev(`localStorage.setItem('dp-gear-dino', 'collar')`); await chrome.goto(url, 1400);
+  await startRun('dino'); await noObstacles(); await grounded(); await ev(`__dp.setScore(1000)`);
+  const rCollar = await coinRate();
+  t.check('gear: lucky collar brings coins after many more obstacles', (await ev(`__dp.gear`)) === 'collar' && rCollar > 0.75 && rCollar > rScarf + 0.2, [rCollar, rScarf]);
+  // goggles: birds start further out and a "!" warns at the edge
+  await chrome.goto(base + '/manifest.json', 300); await ev(`localStorage.setItem('dp-gear-dino', 'goggles')`); await chrome.goto(url, 1400);
+  await startRun('dino'); await noObstacles(); await grounded(); await ev(`clearInterval(window.__clr); __dp.o.length = 0; __dp.setScore(1000)`);
+  const bx = await ev(`(() => { for (let i = 0; i < 200; i++) { __dp.o.length = 0; __dp.spawn(); const b = __dp.o.find(o => o.type === 'bird'); if (b) return b.x - __dp.W; } return null; })()`);
+  t.check('gear: with goggles birds start well off screen (warning time)', bx > 200, bx);
+  await ev(`__dp.o.length = 0; __dp.o.push({ type: 'bird', x: __dp.W + 300, dy: -58, w: 42, h: 27 }); window.__warn = 0; window.__w = setInterval(() => { if (__dp.textBoxes.some(b => b.t === '!')) window.__warn = 1; }, 5)`);
+  await sleep(500);
+  t.check('gear: a "!" warns of the coming bird', (await ev(`clearInterval(window.__w); window.__warn`)) === 1);
+
   // Halloween (forced with ?season=halloween; ?season=off everywhere else)
   const hurl = base + '/index.html?test=1&season=halloween';
   await fresh(); await chrome.goto(hurl, 1400);

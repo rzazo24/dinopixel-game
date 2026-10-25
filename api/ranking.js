@@ -38,11 +38,12 @@ module.exports = async (req, res) => {
       names = got[0];
       animals = got[1] || [];
     }
-    const animalOf = (i) => (board === 'all' ? animals[i] || null : board);
+    const animalOf = (i) => (board === 'all' ? (animals[i] || '').split('+')[0] || null : board);
+    const gearOf = (i) => (board === 'all' ? (animals[i] || '').split('+')[1] || null : null);   // stored as "animal+gear"
 
-    const out = rows.map((x, i) => ({ r: i + 1, n: names[i] || '???', s: x.s, me: x.pid === pid, a: animalOf(i) }));
+    const out = rows.map((x, i) => ({ r: i + 1, n: names[i] || '???', s: x.s, me: x.pid === pid, a: animalOf(i), g: gearOf(i) }));
     const mi = wanted.indexOf(pid);
-    const me = pid && myRank ? { r: myRank, s: Number(r[3]), n: names[mi] || '???', a: animalOf(mi) } : null;
+    const me = pid && myRank ? { r: myRank, s: Number(r[3]), n: names[mi] || '???', a: animalOf(mi), g: gearOf(mi) } : null;
     res.status(200).json({ board, period, total: r[1], rows: out, me, endsAt: period === 'week' ? wk.end : null });
   } catch (e) {
     res.status(500).json({ error: 'server' });
