@@ -35,7 +35,7 @@ speed so they never catch up with the obstacle ahead and make an impossible comb
 
 **Coins and items:** coins give 10 points and appear in an arc over some cacti (you grab them by jumping) or in a
 row after an obstacle, at ground level or up high. From 400 points a **shield** (takes one hit, with any animal;
-they stack) and a **magnet** (pulls in nearby coins for 6 s) show up now and then. A counter under the score shows
+they stack) and a **magnet** (pulls in nearby coins for 6 s; another one adds 6 more seconds) show up now and then. A counter under the score shows
 the coins of the run, and the **wallet** in the corner of the menu shows the coins you can spend.
 
 **Shop:** coins are spent in the **Shop** (menu button, or tap the wallet): unlock an animal before reaching its
@@ -212,7 +212,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v72';   // -> 'dinopixel-v73', ...
+const CACHE = 'dinopixel-v73';   // -> 'dinopixel-v74', ...
 ```
 
 Install notes:

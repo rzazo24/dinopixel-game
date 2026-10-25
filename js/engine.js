@@ -115,7 +115,7 @@ function collect(it) {
   } else if (it.kind === 'shield') {
     P.shield++; sfx.power(); banner = { text: (P.shield > 1 ? L('Escudo x', 'Shield x') + P.shield : L('Escudo', 'Shield')) + '!', t: 90 };   // shields stack
   } else {
-    magnetT = MAGNET_TIME; sfx.power(); banner = { text: L('Imán!', 'Magnet!'), t: 90 };
+    magnetT += MAGNET_TIME; sfx.power(); banner = { text: L('Imán!', 'Magnet!') + ' ' + Math.ceil(magnetT / 60) + ' s', t: 90 };   // magnet time stacks
   }
   for (let i = 0; i < 6; i++) dust.push({ x: it.x + it.w / 2, y: GROUND + it.dy + it.h / 2, vx: rnd(-1.5, 1.5), vy: rnd(-1.5, 1), life: rnd(10, 18) });
 }

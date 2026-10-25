@@ -267,6 +267,9 @@ try {
   await ev(`window.__clr = setInterval(() => { __dp.o.length = 0; }, 3)`); await sleep(1700);
   await ev(`__dp.items.push({ kind: 'magnet', x: 56, dy: -30, w: 18, h: 18, tag: 1 })`); await sleep(250);
   t.check('magnet pickup: starts a 6 s magnet', (await ev('__dp.magnetT')) > 300);
+  const m1 = await ev('__dp.magnetT');
+  await ev(`__dp.items.push({ kind: 'magnet', x: 56, dy: -30, w: 18, h: 18, tag: 1 })`); await sleep(250);
+  t.check('magnet: a second magnet adds its 6 s to the time left', (await ev('__dp.magnetT')) > m1 + 300, [m1, await ev('__dp.magnetT')]);
   const c1 = await ev('__dp.coinsRun');
   await coinAt(150, -140); await sleep(1200);
   t.check('magnet: pulls in a coin that would be out of reach', (await ev('__dp.coinsRun')) === c1 + 1);
