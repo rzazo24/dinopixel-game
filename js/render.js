@@ -221,8 +221,9 @@ function glyphs(str) {
 const textBoxes = [];                                    // what was drawn this frame: { t, x, w, y, h }
 // Centered text that must fit between the notches: if it is too wide it wraps onto two lines (or shrinks as a last resort).
 // Returns the height used, so callers can stack lines.
-function pixFit(str, y, s, color) {
-  const left = insetL + 12, right = W - insetR - 12, cx = (left + right) / 2, maxW = right - left;
+let dryText = false;                                     // measure only: pixText draws nothing (used to lay out stacks of lines)
+function pixFit(str, y, s, color, left = insetL + 12, right = W - insetR - 12) {
+  const cx = (left + right) / 2, maxW = right - left;
   const width = (t, k) => [...t.normalize('NFC')].length * 6 * k - k;
   if (width(str, s) <= maxW) { pixText(str, cx, y, s, 'center', color); return 7 * s + 6; }
   const words = str.split(' ');
@@ -245,6 +246,7 @@ function pixText(str, x, y, s, align = 'left', color = '#fff', shadow = true) {
   const w = gl.length * 6 * s - s;
   const x0 = Math.round(align === 'center' ? x - w / 2 : align === 'right' ? x - w : x);
   y = Math.round(y);
+  if (dryText) return w;
   textBoxes.push({ t: str, x: x0, w, y, h: 7 * s });
   const pass = (ox, oy, c) => {
     ctx.fillStyle = c;
@@ -271,14 +273,46 @@ function drawHUD() {
   pixText('HI ' + pad(hi), W - 86 - insetR, 12, 2, 'right', c, false);
   ctx.globalAlpha = 1;
   if (!blink) pixText(pad(score), W - 12 - insetR, 12, 2, 'right', c, false);
-  if (P.shield > 0) pixText(L('Escudo', 'Shield') + (P.shield > 1 ? ' x' + P.shield : ''), W - 212 - insetR, 12, 2, 'right', '#4fc3f7');
+  let coinsLeft = W - insetR - 12;
   if (state === 'running' || state === 'over') {                   // coins this run, under the score
     const t = String(coinsRun), w = t.length * 12 - 2;
     pixText(t, W - 12 - insetR, 32, 2, 'right', '#ffd23f', false);
     blit(COINS[0], W - 12 - insetR - w - 18, 32, 14, 14);
+    coinsLeft = W - 12 - insetR - w - 18;
   }
-  if (combo >= 3 && state === 'running') pixText('Combo ' + combo + (comboMult() > 1 ? ' x' + comboMult() : ''), W / 2, 12, 2, 'center', comboMult() > 2 ? '#ff8a1a' : comboMult() > 1 ? '#ffd23f' : c);
-  if (magnetT > 0 && state === 'running') pixText(L('Imán ', 'Magnet ') + Math.ceil(magnetT / 60), W - 12 - insetR, 52, 2, 'right', '#e53935');
+  // status (shield, magnet, combo): centred rows between the pause button and the right column, never on top of it.
+  // Items that don't fit on the top row go to the next one (next to the coins), then to a full-width third row.
+  const items = [];
+  if (P.shield > 0) items.push([L('Escudo', 'Shield') + (P.shield > 1 ? ' x' + P.shield : ''), '#4fc3f7']);
+  if (magnetT > 0 && state === 'running') items.push([L('Imán ', 'Magnet ') + Math.ceil(magnetT / 60), '#e53935']);
+  if (combo >= 3 && state === 'running') items.push(['Combo ' + combo + (comboMult() > 1 ? ' x' + comboMult() : ''), comboMult() > 2 ? '#ff8a1a' : comboMult() > 1 ? '#ffd23f' : c]);
+  const hiLeft = W - 86 - insetR - 94, rows = [[12, hiLeft - 12], [32, coinsLeft - 12], [52, W - insetR - 12]];
+  const tw = (t) => [...t.normalize('NFC')].length * 12 - 2, GAP = 18;
+  let bottom = 26;
+  for (const [y, right] of rows) {
+    if (!items.length) break;
+    const row = [];
+    let w = 0;
+    while (items.length && w + (row.length ? GAP : 0) + tw(items[0][0]) <= right - hudLeft) { w += (row.length ? GAP : 0) + tw(items[0][0]); row.push(items.shift()); }
+    let x = (hudLeft + right) / 2 - w / 2;
+    row.forEach(([t, col]) => { pixText(t, x, y, 2, 'left', col); x += tw(t) + GAP; });
+    if (row.length) bottom = y + 14;
+  }
+  return Math.max(46, bottom);                                    // where in-run messages may start
+}
+// left edge of the HUD: right of the pause button (measured in logical px; it can be wider than the notch margin)
+let hudLeft = 12;
+function measureHud() {
+  const b = $('pause-btn').getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  hudLeft = Math.max(insetL + 12, b.width ? Math.ceil(b.right * dpr / K) + 10 : 0);
+}
+// a stack of centred lines that always fits on screen: it moves up, then shrinks the title, if it would run off the bottom
+function stackLines(lines, y0, top) {
+  const measure = () => { dryText = true; const h = lines.reduce((a, l) => a + pixFit(l.t, 0, l.s) + (l.gap || 0), 0); dryText = false; return h; };
+  let h = measure();
+  if (y0 + h > H - 6 && lines[0].s > 3) { lines[0].s = 3; h = measure(); }
+  let y = Math.max(top, Math.min(y0, H - 6 - h));
+  lines.forEach((l) => { y += pixFit(l.t, y, l.s, l.c) + (l.gap || 0); });
 }
 
 function draw() {
@@ -296,7 +330,6 @@ function draw() {
   drawPlayer();
   drawShieldBubble();
   drawBirdWarnings();
-  popups.forEach((p) => { ctx.globalAlpha = Math.min(1, p.t / 15); pixText(p.text, PX + 24, GROUND - P.h - 70 - (50 - p.t) * 0.6, 2, 'center', p.color); ctx.globalAlpha = 1; });
   ctx.fillStyle = '#fff';
   dust.forEach((d) => {
     ctx.globalAlpha = Math.min(1, d.life / 14) * 0.8;
@@ -305,35 +338,44 @@ function draw() {
   });
   ctx.globalAlpha = 1;
   ctx.restore();
-  drawHUD();
-  // in-run banners only while running: the game over screen lists unlocks and achievements itself (they used to overlap)
-  if (banner.t > 0 && state === 'running' && !paused) pixFit(banner.text, 44, 2, '#ffd23f');
-  if (achShow.t > 0 && state === 'running' && !paused) pixFit(L('Logro: ', 'Achievement: ') + achShow.text, 68, 2, '#9be564');
+  if (flapT % 30 < 1 || !hudLeft) measureHud();
+  let my = drawHUD();
+  // in-run messages stack under the HUD (the game over screen lists unlocks and achievements itself)
+  if (banner.t > 0 && state === 'running' && !paused) my += pixFit(banner.text, my, 2, '#ffd23f');
+  if (achShow.t > 0 && state === 'running' && !paused) my += pixFit(L('Logro: ', 'Achievement: ') + achShow.text, my, 2, '#9be564');
+  // floating texts ("Cerca! +20") follow the player but stay on screen and below the messages
+  let py = my + 4;                                                // several at once stack downwards
+  popups.forEach((p) => {
+    const w = [...p.text.normalize('NFC')].length * 12 - 2;
+    const x = Math.min(W - insetR - 12 - w / 2, Math.max(insetL + 12 + w / 2, PX + 24));
+    const y = Math.min(GROUND - 30, Math.max(py, GROUND - P.h - 70 - (50 - p.t) * 0.6));
+    py = y + 20;
+    ctx.globalAlpha = Math.min(1, p.t / 15); pixText(p.text, x, y, 2, 'center', p.color); ctx.globalAlpha = 1;
+  });
 
   const ty = GROUND * 0.38;
   if (paused) {
     // the pause menu is a DOM overlay
   } else if (state === 'ready') {
-    let y = ty - 14;
-    y += pixFit(animal.name, y, 4) + 4;
-    y += pixFit(L('Toca la pantalla o pulsa espacio', 'Tap the screen or press space'), y, 2);
-    y += pixFit(ABILITY[animal.id][0] + ': ' + ABILITY[animal.id][1], y, 2, '#ffd23f') + 4;
-    if (runMode !== 'normal' || mode !== 'normal') y += pixFit(mode === 'zen' ? L('Modo zen: no puedes perder, no cuenta', 'Zen mode: you cannot lose, nothing counts') : L('Modo difícil: más rápido y más pájaros', 'Hard mode: faster, more birds'), y, 2, mode === 'zen' ? '#9be564' : '#ff6b6b') + 2;
-    pixFit((daily.done ? L('Reto del día: completado', 'Daily challenge: done') : L('Reto: ', 'Challenge: ') + dailyText(daily)), y, 2, '#9be564');
+    const lines = [{ t: animal.name, s: 4, gap: 4 }, { t: L('Toca la pantalla o pulsa espacio', 'Tap the screen or press space'), s: 2 },
+      { t: ABILITY[animal.id][0] + ': ' + ABILITY[animal.id][1], s: 2, c: '#ffd23f', gap: 4 }];
+    if (mode !== 'normal') lines.push({ t: mode === 'zen' ? L('Modo zen: no puedes perder, no cuenta', 'Zen mode: you cannot lose, nothing counts') : L('Modo difícil: más rápido y más pájaros', 'Hard mode: faster, more birds'), s: 2, c: mode === 'zen' ? '#9be564' : '#ff6b6b', gap: 2 });
+    lines.push({ t: daily.done ? L('Reto del día: completado', 'Daily challenge: done') : L('Reto: ', 'Challenge: ') + dailyText(daily), s: 2, c: '#9be564' });
+    stackLines(lines, ty - 14, my);
   } else if (state === 'over') {
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, 0, W, H);
-    let y = ty - 14;                                   // lines stack, so a wrapped line never runs into the next one
-    y += pixFit('Game over', y, 4, '#ffd23f') + 4;
-    y += pixFit(L('Toca o pulsa espacio para reintentar', 'Tap or press space to retry'), y, 2) + 6;
-    if (coinsRun) y += pixFit(L('Monedas: ', 'Coins: ') + coinsRun, y, 2, '#ffd23f');
-    if (dailyDoneRun) y += pixFit(L('Reto del día completado! +', 'Daily challenge done! +') + dailyDoneRun, y, 2, '#9be564');
-    else if (!daily.done) y += pixFit(L('Reto: ', 'Challenge: ') + Math.min(daily.n, dailyProgress()) + ' / ' + daily.n, y, 2, '#9be564');
-    if (missions.length) { const d = missions.filter((x) => x.done); y += pixFit(L('Misiones: ', 'Missions: ') + d.length + ' / ' + missions.length + (d.length ? ' +' + d.reduce((a, x) => a + x.m.reward, 0) : ''), y, 2, '#9be564'); }
-    if (newlyUnlocked.length) y += pixFit(L('Nuevo: ', 'New: ') + newlyUnlocked.join(', '), y, 2, '#ffd23f');
+    const lines = [{ t: 'Game over', s: 4, c: '#ffd23f', gap: 4 }, { t: L('Toca o pulsa espacio para reintentar', 'Tap or press space to retry'), s: 2, gap: 6 }];
+    const add = (t, c) => lines.push({ t, s: 2, c });
+    if (coinsRun) add(L('Monedas: ', 'Coins: ') + coinsRun, '#ffd23f');
+    if (dailyDoneRun) add(L('Reto del día completado! +', 'Daily challenge done! +') + dailyDoneRun, '#9be564');
+    else if (!daily.done) add(L('Reto: ', 'Challenge: ') + Math.min(daily.n, dailyProgress()) + ' / ' + daily.n, '#9be564');
+    if (missions.length) { const d = missions.filter((x) => x.done); add(L('Misiones: ', 'Missions: ') + d.length + ' / ' + missions.length + (d.length ? ' +' + d.reduce((a, x) => a + x.m.reward, 0) : ''), '#9be564'); }
+    if (newlyUnlocked.length) add(L('Nuevo: ', 'New: ') + newlyUnlocked.join(', '), '#ffd23f');
     if (lastRank) {
       const wk = lastRank.week ? L('Semana #', 'Week #') + lastRank.week.all.rank + ' - ' : '';
-      y += pixFit(wk + 'Global #' + lastRank.all.rank + ' - ' + animal.name + ' #' + lastRank.animal.rank, y, 2, '#7fd0ff');
+      add(wk + 'Global #' + lastRank.all.rank + ' - ' + animal.name + ' #' + lastRank.animal.rank, '#7fd0ff');
     }
-    if (newAch.length) pixFit(L('Logros: ', 'Achievements: ') + newAch[0] + (newAch.length > 1 ? ' +' + (newAch.length - 1) : ''), y, 2, '#9be564');
+    if (newAch.length) add(L('Logros: ', 'Achievements: ') + newAch[0] + (newAch.length > 1 ? ' +' + (newAch.length - 1) : ''), '#9be564');
+    stackLines(lines, ty - 14, my);
   }
 }

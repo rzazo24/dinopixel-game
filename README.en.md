@@ -240,7 +240,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v79';   // -> 'dinopixel-v80', ...
+const CACHE = 'dinopixel-v80';   // -> 'dinopixel-v81', ...
 ```
 
 Install notes:

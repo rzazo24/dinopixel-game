@@ -730,6 +730,31 @@ try {
   await click('mode');
   t.check('modes: and back to Normal', /Normal/.test(await ev(`document.querySelector('#mode span').textContent`)) && (await hidden('zone')));
 
+  /* ---- layout: in-run texts never overlap each other nor leave the screen, even when everything shows at once ---- */
+  const textClash = `(() => { const b = __dp.textBoxes.filter(x => x.w > 0), bad = [];
+    for (const x of b) if (x.x < 0 || x.y < 0 || x.x + x.w > __dp.W || x.y + x.h > __dp.H) bad.push('off:' + x.t);
+    for (let i = 0; i < b.length; i++) for (let j = i + 1; j < b.length; j++) { const p = b[i], q = b[j];
+      if (p.x < q.x + q.w && p.x + p.w > q.x && p.y < q.y + q.h && p.y + p.h > q.y) bad.push(p.t + ' / ' + q.t); }
+    return bad; })()`;
+  for (const [w, h] of [[1000, 560], [640, 360], [568, 320]]) {
+    await chrome.send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 1, mobile: false });
+    await fresh(); await startRun('dino'); await noObstacles(); await grounded();
+    await ev(`window.__crowd = setInterval(() => { __dp.P.shield = 3; __dp.setVars({ combo: 30, magnetT: 600, coinsRun: 123,
+      banner: { text: 'Tormenta de arena! Llega a la zona siguiente', t: 99 }, achShow: { text: 'Escudo de hierro', t: 99 },
+      popups: [{ text: 'Superado! +100', color: '#fff', t: 40 }, { text: 'Combo x3!', color: '#fff', t: 40 }] }); }, 5)`);
+    await ev(`__dp.setJump(true); __dp.press()`); await sleep(300);              // mid-jump: popups near the top
+    const clashRun = await ev(textClash);
+    t.check(`layout ${w}x${h}: a busy HUD has no overlapping or off-screen text`, clashRun.length === 0, clashRun);
+    await ev(`clearInterval(window.__crowd); __dp.setJump(false); __dp.P.shield = 0; __dp.setVars({ combo: 0, magnetT: 0, popups: [], newlyUnlocked: ['Gato', 'Perro'],
+      lastRank: { all: { rank: 12 }, animal: { rank: 3 }, week: { all: { rank: 5 } } } }); __dp.newAch.push('Primeros pasos', 'Calentando');
+      __dp.o.length = 0; __dp.o.push({ type: 'cactus', x: 70, dy: -37, w: 30, h: 39, parts: [{ k: 3, dx: 0, kind: 'cactus' }] })`);
+    await chrome.waitFor(`__dp.state === 'over'`, 4000); await sleep(200);
+    const clashOver = await ev(textClash);
+    t.check(`layout ${w}x${h}: a full game over screen fits and nothing overlaps`, clashOver.length === 0, clashOver);
+  }
+  await chrome.send('Emulation.clearDeviceMetricsOverride');
+  await fresh();
+
   /* ---- gear: shop accessories with small powers ---- */
   await fresh(`localStorage.setItem('dp-stats', JSON.stringify({ coins: 3000 }))`);
   await click('shop-btn'); await ev(`document.querySelector('[data-stab=gear]').click()`);
