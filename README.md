@@ -42,6 +42,12 @@ esquivado sin recibir un golpe suma al **combo** (arriba en el centro): con 10 t
 lo corta. Desde 500 puntos hay **monedas doradas** (valen 2) en sitios con riesgo: encima de un pájaro bajo o medio, o muy
 altas sobre un cactus.
 
+**Misiones y jefes:** cada partida trae **3 misiones** al azar (esquivar pájaros, recoger monedas, un combo, esquivas
+por los pelos, monedas doradas, llegar a la segunda zona o superar un jefe) que dan 20–30 monedas; se ven en la pausa y
+en la pantalla final. En los últimos 250 puntos de cada zona llega su **jefe**: una oleada de su obstáculo móvil
+(*Tormenta de arena*, *Avalancha*, *Hora punta*, *Lluvia de cocos*, *Erupción*, *Noche de fantasmas*). Llegar a la zona
+siguiente lo supera y da **+100 puntos**.
+
 **Monedas y objetos:** las monedas dan 10 puntos y salen en arco sobre algunos cactus (se cogen al saltarlos) o en
 fila tras un obstáculo, a ras de suelo o en alto. Desde 400 puntos aparecen, de vez en cuando, un **escudo** (aguanta
 un golpe, con cualquier animal; se acumulan) y un **imán** (atrae las monedas cercanas durante 6 s; si coges otro, el tiempo se suma). Un contador bajo la
@@ -222,7 +228,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v77';   // -> 'dinopixel-v78', ...
+const CACHE = 'dinopixel-v78';   // -> 'dinopixel-v79', ...
 ```
 
 Notas de instalación:

@@ -41,6 +41,11 @@ two high birds and a cactus, three cacti in a row) with tight gaps, followed by 
 without a hit adds to the **combo** (top centre): at 10 everything scores **x2**, and at 25 **x3**; a hit breaks it.
 From 500 points there are **gold coins** (worth 2) in risky spots: above a low or middle bird, or high over a cactus.
 
+**Missions and bosses:** every run brings **3 random missions** (dodge birds, collect coins, a combo, near misses, gold
+coins, reach the second zone or beat a boss) worth 20–30 coins; they show in the pause menu and on the final screen. In
+the last 250 points of every zone its **boss** arrives: a wave of its moving obstacle (*Sandstorm*, *Avalanche*, *Rush
+hour*, *Coconut rain*, *Eruption*, *Ghost night*). Reaching the next zone beats it and gives **+100 points**.
+
 **Coins and items:** coins give 10 points and appear in an arc over some cacti (you grab them by jumping) or in a
 row after an obstacle, at ground level or up high. From 400 points a **shield** (takes one hit, with any animal;
 they stack) and a **magnet** (pulls in nearby coins for 6 s; another one adds 6 more seconds) show up now and then. A counter under the score shows
@@ -224,7 +229,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v77';   // -> 'dinopixel-v78', ...
+const CACHE = 'dinopixel-v78';   // -> 'dinopixel-v79', ...
 ```
 
 Install notes:

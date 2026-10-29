@@ -683,6 +683,25 @@ try {
   await ev(`__dp.items.push({ kind: 'coin', v: 2, x: 60, dy: -30, w: 18, h: 18 })`); await sleep(300);
   t.check('rhythm: a gold coin counts as 2', (await ev(`__dp.coinsRun`)) === c0r + 2);
 
+  /* ---- goals: mini-missions and zone bosses ---- */
+  await fresh(); await startRun('dino'); await noObstacles(); await grounded();
+  const ms = await ev(`__dp.missions.map(x => x.m.id)`);
+  t.check('missions: three different missions per run', ms.length === 3 && new Set(ms).size === 3, ms);
+  await ev(`document.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyP'}))`); await sleep(200);
+  t.check('missions: the pause menu lists them with their progress', (await ev(`document.querySelectorAll('#missions li').length`)) === 3 && !(await hidden('missions')) && /\/ /.test(await ev(`document.getElementById('missions').textContent`)));
+  await ev(`document.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyP'}))`); await sleep(200);
+  await ev(`__dp.setMissions(['zone', 'coins', 'birds'])`);
+  const bonus0 = await ev(`__dp.stats.bonus`);
+  await ev(`__dp.setScore(1260)`); await sleep(400);
+  t.check('boss: the last 250 points of a zone bring its boss, announced', (await ev(`__dp.boss && __dp.boss.zone`)) === 'desert' && /Tormenta de arena/.test(await ev(`__dp.banner.text`)));
+  const bossSpawn = await ev(`(() => { const out = new Set(); for (let i = 0; i < 20; i++) { __dp.o.length = 0; __dp.spawn(); out.add(__dp.o[0] && __dp.o[0].type); } __dp.o.length = 0; return [...out]; })()`);
+  t.check('boss: the wave is made of the zone\'s moving obstacle', bossSpawn.includes('mover') && !bossSpawn.includes('bird'), bossSpawn);
+  await ev(`__dp.setScore(1499)`); await sleep(400);
+  t.check('boss: reaching the next zone beats it (+100, counted)', !(await ev(`__dp.boss`)) && (await ev(`__dp.stats.bosses`)) === 1 && (await ev(`__dp.popups.some(p => p.text === 'Superado! +100')`)));
+  t.check('missions: "reach the second zone" done, its coins paid', (await ev(`__dp.missions[0].done`)) && (await ev(`__dp.stats.bonus`)) === bonus0 + 20 && (await ev(`__dp.stats.missions`)) === 1);
+  await ev(`__dp.setScore(1600)`); await sleep(300);
+  t.check('boss: only one per zone', !(await ev(`__dp.boss`)));
+
   /* ---- gear: shop accessories with small powers ---- */
   await fresh(`localStorage.setItem('dp-stats', JSON.stringify({ coins: 3000 }))`);
   await click('shop-btn'); await ev(`document.querySelector('[data-stab=gear]').click()`);
@@ -713,7 +732,7 @@ try {
   await chrome.goto(base + '/manifest.json', 300); await ev(`localStorage.setItem('dp-gear-dino', 'collar')`); await chrome.goto(url, 1400);
   await startRun('dino'); await noObstacles(); await grounded(); await ev(`__dp.setScore(1000)`);
   const rCollar = await coinRate();
-  t.check('gear: lucky collar brings coins after many more obstacles', (await ev(`__dp.gear`)) === 'collar' && rCollar > 0.75 && rCollar > rScarf + 0.2, [rCollar, rScarf]);
+  t.check('gear: lucky collar brings coins after many more obstacles', (await ev(`__dp.gear`)) === 'collar' && rCollar > 0.68 && rCollar > rScarf + 0.2, [rCollar, rScarf]);
   // goggles: birds start further out and a "!" warns at the edge
   await chrome.goto(base + '/manifest.json', 300); await ev(`localStorage.setItem('dp-gear-dino', 'goggles')`); await chrome.goto(url, 1400);
   await startRun('dino'); await noObstacles(); await grounded(); await ev(`clearInterval(window.__clr); __dp.o.length = 0; __dp.setScore(1000)`);

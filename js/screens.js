@@ -56,6 +56,8 @@ const HELP = {
       'Pasar <em>muy cerca</em> de un obstáculo sin tocarlo da <em>+20 puntos</em> ("¡Cerca!").',
       '<em>Combo:</em> esquiva obstáculos seguidos sin recibir un golpe; con 10 todo puntúa <em>x2</em> y con 25, <em>x3</em>.',
       'Las <em>monedas doradas</em> valen 2, pero están en sitios con riesgo: justo encima de un pájaro o muy altas sobre un cactus.',
+      'Cada partida trae <em>3 misiones</em> (míralas en la pausa) que dan monedas al cumplirlas.',
+      'Al final de cada zona llega un <em>jefe</em>: una oleada de su obstáculo móvil (tormenta de arena, avalancha, hora punta...). Llega a la zona siguiente para superarlo: <em>+100 puntos</em>.',
       'Cada animal guarda su <em>propio récord</em>.',
       'Si el juego te va muy rápido, baja la <em>velocidad</em> en el menú o en la pausa.',
       '<em>Gato:</em> guarda el segundo salto para corregir un salto corto.',
@@ -71,6 +73,8 @@ const HELP = {
       'Passing <em>very close</em> to an obstacle without touching it gives <em>+20 points</em> ("Close!").',
       '<em>Combo:</em> dodge obstacles in a row without a hit; at 10 everything scores <em>x2</em>, and at 25 <em>x3</em>.',
       '<em>Gold coins</em> are worth 2, but they sit in risky spots: right above a bird or high over a cactus.',
+      'Every run brings <em>3 missions</em> (see them in the pause menu) that pay coins when done.',
+      'At the end of each zone a <em>boss</em> arrives: a wave of its moving obstacle (sandstorm, avalanche, rush hour...). Reach the next zone to beat it: <em>+100 points</em>.',
       'Each animal keeps its <em>own record</em>.',
       'If the game feels too fast, lower the <em>speed</em> in the menu or the pause screen.',
       '<em>Cat:</em> save the second jump to fix a short one.',
@@ -137,6 +141,7 @@ function renderStats() {
     [L('Saltos', 'Jumps'), num(stats.jumps)], [L('Obstáculos esquivados', 'Obstacles dodged'), num(stats.dodged)], [L('Pájaros esquivados', 'Birds dodged'), num(stats.birds)],
     [L('Monedas recogidas', 'Coins collected'), num(stats.coins)], [L('Monedas gastadas', 'Coins spent'), num(stats.spent)],
     [L('Monedas de premios', 'Prize coins'), num(stats.bonus)], [L('Retos diarios completados', 'Daily challenges done'), num(stats.dailyDone)], [L('Racha de retos', 'Challenge streak'), num(stats.dailyStreak) + (stats.dailyStreak === 1 ? L(' día', ' day') : L(' días', ' days'))],
+    [L('Misiones completadas', 'Missions done'), num(stats.missions || 0)], [L('Jefes de zona superados', 'Zone bosses beaten'), num(stats.bosses || 0)], [L('Mejor combo', 'Best combo'), num(stats.bestCombo || 0)],
     [L('Logros', 'Achievements'), done + '/' + ACH.length], [L('Animales', 'Animals'), ANIMALS.filter(unlocked).length + '/' + ANIMALS.length],
   ];
   const tbl = document.createElement('table'); tbl.className = 'stats';

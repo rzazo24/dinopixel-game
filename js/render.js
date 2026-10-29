@@ -327,6 +327,7 @@ function draw() {
     if (coinsRun) y += pixFit(L('Monedas: ', 'Coins: ') + coinsRun, y, 2, '#ffd23f');
     if (dailyDoneRun) y += pixFit(L('Reto del día completado! +', 'Daily challenge done! +') + dailyDoneRun, y, 2, '#9be564');
     else if (!daily.done) y += pixFit(L('Reto: ', 'Challenge: ') + Math.min(daily.n, dailyProgress()) + ' / ' + daily.n, y, 2, '#9be564');
+    if (missions.length) { const d = missions.filter((x) => x.done); y += pixFit(L('Misiones: ', 'Missions: ') + d.length + ' / ' + missions.length + (d.length ? ' +' + d.reduce((a, x) => a + x.m.reward, 0) : ''), y, 2, '#9be564'); }
     if (newlyUnlocked.length) y += pixFit(L('Nuevo: ', 'New: ') + newlyUnlocked.join(', '), y, 2, '#ffd23f');
     if (lastRank) {
       const wk = lastRank.week ? L('Semana #', 'Week #') + lastRank.week.all.rank + ' - ' : '';

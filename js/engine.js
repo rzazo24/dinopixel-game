@@ -13,7 +13,8 @@ let items = [], coinsRun = 0, magnetT = 0;                // pickups (see addIte
 let banner = { text: '', t: 0 }, newlyUnlocked = [];
 let runToken = null, lastRank = null, pendingRun = null;
 let biome = 0, biomePrev = 0, biomeT = 1, gear = 'none';   // gear: the accessory worn this run (fixed at the start)   // online ranking (see the ranking section below)
-let bufT = 0, shakeT = 0, popups = [], combo = 0, patternQ = [];   // combo: obstacles dodged in a row without a hit                // jump buffer, screen shake, floating texts ("Cerca! +20")
+let bufT = 0, shakeT = 0, popups = [], combo = 0, patternQ = [];
+let missions = [], runBest = {}, boss = null, bossZone = -1;   // this run's mini-missions; the zone boss (end-of-zone wave)   // combo: obstacles dodged in a row without a hit                // jump buffer, screen shake, floating texts ("Cerca! +20")
 const MIN_H = 75, CUT_V = 4;                           // variable jump: released early => cut once above MIN_H
 const P = { h: 0, vy: 0, doubled: false, shield: 0, ownShield: 0, inv: 0, charge: 0, dodge: 0 };
 
@@ -26,7 +27,7 @@ function reset() {
   night = 0; nightTarget = 0; animT = 0; flapT = 0;
   obstacles = []; dust = [];
   items = []; coinsRun = 0; magnetT = 0;
-  bufT = 0; shakeT = 0; popups = []; patternQ = []; combo = 0;
+  bufT = 0; shakeT = 0; popups = []; patternQ = []; combo = 0; boss = null; bossZone = -1;
   P.h = 0; P.vy = 0; P.doubled = false; P.inv = 0; P.charge = 0; P.dodge = 0; P.foxCd = 0;
   P.shield = animal.id === 'dog' ? 1 : 0;
   P.ownShield = P.shield;   // the dog's own shield (used first); only it counts for the achievement
@@ -41,6 +42,7 @@ reset();
 function start() {
   dailyStart();
   reset();
+  startMissions();
   if (HALLOWEEN) banner = { text: L('Feliz Halloween!', 'Happy Halloween!'), t: 150 };
   state = 'running';
   stopMusic(0.05); startMusic(true);
@@ -134,6 +136,7 @@ function addItems(o) {
 function collect(it) {
   if (it.kind === 'coin') {
     const v = it.v || 1;                                // gold coins in risky spots are worth 2
+    if (v > 1) runBest.gold = (runBest.gold || 0) + 1;
     score += COIN_POINTS * v * comboMult(); coinsRun += v; stats.coins += v;
     if (HALLOWEEN) stats.candy += v;                       // coins are candies at Halloween ("Truco o trato")
     sfx.coin(); checkAch();
@@ -194,6 +197,12 @@ const PATTERNS = {
 const tightGap = () => speed * 30 + 130;
 function spawn() {
   let lead = 0;
+  if (boss) {                                           // zone boss: a wave of the zone's moving obstacle
+    const m = makeMover();
+    if (m) obstacles.push(m); else spawnCactus(1, false);
+    gap = speed * 30 + 170 + rnd(0, 80); distSince = 0;
+    return;
+  }
   if (!patternQ.length && score > PATTERN_FROM && Math.random() < PATTERN_CHANCE) {
     const names = Object.keys(PATTERNS);
     patternQ = PATTERNS[names[(Math.random() * names.length) | 0]].slice();
@@ -211,6 +220,36 @@ function spawn() {
   else spawnCactus(1 + ((Math.random() * (score > 150 ? 3 : 2)) | 0));
   gap = speed * 30 + 120 + rnd(0, 260);
   distSince = -lead;
+}
+
+/* ---------- zone bosses and mini-missions ---------- */
+const BOSS_LEN = 250, BOSS_POINTS = 100;
+const BOSS_NAME = {
+  desert: L('Tormenta de arena', 'Sandstorm'), snow: L('Avalancha', 'Avalanche'), city: L('Hora punta', 'Rush hour'),
+  jungle: L('Lluvia de cocos', 'Coconut rain'), volcano: L('Erupción', 'Eruption'), graveyard: L('Noche de fantasmas', 'Ghost night'),
+};
+// Three per run, picked at random; each pays coins (like the daily challenge prize: spendable, not for coin achievements)
+const MISSIONS = [
+  { id: 'birds', n: 5, reward: 20, text: (n) => L('Esquiva ' + n + ' pájaros', 'Dodge ' + n + ' birds'), val: () => stats.birds - runBest.birds0 },
+  { id: 'coins', n: 20, reward: 20, text: (n) => L('Recoge ' + n + ' monedas', 'Collect ' + n + ' coins'), val: () => coinsRun },
+  { id: 'close', n: 3, reward: 25, text: (n) => L(n + ' esquivas por los pelos', n + ' near misses'), val: () => (stats.close || 0) - runBest.close0 },
+  { id: 'combo', n: 15, reward: 25, text: (n) => L('Combo de ' + n, 'A ' + n + ' combo'), val: () => runBest.combo || 0 },
+  { id: 'zone', n: 1500, reward: 20, text: () => L('Llega a la segunda zona', 'Reach the second zone'), val: () => score },
+  { id: 'gold', n: 3, reward: 25, text: (n) => L('Coge ' + n + ' monedas doradas', 'Grab ' + n + ' gold coins'), val: () => runBest.gold || 0 },
+  { id: 'boss', n: 1, reward: 30, text: () => L('Supera un jefe de zona', 'Beat a zone boss'), val: () => (stats.bosses || 0) - runBest.bosses0 },
+];
+function startMissions() {
+  runBest = { birds0: stats.birds, close0: stats.close || 0, bosses0: stats.bosses || 0 };
+  missions = MISSIONS.slice().sort(() => Math.random() - 0.5).slice(0, 3).map((m) => ({ m, done: false }));
+}
+const missionText = (x) => x.m.text(x.m.n);
+const missionProgress = (x) => Math.min(x.m.n, Math.floor(x.m.val()));
+function checkMissions() {
+  for (const x of missions) {
+    if (x.done || x.m.val() < x.m.n) continue;
+    x.done = true; stats.bonus += x.m.reward; stats.missions = (stats.missions || 0) + 1;
+    popup(L('Misión +', 'Mission +') + x.m.reward, '#9be564'); sfx.ach(); saveStats();
+  }
 }
 
 /* ---------- update ---------- */
@@ -279,6 +318,18 @@ function update(dt) {
 
   dailyCheck();
 
+  checkMissions();
+  // zone boss: the last BOSS_LEN points of every zone are a wave of its moving obstacle; reach the next zone to beat it
+  const zn = Math.floor(score / BIOME_LEN);
+  if (!boss && bossZone < zn && score >= MOVER_FROM && score % BIOME_LEN >= BIOME_LEN - BOSS_LEN) {
+    bossZone = zn; boss = { zone: BIOMES[biome].id };
+    patternQ = [];
+    banner = { text: BOSS_NAME[boss.zone] + '!', t: 150 }; sfx.power(); shakeT = 8;
+  }
+  if (boss && score % BIOME_LEN < BIOME_LEN - BOSS_LEN) {
+    boss = null; score += BOSS_POINTS; stats.bosses = (stats.bosses || 0) + 1;
+    popup(L('Superado! +', 'Beaten! +') + BOSS_POINTS, '#9be564'); sfx.ach(); checkAch();
+  }
   // zones
   const bi = Math.floor(score / BIOME_LEN) % BIOMES.length;
   if (bi !== biome) { biomePrev = biome; biome = bi; biomeT = 0; banner = { text: L('Zona: ', 'Zone: ') + BIOMES[bi].name, t: 150 }; }
@@ -305,7 +356,7 @@ function update(dt) {
       o.counted = true;
       if (!o.hit) {
         stats.dodged++; if (o.type === 'bird') stats.birds++;
-        const m0 = comboMult(); combo++; stats.bestCombo = Math.max(stats.bestCombo || 0, combo);
+        const m0 = comboMult(); combo++; stats.bestCombo = Math.max(stats.bestCombo || 0, combo); runBest.combo = Math.max(runBest.combo || 0, combo);
         if (comboMult() > m0) { popup('Combo x' + comboMult() + '!', '#ffd23f'); sfx.mile(); }
         if (o.close) { score += NEAR_POINTS * comboMult(); stats.close = (stats.close || 0) + 1; popup(L('Cerca! +', 'Close! +') + NEAR_POINTS, '#7fd0ff'); haptic(12); }   // near miss
         checkAch();

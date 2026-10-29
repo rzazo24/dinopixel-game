@@ -115,10 +115,20 @@ function leaveFs() {
   try { if (inFs()) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch { /* ignore */ }
   try { screen.orientation.unlock(); } catch { /* ignore */ }
 }
+function renderMissions() {                                  // the pause menu lists this run's missions with their progress
+  const ul = $('missions');
+  ul.replaceChildren(...missions.map((x) => {
+    const li = document.createElement('li'); li.className = x.done ? 'done' : '';
+    li.textContent = missionText(x) + ' - ' + (x.done ? L('hecho', 'done') : missionProgress(x) + ' / ' + x.m.n) + ' (+' + x.m.reward + ')';
+    return li;
+  }));
+  ul.hidden = !missions.length || state !== 'running';
+}
 function setPaused(v) {
   paused = v && inGame;
   jumpHeld = false;
   pauseEl.hidden = !paused;
+  if (paused) renderMissions();
   refreshShare();
   if (paused) stopMusic(0.12); else if (inGame && state === 'running') startMusic(false);
   $('fs').hidden = inFs() || installed;
