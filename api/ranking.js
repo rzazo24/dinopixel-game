@@ -39,12 +39,14 @@ module.exports = async (req, res) => {
       names = got[0];
       animals = got[1] || [];
     }
+    const marks = (i) => (board === 'all' ? (animals[i] || '').split('+').slice(1) : (animals[i] || '').split('+'));   // global: "animal+gear+hard"
     const animalOf = (i) => (board === 'all' ? (animals[i] || '').split('+')[0] || null : board);
-    const gearOf = (i) => (board === 'all' ? (animals[i] || '').split('+')[1] : animals[i]) || null;   // global: stored as "animal+gear"
+    const gearOf = (i) => marks(i)[0] || null;
+    const hardOf = (i) => marks(i)[1] === 'hard';
 
-    const out = rows.map((x, i) => ({ r: i + 1, n: names[i] || '???', s: x.s, me: x.pid === pid, a: animalOf(i), g: gearOf(i) }));
+    const out = rows.map((x, i) => ({ r: i + 1, n: names[i] || '???', s: x.s, me: x.pid === pid, a: animalOf(i), g: gearOf(i), h: hardOf(i) }));
     const mi = wanted.indexOf(pid);
-    const me = pid && myRank ? { r: myRank, s: Number(r[3]), n: names[mi] || '???', a: animalOf(mi), g: gearOf(mi) } : null;
+    const me = pid && myRank ? { r: myRank, s: Number(r[3]), n: names[mi] || '???', a: animalOf(mi), g: gearOf(mi), h: hardOf(mi) } : null;
     res.status(200).json({ board, period, total: r[1], rows: out, me, endsAt: period === 'week' ? wk.end : null });
   } catch (e) {
     res.status(500).json({ error: 'server' });

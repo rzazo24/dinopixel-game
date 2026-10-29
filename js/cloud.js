@@ -5,7 +5,7 @@
 /* ---------- cloud save ---------- */
 // What travels: every dp-* key (records, coins, purchases, skins, achievements, stats, daily streak, nickname, ranking id)
 // except device settings and transient data.
-const CLOUD_SKIP = new Set(['dp-lang', 'dp-queue', 'dp-cloud', 'dp-cloud-at', 'dp-pace', 'dp-vol', 'dp-music', 'dp-muted', 'dp-vibe']);
+const CLOUD_SKIP = new Set(['dp-lang', 'dp-queue', 'dp-cloud', 'dp-cloud-at', 'dp-pace', 'dp-vol', 'dp-music', 'dp-muted', 'dp-vibe', 'dp-mode']);
 let cloudCode = store.get('dp-cloud', '');
 let cloudTimer = null, pendingRestore = null, restoreTimer = null, cloudDelTimer = null;
 const cloudEl = $('cloud'), cloudMsg = $('cloud-msg');

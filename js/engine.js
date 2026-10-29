@@ -14,7 +14,12 @@ let banner = { text: '', t: 0 }, newlyUnlocked = [];
 let runToken = null, lastRank = null, pendingRun = null;
 let biome = 0, biomePrev = 0, biomeT = 1, gear = 'none';   // gear: the accessory worn this run (fixed at the start)   // online ranking (see the ranking section below)
 let bufT = 0, shakeT = 0, popups = [], combo = 0, patternQ = [];
-let missions = [], runBest = {}, boss = null, bossZone = -1;   // this run's mini-missions; the zone boss (end-of-zone wave)   // combo: obstacles dodged in a row without a hit                // jump buffer, screen shake, floating texts ("Cerca! +20")
+let missions = [], runBest = {}, boss = null, bossZone = -1;
+// Modes: normal; hard (faster, more birds, marked in the ranking); zen (you can't lose, nothing is saved or ranked,
+// and it can start in any zone you have reached). runMode is fixed when a run starts.
+const MODES = ['normal', 'hard', 'zen'];
+let mode = MODES.includes(store.get('dp-mode', 'normal')) ? store.get('dp-mode', 'normal') : 'normal', runMode = 'normal', zenZone = 0, zenStats = null;
+const HARD = { start: 7.5, max: 15, birds: 0.45, birdsFrom: 150 };   // this run's mini-missions; the zone boss (end-of-zone wave)   // combo: obstacles dodged in a row without a hit                // jump buffer, screen shake, floating texts ("Cerca! +20")
 const MIN_H = 75, CUT_V = 4;                           // variable jump: released early => cut once above MIN_H
 const P = { h: 0, vy: 0, doubled: false, shield: 0, ownShield: 0, inv: 0, charge: 0, dodge: 0 };
 
@@ -39,11 +44,25 @@ function reset() {
 }
 reset();
 
+function endZen() {                                     // back from a zen run: forget everything it counted
+  if (!zenStats) return;
+  const old = JSON.parse(zenStats);
+  Object.keys(stats).forEach((k) => { if (!(k in old)) delete stats[k]; });
+  Object.assign(stats, old); zenStats = null; persist.on = true;
+}
 function start() {
+  endZen();
   dailyStart();
   reset();
-  startMissions();
-  if (HALLOWEEN) banner = { text: L('Feliz Halloween!', 'Happy Halloween!'), t: 150 };
+  runMode = mode;
+  if (runMode === 'zen') {
+    zenStats = JSON.stringify(stats); persist.on = false;   // nothing written while it runs (see saveStats / cloudSave)
+    score = zenZone * BIOME_LEN; biome = biomePrev = zenZone % BIOMES.length; mile = Math.floor(score / 100); bossZone = zenZone;
+    missions = [];
+    banner = { text: L('Modo zen', 'Zen mode'), t: 150 };
+  } else startMissions();
+  if (runMode === 'hard') banner = { text: L('Modo difícil', 'Hard mode'), t: 150 };
+  else if (HALLOWEEN && runMode === 'normal') banner = { text: L('Feliz Halloween!', 'Happy Halloween!'), t: 150 };
   state = 'running';
   stopMusic(0.05); startMusic(true);
   lastRank = null;
@@ -213,7 +232,7 @@ function spawn() {
     distSince = -lead;
     return;
   }
-  const birdOK = score > 300 && Math.random() < 0.3;
+  const birdOK = runMode === 'hard' ? score > HARD.birdsFrom && Math.random() < HARD.birds : score > 300 && Math.random() < 0.3;
   const mover = !birdOK && score > MOVER_FROM && Math.random() < 0.25 ? makeMover() : null;
   if (mover) obstacles.push(mover);
   else if (birdOK) lead = spawnBird([BIRD_HIGH, BIRD_MID, BIRD_LOW][(Math.random() * 3) | 0]);
@@ -278,7 +297,8 @@ function update(dt) {
   stats.timeSec += dt / 60 / simPace();                       // real seconds played (dt is scaled by the pace)
 
   // speed rises fast at first and then more and more slowly towards the maximum (it used to hit it at 2100 points)
-  speed = START_SPEED + (MAX_SPEED - START_SPEED) * (1 - Math.exp(-score / SPEED_RAMP));
+  const s0 = runMode === 'hard' ? HARD.start : START_SPEED, s1 = runMode === 'hard' ? HARD.max : MAX_SPEED;   // hard: faster from the start
+  speed = s0 + (s1 - s0) * (1 - Math.exp(-score / SPEED_RAMP));
   const pts = speed * dt * 0.12;
   score += pts * (animal.id === 'peng' ? 1.5 : 1) * comboMult();   // penguin: +50% points; combos: x2 / x3
   if (animal.id === 'peng') stats.slidePts += pts * 0.5;
@@ -306,7 +326,7 @@ function update(dt) {
 
   // unlocks
   for (const a of ANIMALS) {
-    if (a.unlock > best && score >= a.unlock && !bought.includes(a.id)) {
+    if (runMode !== 'zen' && a.unlock > best && score >= a.unlock && !bought.includes(a.id)) {
       best = Math.floor(score);
       store.set('dp-best', String(best));
       newlyUnlocked.push(a.name);
@@ -316,7 +336,7 @@ function update(dt) {
     }
   }
 
-  dailyCheck();
+  if (runMode !== 'zen') dailyCheck();
 
   checkMissions();
   // zone boss: the last BOSS_LEN points of every zone are a wave of its moving obstacle; reach the next zone to beat it
@@ -376,6 +396,8 @@ function update(dt) {
         shakeT = 12;
         sfx.die();
         haptic(60);
+      } else if (runMode === 'zen') {                 // zen: a hit only blinks and breaks the combo
+        P.inv = INVULN; o.hit = true; combo = 0; shakeT = 10; popup(L('Ay!', 'Ouch!'), '#ff6b6b'); haptic(40);
       } else { die(); break; }
     }
   }

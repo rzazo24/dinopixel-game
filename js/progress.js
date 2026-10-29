@@ -66,6 +66,7 @@ const ACH = [
 ];
 let achQ = [], achShow = { text: '', t: 0 }, newAch = [];
 function checkAch(silent) {
+  if (typeof runMode !== 'undefined' && runMode === 'zen' && state === 'running') return;   // zen runs earn nothing
   let got = false;
   for (const a of ACH) {
     if (!ach[a.id] && a.val() >= a.goal) {

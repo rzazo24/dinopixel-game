@@ -702,6 +702,34 @@ try {
   await ev(`__dp.setScore(1600)`); await sleep(300);
   t.check('boss: only one per zone', !(await ev(`__dp.boss`)));
 
+  /* ---- modes: normal, hard, zen (+ starting zone) ---- */
+  await fresh(`localStorage.setItem('dp-best', '3200')`);
+  t.check('modes: the menu starts in Normal, no zone picker', /Normal/.test(await ev(`document.querySelector('#mode span').textContent`)) && (await hidden('zone')));
+  await click('mode');
+  t.check('modes: one click -> Difícil (remembered on this device only)', /Difícil/.test(await ev(`document.querySelector('#mode span').textContent`)) && (await ev(`localStorage.getItem('dp-mode')`)) === 'hard' && !('dp-mode' in (await ev(`__dp.snapshot().keys`))));
+  await startRun('dino'); await noObstacles(); await grounded();
+  t.check('hard: faster from the start', (await ev(`__dp.runMode`)) === 'hard' && (await ev(`__dp.speed`)) > 7.3, await ev(`__dp.speed`));
+  const hb = await ev(`(() => { __dp.setScore(1000); let b = 0; for (let i = 0; i < 400; i++) { __dp.o.length = 0; __dp.spawn(); if (__dp.o.some(o => o.type === 'bird')) b++; } __dp.o.length = 0; return b / 400; })()`);
+  t.check('hard: more birds', hb > 0.31, hb);
+  await ev(`document.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyP'}))`); await sleep(200); await click('home'); await sleep(300);
+  await click('mode');
+  t.check('modes: next click -> Zen, with a zone picker', /Zen/.test(await ev(`document.querySelector('#mode span').textContent`)) && !(await hidden('zone')) && /Desierto/.test(await ev(`document.querySelector('#zone span').textContent`)));
+  await click('zone'); await click('zone');
+  t.check('zen: the picker offers only zones already reached (3200 -> up to the city)', /Ciudad/.test(await ev(`document.querySelector('#zone span').textContent`)));
+  await click('zone');
+  t.check('zen: and then loops back to the desert', /Desierto/.test(await ev(`document.querySelector('#zone span').textContent`)));
+  await click('zone'); await click('zone');
+  const stats0 = await ev(`JSON.stringify(__dp.stats)`), hi0 = await ev(`localStorage.getItem('dp-hi-dino')`);
+  await startRun('dino'); await grounded();
+  t.check('zen: starts in the chosen zone, no missions', (await ev(`__dp.biome`)) === 'city' && (await ev(`__dp.score`)) >= 3000 && (await ev(`__dp.missions.length`)) === 0);
+  await ev(`clearInterval(window.__clr); __dp.o.length = 0; __dp.P.inv = 0; __dp.o.push({ type: 'cactus', x: 70, dy: -37, w: 30, h: 39, parts: [{ k: 3, dx: 0, kind: 'cactus' }] })`); await sleep(200);
+  t.check('zen: a hit does not end the run', (await ev(`__dp.state`)) === 'running' && (await ev(`__dp.popups.some(p => p.text === 'Ay!')`)));
+  await ev(`__dp.press()`); await sleep(300);
+  await ev(`document.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyP'}))`); await sleep(200); await click('home'); await sleep(300);
+  t.check('zen: nothing it counted is kept (stats, record)', (await ev(`JSON.stringify(__dp.stats)`)) === stats0 && (await ev(`localStorage.getItem('dp-hi-dino')`)) === hi0 && (JSON.parse((await ev(`localStorage.getItem('dp-stats')`)) || '{}').jumps || 0) <= (JSON.parse(stats0).jumps || 0));   // storage may lag behind, never ahead
+  await click('mode');
+  t.check('modes: and back to Normal', /Normal/.test(await ev(`document.querySelector('#mode span').textContent`)) && (await hidden('zone')));
+
   /* ---- gear: shop accessories with small powers ---- */
   await fresh(`localStorage.setItem('dp-stats', JSON.stringify({ coins: 3000 }))`);
   await click('shop-btn'); await ev(`document.querySelector('[data-stab=gear]').click()`);

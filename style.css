@@ -445,7 +445,8 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
 .lb td.ico { white-space: nowrap; }
 .lb td.ico canvas { display: inline-block; vertical-align: middle; width: 18px; height: 18px; image-rendering: pixelated; }
 .lb td.ico canvas.gear { width: 16px; height: 12px; margin-left: 3px; }
-.lb tr.boosted td:last-child { color: #ff9a3c; }   /* scores made with a power-up accessory */   /* the gear worn for that score */
+.lb tr.boosted td:last-child { color: #ff9a3c; }
+.lb span.hard { font-size: 7px; color: #fff; background: #c62828; padding: 1px 3px; margin-right: 4px; vertical-align: middle; }   /* hard mode */   /* scores made with a power-up accessory */   /* the gear worn for that score */
 
 /* phones in landscape (<= 400px tall): the key hints live in the Help screen, so drop them to keep the menu on one screen */
 @media (max-height: 400px) and (orientation: landscape) {

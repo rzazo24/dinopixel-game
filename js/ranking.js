@@ -35,7 +35,8 @@ const retryable = (r) => r.status === 0 || (r.status >= 500 && r.status !== 503)
 function submitRun() {
   const sc = Math.floor(score);
   if (sc < 20 || !runToken) return;                 // trivial runs and runs without a server token are not ranked
-  const run = { animal: animal.id, gear, score: sc, t: runToken };
+  if (runMode === 'zen') return;                   // zen runs are never ranked
+  const run = { animal: animal.id, gear, hard: runMode === 'hard', score: sc, t: runToken };
   runToken = null;
   if (!nick) {
     if (!pendingRun || run.score > pendingRun.score) pendingRun = run;
@@ -140,8 +141,8 @@ function renderRank(d) {
     return;
   }
   const tbl = document.createElement('table'); tbl.className = 'lb';
-  let boosted = false;
-  const add = (rk, n, sc, me, aid, gid) => {
+  let boosted = false, anyHard = false;
+  const add = (rk, n, sc, me, aid, gid, hard) => {
     const tr = tbl.insertRow(); if (me) tr.className = 'me';
     tr.insertCell().textContent = '#' + rk;
     const ic = tr.insertCell(); ic.className = 'ico';
@@ -150,16 +151,18 @@ function renderRank(d) {
     const gr = GEAR.find((x) => x.id === gid && x.img);
     if (gr) { const gc = spriteCanvas(gr.img, 1); gc.className = 'gear'; gc.title = gr.name; ic.appendChild(gc); }   // and the gear it wore
     tr.insertCell().textContent = n;                 // textContent: nicknames are never interpreted as HTML
-    tr.insertCell().textContent = sc + (gr ? ' *' : '');   // * = made with a power-up accessory (legend below)
+    const nc = tr.insertCell(); nc.textContent = sc + (gr ? ' *' : '');   // * = made with a power-up accessory (legend below)
     if (gr) { tr.classList.add('boosted'); boosted = true; }
+    if (hard) { const b = document.createElement('span'); b.className = 'hard'; b.textContent = L('DIF', 'HARD'); b.title = L('Modo difícil', 'Hard mode'); nc.prepend(b); anyHard = true; }
   };
-  d.rows.forEach((x) => add(x.r, x.n, x.s, x.me, x.a, x.g));
+  d.rows.forEach((x) => add(x.r, x.n, x.s, x.me, x.a, x.g, x.h));
   if (d.me && !d.rows.some((x) => x.me)) {
     const c = tbl.insertRow().insertCell(); c.colSpan = 4; c.className = 'sep'; c.textContent = '...';
-    add(d.me.r, d.me.n, d.me.s, true, d.me.a, d.me.g);
+    add(d.me.r, d.me.n, d.me.s, true, d.me.a, d.me.g, d.me.h);
   }
   const foot = document.createElement('p'); foot.className = 'note';
   foot.textContent = d.total + (d.total === 1 ? L(' jugador', ' player') : L(' jugadores', ' players')) + (d.endsAt ? L(' - Se reinicia en ', ' - Resets in ') + countdown(d.endsAt) : '');
+  if (anyHard) foot.textContent = L('DIF = modo difícil - ', 'HARD = hard mode - ') + foot.textContent;
   if (boosted) foot.textContent = L('* Con accesorio potenciador - ', '* With a power-up accessory - ') + foot.textContent;
   rankBody.append(tbl, foot);
 }

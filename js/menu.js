@@ -103,6 +103,18 @@ function setMusic(on) {
 $('music').addEventListener('click', (e) => { setMusic(!music.on); e.currentTarget.blur(); });
 setMusic(music.on);
 setMuted(muted);
+const MODE_NAME = { normal: L('Normal', 'Normal'), hard: L('Difícil', 'Hard'), zen: L('Zen', 'Zen') };
+const reachedZones = () => BIOMES.filter((_, i) => best >= i * BIOME_LEN).length;   // zen can start in any zone already reached
+function showMode() {
+  $('mode').querySelector('span').textContent = L('Modo: ', 'Mode: ') + MODE_NAME[mode];
+  $('mode').classList.toggle('off', mode !== 'normal');
+  $('zone').hidden = mode !== 'zen';
+  zenZone = Math.min(zenZone, reachedZones() - 1);
+  $('zone').querySelector('span').textContent = L('Empezar: ', 'Start: ') + BIOMES[zenZone].name;
+}
+$('mode').addEventListener('click', (e) => { mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length]; store.set('dp-mode', mode); showMode(); e.currentTarget.blur(); });
+$('zone').addEventListener('click', (e) => { zenZone = (zenZone + 1) % reachedZones(); showMode(); e.currentTarget.blur(); });
+showMode();
 $('lang').querySelector('span').textContent = L('English', 'Español');   // shows the language you switch to
 $('lang').addEventListener('click', () => { store.set('dp-lang', L('en', 'es')); location.reload(); });
 
@@ -165,6 +177,6 @@ if (/[?&]test=1/.test(location.search)) {
     ANIMALS, ACH, stats, ach, music, sfx, get master() { return master; }, press, setScore: (v) => { score = v; },
      setJump: (v) => { jumpHeld = v; },
     get P() { return P; }, get o() { return obstacles; }, get state() { return state; }, get score() { return score; },
-    get biome() { return BIOMES[biome].id; }, BIOMES, SONGS, get night() { return night; }, get gear() { return gear; }, fastFall, get popups() { return popups; }, pattern: (n) => { patternQ = PATTERNS[n].slice(); }, get gap() { return gap; }, get combo() { return combo; }, comboMult, get missions() { return missions; }, startMissions, MISSIONS, setMissions: (ids) => { missions = ids.map((id) => ({ m: MISSIONS.find((m) => m.id === id), done: false })); }, get boss() { return boss; }, get shakeT() { return shakeT; }, addItems, GEAR, gearOf, get banner() { return banner; }, get K() { return K; }, spawn, makeMover, spawnMover: () => { const m = makeMover(); if (m) obstacles.push(m); return m; }, get cloudCode() { return cloudCode; }, cloudSave, snapshot, persist, get daily() { return daily; }, makeDaily, todayStr, yesterdayStr, get dailyDoneRun() { return dailyDoneRun; }, balance, get items() { return items; }, get coinsRun() { return coinsRun; }, get magnetT() { return magnetT; }, get GROUND() { return GROUND; }, get W() { return W; }, get insets() { return [insetL, insetR]; }, textBoxes, get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },
+    get biome() { return BIOMES[biome].id; }, BIOMES, SONGS, get night() { return night; }, get gear() { return gear; }, fastFall, get popups() { return popups; }, pattern: (n) => { patternQ = PATTERNS[n].slice(); }, get gap() { return gap; }, get combo() { return combo; }, comboMult, get missions() { return missions; }, startMissions, MISSIONS, setMissions: (ids) => { missions = ids.map((id) => ({ m: MISSIONS.find((m) => m.id === id), done: false })); }, get boss() { return boss; }, get mode() { return mode; }, get runMode() { return runMode; }, get shakeT() { return shakeT; }, addItems, GEAR, gearOf, get banner() { return banner; }, get K() { return K; }, spawn, makeMover, spawnMover: () => { const m = makeMover(); if (m) obstacles.push(m); return m; }, get cloudCode() { return cloudCode; }, cloudSave, snapshot, persist, get daily() { return daily; }, makeDaily, todayStr, yesterdayStr, get dailyDoneRun() { return dailyDoneRun; }, balance, get items() { return items; }, get coinsRun() { return coinsRun; }, get magnetT() { return magnetT; }, get GROUND() { return GROUND; }, get W() { return W; }, get insets() { return [insetL, insetR]; }, textBoxes, get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },
   };
 }

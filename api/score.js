@@ -42,11 +42,13 @@ module.exports = async (req, res) => {
       ...standing(ka), ...standing(kb), ...standing(kaw), ...standing(kbw),   // 7..18
     ]);
     // remember which animal (and gear: "dino+boots") set the score on the global boards
-    const who = L.GEAR.includes(b.gear) ? animal + '+' + b.gear : animal;
+    // marks: gear worn and hard mode. Global boards store "animal+gear+hard", animal boards just "gear+hard"
+    const mark = (L.GEAR.includes(b.gear) ? b.gear : '') + (b.hard === true ? '+hard' : '');
+    const who = mark ? animal + '+' + mark : animal;
     const tail = [];
     if (r[0]) tail.push(['HSET', L.animalHashKey('all'), pid, who]);
     if (r[2]) tail.push(['HSET', L.animalHashKey('week', wk.id), pid, who], ['EXPIRE', L.animalHashKey('week', wk.id), L.WEEK_TTL]);
-    const gearCmd = (k) => (who.includes('+') ? ['HSET', k, pid, b.gear] : ['HDEL', k, pid]);   // a new best without gear clears the mark
+    const gearCmd = (k) => (mark ? ['HSET', k, pid, mark] : ['HDEL', k, pid]);   // a new best without marks clears them
     if (r[1]) tail.push(gearCmd(L.gearHashKey(animal, 'all')));
     if (r[3]) tail.push(gearCmd(L.gearHashKey(animal, 'week', wk.id)), ['EXPIRE', L.gearHashKey(animal, 'week', wk.id), L.WEEK_TTL]);
     if (tail.length) await L.pipe(tail);

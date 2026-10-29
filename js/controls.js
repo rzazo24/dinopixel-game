@@ -146,6 +146,8 @@ function enterGame() {
 }
 function exitGame() {
   inGame = false;
+  endZen();
+  runMode = 'normal';
   setPaused(false);
   stage.hidden = true;
   menu.hidden = false;

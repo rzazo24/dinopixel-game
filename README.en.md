@@ -90,6 +90,17 @@ During those days the game dresses up by itself:
 
 To try it out of season: `?season=halloween` in the URL (and `?season=off` to turn it off).
 
+## Modes
+
+**Mode** button in the menu (remembered on each device):
+
+- **Normal**: the usual game.
+- **Hard**: starts faster (7.5 instead of 6), reaches a higher top speed (15 instead of 13) and has many more birds,
+  from 150 points. It counts for everything, and its scores carry a **HARD** mark in the ranking.
+- **Zen**: you cannot lose (a hit only blinks and breaks the combo) and, with the **Start** button, you can begin in
+  any zone you have already reached. Nothing counts: no records, ranking, coins, achievements or missions. It's for
+  practice.
+
 ## Animals and abilities
 
 You start with the dino; the rest unlock with your **best score** (with any animal): a new one every 1000 points.
@@ -229,7 +240,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v78';   // -> 'dinopixel-v79', ...
+const CACHE = 'dinopixel-v79';   // -> 'dinopixel-v80', ...
 ```
 
 Install notes:

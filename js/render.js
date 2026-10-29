@@ -318,6 +318,7 @@ function draw() {
     y += pixFit(animal.name, y, 4) + 4;
     y += pixFit(L('Toca la pantalla o pulsa espacio', 'Tap the screen or press space'), y, 2);
     y += pixFit(ABILITY[animal.id][0] + ': ' + ABILITY[animal.id][1], y, 2, '#ffd23f') + 4;
+    if (runMode !== 'normal' || mode !== 'normal') y += pixFit(mode === 'zen' ? L('Modo zen: no puedes perder, no cuenta', 'Zen mode: you cannot lose, nothing counts') : L('Modo difícil: más rápido y más pájaros', 'Hard mode: faster, more birds'), y, 2, mode === 'zen' ? '#9be564' : '#ff6b6b') + 2;
     pixFit((daily.done ? L('Reto del día: completado', 'Daily challenge: done') : L('Reto: ', 'Challenge: ') + dailyText(daily)), y, 2, '#9be564');
   } else if (state === 'over') {
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, 0, W, H);

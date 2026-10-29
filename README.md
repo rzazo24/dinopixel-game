@@ -94,6 +94,17 @@ Durante esos días el juego se disfraza solo, sin tocar nada:
 
 Para probarlo fuera de fecha: `?season=halloween` en la URL (y `?season=off` para quitarlo).
 
+## Modos
+
+Botón **Modo** del menú (se recuerda en cada dispositivo):
+
+- **Normal**: el juego de siempre.
+- **Difícil**: empieza más rápido (7,5 en vez de 6), llega a una velocidad máxima mayor (15 en vez de 13) y salen muchos
+  más pájaros, desde los 150 puntos. Cuenta para todo, y en el ranking la puntuación lleva la marca **DIF**.
+- **Zen**: no puedes perder (un golpe solo parpadea y corta el combo) y, con el botón **Empezar**, puedes salir en
+  cualquier zona que ya hayas alcanzado. No cuenta para nada: ni récords, ni ranking, ni monedas, ni logros, ni
+  misiones. Sirve para practicar.
+
 ## Animales y habilidades
 
 Empiezas con el dino; el resto se desbloquea con tu **mejor puntuación** (con cualquier animal): uno nuevo cada 1000 puntos.
@@ -228,7 +239,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v78';   // -> 'dinopixel-v79', ...
+const CACHE = 'dinopixel-v79';   // -> 'dinopixel-v80', ...
 ```
 
 Notas de instalación:

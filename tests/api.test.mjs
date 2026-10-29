@@ -78,6 +78,14 @@ try {
   await submit({ pid: pid('b'), nick: 'leo', animal: 'fox', gear: 'boots', score: 90 });
   await submit({ pid: pid('b'), nick: 'leo', animal: 'fox', score: 95 });
   t.check('a new best without gear clears the mark on the animal board', (await get('/api/ranking?board=fox&period=all')).body.rows[0].g === null);
+  await submit({ pid: pid('b'), nick: 'leo', animal: 'cat', gear: 'scarf', hard: true, score: 97 });
+  g = (await get('/api/ranking?board=all&period=all')).body;
+  t.check('hard mode is marked on the global board, with the gear', g.rows[0].a === 'cat' && g.rows[0].g === 'scarf' && g.rows[0].h === true, g.rows[0]);
+  const ch = (await get('/api/ranking?board=cat&period=week')).body.rows.find((r) => r.n === 'LEO');
+  t.check('hard mode is marked on the animal board too', ch && ch.h === true && ch.g === 'scarf', ch);
+  await submit({ pid: pid('b'), nick: 'leo', animal: 'cat', hard: 'yes', score: 99 });
+  g = (await get('/api/ranking?board=all&period=all')).body;
+  t.check('only hard: true marks a score', g.rows[0].s === 99 && g.rows[0].h === false && g.rows[0].g === null, g.rows[0]);
   t.check('invalid board / period', (await get('/api/ranking?board=zzz')).status === 400 && (await get('/api/ranking?board=all&period=nonsense')).body.period === 'all');
 
   /* ---- rename + delete ---- */
