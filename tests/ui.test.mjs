@@ -73,7 +73,7 @@ try {
   await esc(); await sleep(100);
   t.check('Esc closes help', await hidden('help'));
   await click('ach-btn'); await sleep(200);
-  t.check('achievements screen: 0/25 on a fresh profile', (await ev(`document.getElementById('ach-count').textContent`)) === '0/25' && (await ev(`document.querySelectorAll('.ach').length`)) === 25);
+  t.check('achievements screen: 0/26 on a fresh profile', (await ev(`document.getElementById('ach-count').textContent`)) === '0/26' && (await ev(`document.querySelectorAll('.ach').length`)) === 26);
   await esc(); await sleep(100);
   t.check('Esc closes achievements', await hidden('ach'));
 
@@ -656,6 +656,32 @@ try {
   await ev(`__dp.P.shield = 1; __dp.o.length = 0; __dp.o.push({ type: 'cactus', x: 70, dy: -37, w: 30, h: 39, parts: [{ k: 3, dx: 0, kind: 'cactus' }] })`); await sleep(100);
   t.check('feel: breaking a shield shakes the screen (and the run goes on)', (await ev(`__dp.shakeT`)) > 0 && (await ev(`__dp.state`)) === 'running' && (await ev(`__dp.P.shield`)) === 0, [await ev(`__dp.shakeT`), await ev(`__dp.state`)]);
   await ev(`__dp.o.length = 0`);
+
+  /* ---- rhythm: obstacle patterns, combos, risky coins ---- */
+  await fresh(); await startRun('dino'); await noObstacles(); await grounded();
+  await ev(`clearInterval(window.__clr); __dp.o.length = 0; __dp.setScore(1000); __dp.pattern('sandwich')`);
+  const seq = await ev(`(() => { const out = []; for (let i = 0; i < 3; i++) { __dp.o.length = 0; __dp.spawn(); const o = __dp.o[__dp.o.length - 1]; out.push(o.type === 'bird' ? 'bird' + o.dy : o.type); } return out; })()`);
+  const breather = await ev(`__dp.gap`), normal = await ev(`__dp.speed * 30 + 120 + 260`);
+  t.check('rhythm: a pattern spawns its steps in order (cactus, low bird, cactus)', seq.join() === 'cactus,bird-34,cactus', seq);
+  t.check('rhythm: a pattern ends with a long breather', breather > normal, [breather, normal]);
+  const pats = await ev(`(() => { let n = 0; for (let i = 0; i < 400; i++) { __dp.o.length = 0; __dp.spawn(); if (__dp.gap > __dp.speed * 30 + 400) n++; } __dp.o.length = 0; return n; })()`);
+  t.check('rhythm: patterns show up on their own after 600 points', pats > 5, pats);
+  await ev(`__dp.o.length = 0; __dp.P.inv = 0; for (let i = 0; i < 10; i++) __dp.o.push({ type: 'bird', x: 2 - i, dy: -100, w: 42, h: 27 })`);   // ten already behind the player
+  await sleep(200);
+  t.check('rhythm: 10 dodges in a row give a x2 combo', (await ev(`__dp.combo`)) >= 10 && (await ev(`__dp.comboMult()`)) === 2 && (await ev(`__dp.popups.some(p => p.text === 'Combo x2!')`)));
+  await ev(`window.__clr2 = setInterval(() => { __dp.items.length = 0; if (!__dp.o.some(o => o.type === 'cactus' && o.x === 70)) __dp.o.length = 0; }, 3)`);   // nothing else scores meanwhile
+  const sc0 = await ev(`__dp.score`); await sleep(1000); const sc1 = await ev(`__dp.score`);
+  await ev(`__dp.P.shield = 1; __dp.o.length = 0; __dp.o.push({ type: 'cactus', x: 70, dy: -37, w: 30, h: 39, parts: [{ k: 3, dx: 0, kind: 'cactus' }] })`); await sleep(100);
+  t.check('rhythm: a hit breaks the combo', (await ev(`__dp.combo`)) === 0 && (await ev(`__dp.state`)) === 'running');
+  await ev(`__dp.o.length = 0`); await sleep(1700);
+  const sc2 = await ev(`__dp.score`); await sleep(1000); const sc3 = await ev(`__dp.score`);
+  await ev(`clearInterval(window.__clr2)`);
+  t.check('rhythm: with x2 the score grows about twice as fast', (sc1 - sc0) / (sc3 - sc2) > 1.6, [sc1 - sc0, sc3 - sc2]);
+  const risky = await ev(`(() => { const r = { low: 0, high: 0 }; for (let i = 0; i < 300; i++) { for (const [k, dy] of [['low', -34], ['high', -100]]) { __dp.items.length = 0; __dp.addItems({ type: 'bird', x: 300, dy, w: 42, h: 27 }); if (__dp.items.some(it => it.v === 2 && it.dy < dy)) r[k]++; } } __dp.items.length = 0; return r; })()`);
+  t.check('rhythm: gold coins (worth 2) sit right above low birds, never by high ones', risky.low > 30 && risky.high === 0, risky);
+  const c0r = await ev(`__dp.coinsRun`);
+  await ev(`__dp.items.push({ kind: 'coin', v: 2, x: 60, dy: -30, w: 18, h: 18 })`); await sleep(300);
+  t.check('rhythm: a gold coin counts as 2', (await ev(`__dp.coinsRun`)) === c0r + 2);
 
   /* ---- gear: shop accessories with small powers ---- */
   await fresh(`localStorage.setItem('dp-stats', JSON.stringify({ coins: 3000 }))`);

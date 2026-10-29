@@ -277,6 +277,7 @@ function drawHUD() {
     pixText(t, W - 12 - insetR, 32, 2, 'right', '#ffd23f', false);
     blit(COINS[0], W - 12 - insetR - w - 18, 32, 14, 14);
   }
+  if (combo >= 3 && state === 'running') pixText('Combo ' + combo + (comboMult() > 1 ? ' x' + comboMult() : ''), W / 2, 12, 2, 'center', comboMult() > 2 ? '#ff8a1a' : comboMult() > 1 ? '#ffd23f' : c);
   if (magnetT > 0 && state === 'running') pixText(L('Imán ', 'Magnet ') + Math.ceil(magnetT / 60), W - 12 - insetR, 52, 2, 'right', '#e53935');
 }
 

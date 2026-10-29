@@ -9,7 +9,7 @@ const PID_RE = /^[a-f0-9]{32}$/;
 const TOP = 20;
 const MAX_SCORE = 999999;
 // Anti-cheat: no animal can earn more than this many points per second (penguin sliding at top speed is ~190).
-const MAX_RATE = 250;                                   // coins (+10 each, more with the lucky collar) add short bursts on top
+const MAX_RATE = 480;                                   // penguin x combo x3 (~420) plus coins
 const SLACK = 100;
 const TOKEN_TTL_MS = 24 * 3600 * 1000;
 

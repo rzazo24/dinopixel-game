@@ -36,6 +36,11 @@ sooner: a bouncing **tumbleweed** (desert), a **snowball** (snow), a **car** (ci
 (jungle) and a rolling **boulder** (volcano). They are never taller than a small cactus, and the game caps their
 speed so they never catch up with the obstacle ahead and make an impossible combo.
 
+**Rhythm:** from 600 points, hand-made **sequences** show up now and then (a cactus staircase, cactus-low bird-cactus,
+two high birds and a cactus, three cacti in a row) with tight gaps, followed by a long breather. Every obstacle dodged
+without a hit adds to the **combo** (top centre): at 10 everything scores **x2**, and at 25 **x3**; a hit breaks it.
+From 500 points there are **gold coins** (worth 2) in risky spots: above a low or middle bird, or high over a cactus.
+
 **Coins and items:** coins give 10 points and appear in an arc over some cacti (you grab them by jumping) or in a
 row after an obstacle, at ground level or up high. From 400 points a **shield** (takes one hit, with any animal;
 they stack) and a **magnet** (pulls in nearby coins for 6 s; another one adds 6 more seconds) show up now and then. A counter under the score shows
@@ -100,11 +105,11 @@ Records are saved per animal in the browser (`localStorage`).
 
 ## Achievements
 
-25 achievements with an on-screen notice when you earn them and an **Achievements** screen (menu button) with the
+26 achievements with an on-screen notice when you earn them and an **Achievements** screen (menu button) with the
 progress of each one. Among them: scores (500 to 7000), runs played, jumps, obstacles and birds dodged, coins (100
 and 1000), lasting 2 minutes, one per ability (cat's double jump, dog's shield, chicken's glide, penguin's slide),
 1500 with every animal, unlocking all 9, reaching the top 3 of the ranking, being number 1 of the week, completing 7
-daily challenges, sharing and collecting 100 candies at Halloween. They are saved in the browser (`localStorage`); the ones you already meet when you
+daily challenges, a 50 combo, sharing and collecting 100 candies at Halloween. They are saved in the browser (`localStorage`); the ones you already meet when you
 open the game are marked by themselves, without notices.
 
 ## Settings
@@ -219,7 +224,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v76';   // -> 'dinopixel-v77', ...
+const CACHE = 'dinopixel-v77';   // -> 'dinopixel-v78', ...
 ```
 
 Install notes:

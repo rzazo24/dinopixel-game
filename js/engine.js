@@ -13,7 +13,7 @@ let items = [], coinsRun = 0, magnetT = 0;                // pickups (see addIte
 let banner = { text: '', t: 0 }, newlyUnlocked = [];
 let runToken = null, lastRank = null, pendingRun = null;
 let biome = 0, biomePrev = 0, biomeT = 1, gear = 'none';   // gear: the accessory worn this run (fixed at the start)   // online ranking (see the ranking section below)
-let bufT = 0, shakeT = 0, popups = [];                // jump buffer, screen shake, floating texts ("Cerca! +20")
+let bufT = 0, shakeT = 0, popups = [], combo = 0, patternQ = [];   // combo: obstacles dodged in a row without a hit                // jump buffer, screen shake, floating texts ("Cerca! +20")
 const MIN_H = 75, CUT_V = 4;                           // variable jump: released early => cut once above MIN_H
 const P = { h: 0, vy: 0, doubled: false, shield: 0, ownShield: 0, inv: 0, charge: 0, dodge: 0 };
 
@@ -26,7 +26,7 @@ function reset() {
   night = 0; nightTarget = 0; animT = 0; flapT = 0;
   obstacles = []; dust = [];
   items = []; coinsRun = 0; magnetT = 0;
-  bufT = 0; shakeT = 0; popups = [];
+  bufT = 0; shakeT = 0; popups = []; patternQ = []; combo = 0;
   P.h = 0; P.vy = 0; P.doubled = false; P.inv = 0; P.charge = 0; P.dodge = 0; P.foxCd = 0;
   P.shield = animal.id === 'dog' ? 1 : 0;
   P.ownShield = P.shield;   // the dog's own shield (used first); only it counts for the achievement
@@ -74,6 +74,8 @@ function fastFall() {
   if (state !== 'running' || P.h <= 0) return;
   P.vy = Math.min(P.vy, -FAST_FALL); bufT = 0; P.fast = true;
 }
+const COMBO_X2 = 10, COMBO_X3 = 25;                     // combo needed for double / triple points
+const comboMult = () => (combo >= COMBO_X3 ? 3 : combo >= COMBO_X2 ? 2 : 1);
 const NEAR_PAD = 14, NEAR_POINTS = 20;                  // passing this close to an obstacle without touching it: bonus
 function popup(text, color) { popups.push({ text, color, t: 50 }); }
 const BOOTS = () => (gear === 'boots' ? 1.07 : 1);       // spring boots: +7% take-off speed = ~15% higher
@@ -102,7 +104,7 @@ function puff(n) {
 /* ---------- obstacles ---------- */
 // Pickups. Coins (+10 points) come in an arc over a cactus (collected by jumping it) or in a row after an obstacle
 // (low: just run through; high: jump). Rarely, a shield or a magnet floats at jump height.
-const COIN_POINTS = 10;
+const COIN_POINTS = 10, RISKY_FROM = 500;
 const MAGNET_TIME = () => (gear === 'scarf' ? 600 : 360), MAGNET_REACH = () => (gear === 'scarf' ? 260 : 170);   // magnet scarf: 10 s and a longer reach
 const BIRD_LEAD = () => (gear === 'goggles' ? speed * 50 : 0);   // aviator goggles: birds start further out, announced at the edge
 function addItems(o) {
@@ -112,6 +114,12 @@ function addItems(o) {
     return;
   }
   if (score < 50 || r > (gear === 'collar' ? 0.85 : 0.5)) return;   // lucky collar: coins after most obstacles
+  // risky spots (from 500 points): gold coins worth 2, right above a low/mid bird or high over a cactus (a full jump)
+  if (score > RISKY_FROM && Math.random() < 0.3 && !(o.type === 'bird' && o.dy === BIRD_HIGH)) {
+    const top = o.type === 'bird' ? o.dy - 22 : -(o.h + 78);
+    for (let i = 0; i < 3; i++) items.push({ kind: 'coin', v: 2, x: o.x + o.w / 2 - 27 + i * 18, dy: top - 18, w: 18, h: 18 });
+    return;
+  }
   if (o.type === 'cactus' && Math.random() < 0.6) {
     const n = 5, cx = o.x + o.w / 2, span = 150;
     for (let i = 0; i < n; i++) {
@@ -125,8 +133,9 @@ function addItems(o) {
 }
 function collect(it) {
   if (it.kind === 'coin') {
-    score += COIN_POINTS; coinsRun++; stats.coins++;
-    if (HALLOWEEN) stats.candy++;                       // coins are candies at Halloween ("Truco o trato")
+    const v = it.v || 1;                                // gold coins in risky spots are worth 2
+    score += COIN_POINTS * v * comboMult(); coinsRun += v; stats.coins += v;
+    if (HALLOWEEN) stats.candy += v;                       // coins are candies at Halloween ("Truco o trato")
     sfx.coin(); checkAch();
   } else if (it.kind === 'shield') {
     P.shield++; sfx.power(); banner = { text: (P.shield > 1 ? L('Escudo x', 'Shield x') + P.shield : L('Escudo', 'Shield')) + '!', t: 90 };   // shields stack
@@ -151,41 +160,57 @@ function makeMover() {
   const dy = 2 - spec.h;
   return { type: 'mover', kind, x: W + 20, dy, base: dy, w: spec.w, h: spec.h, extra, phase: 0, zone: BIOMES[biome].id };
 }
-function spawn() {
-  const birdOK = score > 300 && Math.random() < 0.3;
-  const mover = !birdOK && score > MOVER_FROM && Math.random() < 0.25 ? makeMover() : null;
-  if (mover) {
-    obstacles.push(mover);
-    gap = speed * 30 + 120 + rnd(0, 260);
-    distSince = 0;
-    return;
+function spawnBird(top) {
+  const lead = BIRD_LEAD();                      // goggles: the bird is placed further out and everything after it shifts too
+  obstacles.push({ type: 'bird', x: W + 20 + lead, dy: top, w: 14 * S, h: 9 * S });
+  addItems(obstacles[obstacles.length - 1]);
+  return lead;
+}
+function spawnCactus(n, bigOK = true) {
+  const parts = [];
+  let w = 0, h = 0;
+  for (let i = 0; i < n; i++) {
+    const big = bigOK && n < 3 && Math.random() < 0.4;   // 3-cactus groups stay small so they remain jumpable
+    const k = big ? 4 : 3;
+    const kinds = BIOMES[biome].obs;
+    const kind = HALLOWEEN && Math.random() < 0.2 ? 'pumpkin' : kinds[(Math.random() * kinds.length) | 0];   // Halloween: pumpkins among the cacti
+    parts.push({ k, dx: w, kind });
+    w += 10 * k + 6;
+    h = Math.max(h, 13 * k);
   }
-  if (birdOK) {
-    const tops = [-100, -58, -34];              // high: run under it; mid and low: jump over it (there is no crouching)
-    const lead = BIRD_LEAD();                    // goggles: the bird is placed further out and everything after it shifts too
-    obstacles.push({ type: 'bird', x: W + 20 + lead, dy: tops[(Math.random() * tops.length) | 0], w: 14 * S, h: 9 * S });
-    addItems(obstacles[obstacles.length - 1]);
-    gap = speed * 30 + 120 + rnd(0, 260);
+  obstacles.push({ type: 'cactus', x: W + 20, dy: 2 - h, w: w - 6, h, parts, zone: BIOMES[biome].id });
+  addItems(obstacles[obstacles.length - 1]);
+  return 0;
+}
+// Hand-made sequences (from PATTERN_FROM points): tight gaps inside, then a long breather. Each step spawns one obstacle.
+const BIRD_HIGH = -100, BIRD_MID = -58, BIRD_LOW = -34;   // high: run under it; mid and low: jump over it (there is no crouching)
+const PATTERN_FROM = 600, PATTERN_CHANCE = 0.18;
+const PATTERNS = {
+  stairs: [() => spawnCactus(1), () => spawnCactus(2), () => spawnCactus(1, false)],
+  sandwich: [() => spawnCactus(1, false), () => spawnBird(BIRD_LOW), () => spawnCactus(1, false)],
+  underpass: [() => spawnBird(BIRD_HIGH), () => spawnBird(BIRD_HIGH), () => spawnCactus(2)],
+  triple: [() => spawnCactus(1, false), () => spawnCactus(1, false), () => spawnCactus(1, false)],
+};
+const tightGap = () => speed * 30 + 130;
+function spawn() {
+  let lead = 0;
+  if (!patternQ.length && score > PATTERN_FROM && Math.random() < PATTERN_CHANCE) {
+    const names = Object.keys(PATTERNS);
+    patternQ = PATTERNS[names[(Math.random() * names.length) | 0]].slice();
+  }
+  if (patternQ.length) {
+    lead = patternQ.shift()();
+    gap = patternQ.length ? tightGap() : tightGap() * 2.4;   // the last step is followed by a breather
     distSince = -lead;
     return;
-  } else {
-    const n = 1 + ((Math.random() * (score > 150 ? 3 : 2)) | 0);
-    const parts = [];
-    let w = 0, h = 0;
-    for (let i = 0; i < n; i++) {
-      const big = n < 3 && Math.random() < 0.4;   // 3-cactus groups stay small so they remain jumpable
-      const k = big ? 4 : 3;
-      const kinds = BIOMES[biome].obs;
-      const kind = HALLOWEEN && Math.random() < 0.2 ? 'pumpkin' : kinds[(Math.random() * kinds.length) | 0];   // Halloween: pumpkins among the cacti
-      parts.push({ k, dx: w, kind });
-      w += 10 * k + 6;
-      h = Math.max(h, 13 * k);
-    }
-    obstacles.push({ type: 'cactus', x: W + 20, dy: 2 - h, w: w - 6, h, parts, zone: BIOMES[biome].id });
-    addItems(obstacles[obstacles.length - 1]);
   }
+  const birdOK = score > 300 && Math.random() < 0.3;
+  const mover = !birdOK && score > MOVER_FROM && Math.random() < 0.25 ? makeMover() : null;
+  if (mover) obstacles.push(mover);
+  else if (birdOK) lead = spawnBird([BIRD_HIGH, BIRD_MID, BIRD_LOW][(Math.random() * 3) | 0]);
+  else spawnCactus(1 + ((Math.random() * (score > 150 ? 3 : 2)) | 0));
   gap = speed * 30 + 120 + rnd(0, 260);
-  distSince = 0;
+  distSince = -lead;
 }
 
 /* ---------- update ---------- */
@@ -216,7 +241,7 @@ function update(dt) {
   // speed rises fast at first and then more and more slowly towards the maximum (it used to hit it at 2100 points)
   speed = START_SPEED + (MAX_SPEED - START_SPEED) * (1 - Math.exp(-score / SPEED_RAMP));
   const pts = speed * dt * 0.12;
-  score += pts * (animal.id === 'peng' ? 1.5 : 1);           // penguin: +50% points
+  score += pts * (animal.id === 'peng' ? 1.5 : 1) * comboMult();   // penguin: +50% points; combos: x2 / x3
   if (animal.id === 'peng') stats.slidePts += pts * 0.5;
   runTime += dt / 60 / simPace();                             // real seconds survived in this run
   stats.longestRun = Math.max(stats.longestRun || 0, runTime);
@@ -280,7 +305,9 @@ function update(dt) {
       o.counted = true;
       if (!o.hit) {
         stats.dodged++; if (o.type === 'bird') stats.birds++;
-        if (o.close) { score += NEAR_POINTS; stats.close = (stats.close || 0) + 1; popup(L('Cerca! +', 'Close! +') + NEAR_POINTS, '#7fd0ff'); haptic(12); }   // near miss
+        const m0 = comboMult(); combo++; stats.bestCombo = Math.max(stats.bestCombo || 0, combo);
+        if (comboMult() > m0) { popup('Combo x' + comboMult() + '!', '#ffd23f'); sfx.mile(); }
+        if (o.close) { score += NEAR_POINTS * comboMult(); stats.close = (stats.close || 0) + 1; popup(L('Cerca! +', 'Close! +') + NEAR_POINTS, '#7fd0ff'); haptic(12); }   // near miss
         checkAch();
       }
     }
@@ -294,6 +321,7 @@ function update(dt) {
         P.shield--; P.inv = INVULN; o.hit = true;
         if (P.ownShield) { P.ownShield = 0; stats.shields++; checkAch(); }   // the achievement is about the dog's own shield
         banner = { text: L('Escudo roto!', 'Shield broken!'), t: 90 };
+        combo = 0;                                     // a hit breaks the combo
         shakeT = 12;
         sfx.die();
         haptic(60);

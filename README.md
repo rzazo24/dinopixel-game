@@ -36,6 +36,12 @@ el suelo, así que llega antes: una **planta rodadora** que bota (desierto), una
 **coche** (ciudad), un **coco** que bota (selva) y una **roca** rodando (volcán). Nunca son más altos que un cactus pequeño, y el juego limita su velocidad para que no alcancen al
 obstáculo de delante y formen un combo imposible.
 
+**Ritmo:** desde 600 puntos salen, de vez en cuando, **secuencias** preparadas (escalera de cactus, cactus-pájaro bajo-cactus,
+dos pájaros altos y un cactus, tres cactus seguidos) con huecos justos, seguidas de un respiro largo. Cada obstáculo
+esquivado sin recibir un golpe suma al **combo** (arriba en el centro): con 10 todo puntúa **x2** y con 25, **x3**; un golpe
+lo corta. Desde 500 puntos hay **monedas doradas** (valen 2) en sitios con riesgo: encima de un pájaro bajo o medio, o muy
+altas sobre un cactus.
+
 **Monedas y objetos:** las monedas dan 10 puntos y salen en arco sobre algunos cactus (se cogen al saltarlos) o en
 fila tras un obstáculo, a ras de suelo o en alto. Desde 400 puntos aparecen, de vez en cuando, un **escudo** (aguanta
 un golpe, con cualquier animal; se acumulan) y un **imán** (atrae las monedas cercanas durante 6 s; si coges otro, el tiempo se suma). Un contador bajo la
@@ -102,9 +108,9 @@ Los récords se guardan por animal en el navegador (`localStorage`).
 
 ## Logros
 
-25 logros con aviso en pantalla al conseguirlos y una pantalla **Logros** (botón del menú) con el progreso de cada
+26 logros con aviso en pantalla al conseguirlos y una pantalla **Logros** (botón del menú) con el progreso de cada
 uno. Entre ellos: puntuaciones (500 a 7000), partidas jugadas, saltos, obstáculos y pájaros esquivados, monedas (100 y 1000), aguantar 2 minutos, uno por habilidad (doble salto del gato, escudo del perro, planeo de la gallina, deslizar del
-pingüino), 1500 con cada animal, desbloquear los 9, entrar en el top 3 del ranking, ser el número 1 de la semana, completar 7 retos diarios, compartir y recoger 100 caramelos en Halloween. Se guardan en el
+pingüino), 1500 con cada animal, desbloquear los 9, entrar en el top 3 del ranking, ser el número 1 de la semana, completar 7 retos diarios, un combo de 50, compartir y recoger 100 caramelos en Halloween. Se guardan en el
 navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos, sin avisos.
 
 ## Ajustes
@@ -216,7 +222,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v76';   // -> 'dinopixel-v77', ...
+const CACHE = 'dinopixel-v77';   // -> 'dinopixel-v78', ...
 ```
 
 Notas de instalación:

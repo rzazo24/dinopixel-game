@@ -61,6 +61,7 @@ const ACH = [
   { id: 'weekwin', name: L('Campeón semanal', 'Weekly champion'), desc: L('Sé el número 1 del ranking semanal', 'Be number 1 in the weekly ranking'), goal: 1, val: () => stats.weekwin },
   { id: 'share', name: L('Embajador', 'Ambassador'), desc: L('Comparte una puntuación', 'Share a score'), goal: 1, val: () => stats.shared },
   { id: 'halloween', name: L('Truco o trato', 'Trick or treat'), desc: L('Recoge 100 caramelos en Halloween', 'Collect 100 candies at Halloween'), goal: 100, val: () => stats.candy },
+  { id: 'combo50', name: L('En racha', 'On a roll'), desc: L('Esquiva 50 obstáculos seguidos sin un golpe', 'Dodge 50 obstacles in a row without a hit'), goal: 50, val: () => stats.bestCombo || 0 },
   { id: 'daily7', name: L('Constancia', 'Dedication'), desc: L('Completa 7 retos diarios', 'Complete 7 daily challenges'), goal: 7, val: () => stats.dailyDone },
 ];
 let achQ = [], achShow = { text: '', t: 0 }, newAch = [];
