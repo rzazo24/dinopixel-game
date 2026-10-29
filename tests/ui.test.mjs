@@ -635,6 +635,28 @@ try {
   const gone = await (await fetch(`${base}/api/ranking?board=all&period=week`)).json();
   t.check('API confirms the data is gone', gone.rows.length === 0 && gone.total === 0);
 
+  /* ---- feel: jump buffer, fast fall, near misses, screen shake ---- */
+  await fresh(); await startRun('dino'); await noObstacles(); await grounded();
+  await ev(`__dp.setJump(false); __dp.press()`);
+  await chrome.waitFor(`__dp.P.vy < 0 && __dp.P.h > 0 && __dp.P.h < 30`, 3000, 3);
+  await ev(`__dp.press()`);                                  // a moment before landing
+  const hBuf = await maxHeight(`void 0`, 700);
+  t.check('feel: a jump pressed just before landing still happens (buffer)', hBuf > 50, hBuf);
+  await grounded();
+  await ev(`__dp.setJump(true); __dp.press()`); await sleep(200);
+  const tFall = await ev(`(() => { __dp.fastFall(); return performance.now(); })()`);
+  await chrome.waitFor(`__dp.P.h === 0`, 3000, 3); await ev(`__dp.setJump(false)`);
+  const fallMs = (await ev(`performance.now()`)) - tFall;
+  t.check('feel: fast fall (down / swipe down) drops quickly', fallMs < 350, fallMs);
+  await grounded();
+  await ev(`clearInterval(window.__clr); __dp.o.length = 0`);
+  await ev(`__dp.o.push({ type: 'bird', x: 300, dy: -70, w: 42, h: 27 })`);   // just above the head: no hit, but close
+  await chrome.waitFor(`__dp.popups.length > 0`, 4000);
+  t.check('feel: passing very close to an obstacle gives a "Cerca! +20" bonus', (await ev(`__dp.state`)) === 'running' && /Cerca! \+20/.test(await ev(`__dp.popups[0].text`)) && (await ev(`__dp.stats.close`)) === 1);
+  await ev(`__dp.P.shield = 1; __dp.o.length = 0; __dp.o.push({ type: 'cactus', x: 70, dy: -37, w: 30, h: 39, parts: [{ k: 3, dx: 0, kind: 'cactus' }] })`); await sleep(100);
+  t.check('feel: breaking a shield shakes the screen (and the run goes on)', (await ev(`__dp.shakeT`)) > 0 && (await ev(`__dp.state`)) === 'running' && (await ev(`__dp.P.shield`)) === 0, [await ev(`__dp.shakeT`), await ev(`__dp.state`)]);
+  await ev(`__dp.o.length = 0`);
+
   /* ---- gear: shop accessories with small powers ---- */
   await fresh(`localStorage.setItem('dp-stats', JSON.stringify({ coins: 3000 }))`);
   await click('shop-btn'); await ev(`document.querySelector('[data-stab=gear]').click()`);

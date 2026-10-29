@@ -13,6 +13,7 @@ let items = [], coinsRun = 0, magnetT = 0;                // pickups (see addIte
 let banner = { text: '', t: 0 }, newlyUnlocked = [];
 let runToken = null, lastRank = null, pendingRun = null;
 let biome = 0, biomePrev = 0, biomeT = 1, gear = 'none';   // gear: the accessory worn this run (fixed at the start)   // online ranking (see the ranking section below)
+let bufT = 0, shakeT = 0, popups = [];                // jump buffer, screen shake, floating texts ("Cerca! +20")
 const MIN_H = 75, CUT_V = 4;                           // variable jump: released early => cut once above MIN_H
 const P = { h: 0, vy: 0, doubled: false, shield: 0, ownShield: 0, inv: 0, charge: 0, dodge: 0 };
 
@@ -25,6 +26,7 @@ function reset() {
   night = 0; nightTarget = 0; animT = 0; flapT = 0;
   obstacles = []; dust = [];
   items = []; coinsRun = 0; magnetT = 0;
+  bufT = 0; shakeT = 0; popups = [];
   P.h = 0; P.vy = 0; P.doubled = false; P.inv = 0; P.charge = 0; P.dodge = 0; P.foxCd = 0;
   P.shield = animal.id === 'dog' ? 1 : 0;
   P.ownShield = P.shield;   // the dog's own shield (used first); only it counts for the achievement
@@ -50,6 +52,7 @@ function start() {
 
 function die() {
   state = 'over';
+  shakeT = 16;
   diedAt = performance.now();
   sfx.die();
   stopMusic(0.2);
@@ -65,11 +68,20 @@ function die() {
   showShare(score >= 20);
 }
 
+const JUMP_BUFFER = 9;                                   // frames (~150 ms) a press in the air is remembered
+const FAST_FALL = 10;                                   // down / swipe down in the air: drop at least this fast
+function fastFall() {
+  if (state !== 'running' || P.h <= 0) return;
+  P.vy = Math.min(P.vy, -FAST_FALL); bufT = 0; P.fast = true;
+}
+const NEAR_PAD = 14, NEAR_POINTS = 20;                  // passing this close to an obstacle without touching it: bonus
+function popup(text, color) { popups.push({ text, color, t: 50 }); }
 const BOOTS = () => (gear === 'boots' ? 1.07 : 1);       // spring boots: +7% take-off speed = ~15% higher
 function jump() {
   if (P.h > 0) {
     // cat: one extra jump in mid-air
     if (animal.id === 'cat' && !P.doubled) { P.doubled = true; P.vy = JUMP_V * 0.8 * BOOTS(); sfx.jump(); puff(4); stats.jumps++; stats.doubles++; checkAch(); }
+    else bufT = JUMP_BUFFER;                            // pressed a moment too early: jump as soon as it lands
     return;
   }
   stats.jumps++;
@@ -222,8 +234,11 @@ function update(dt) {
     if (glide) stats.glideSec += dt / 60;
     P.vy -= GRAV * (glide ? 0.3 : 1) * dt;
     P.h += P.vy * dt;
-    if (P.h <= 0) { P.h = 0; P.vy = 0; P.doubled = false; puff(5); }
+    if (P.h <= 0) { P.h = 0; P.vy = 0; P.doubled = false; P.fast = false; puff(5); if (bufT > 0) { bufT = 0; jump(); } }
   } else if (Math.floor(animT) % 18 === 0 && Math.random() < 0.15) puff(1);
+  if (bufT > 0) bufT -= dt;
+  if (shakeT > 0) shakeT -= dt;
+  popups.forEach((p) => { p.t -= dt; }); popups = popups.filter((p) => p.t > 0);
 
   // unlocks
   for (const a of ANIMALS) {
@@ -260,9 +275,14 @@ function update(dt) {
     if (o.type === 'mover' && MOVERS[o.kind].bounce) { o.phase += dt * 0.12; o.dy = o.base - Math.abs(Math.sin(o.phase)) * MOVERS[o.kind].bounce; }
     if (o.type === 'bird') o.f = ((animT / 14) | 0) % 2;
     if (P.inv > 0 && overlap(pb, hitbox(o))) o.hit = true;   // walking through an obstacle while invulnerable is not a dodge
+    else if (!o.close) { const hb = hitbox(o); if (overlap(pb, { x: hb.x - NEAR_PAD, y: hb.y - NEAR_PAD, w: hb.w + 2 * NEAR_PAD, h: hb.h + 2 * NEAR_PAD })) o.close = true; }
     if (!o.counted && o.x + o.w < PX) {               // passed the player without touching: dodged
       o.counted = true;
-      if (!o.hit) { stats.dodged++; if (o.type === 'bird') stats.birds++; checkAch(); }
+      if (!o.hit) {
+        stats.dodged++; if (o.type === 'bird') stats.birds++;
+        if (o.close) { score += NEAR_POINTS; stats.close = (stats.close || 0) + 1; popup(L('Cerca! +', 'Close! +') + NEAR_POINTS, '#7fd0ff'); haptic(12); }   // near miss
+        checkAch();
+      }
     }
     if (o.type === 'bird' && overlap(pb, hitbox(o))) {
       // turtle: birds never hurt it. fox: the first bird passes through, then the dodge recharges (FOX_CD)
@@ -274,6 +294,7 @@ function update(dt) {
         P.shield--; P.inv = INVULN; o.hit = true;
         if (P.ownShield) { P.ownShield = 0; stats.shields++; checkAch(); }   // the achievement is about the dog's own shield
         banner = { text: L('Escudo roto!', 'Shield broken!'), t: 90 };
+        shakeT = 12;
         sfx.die();
         haptic(60);
       } else { die(); break; }

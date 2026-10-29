@@ -18,12 +18,15 @@ no build step: plain HTML, CSS and JavaScript. The game is available in **Spanis
 |---|---|---|
 | Jump | `Space` / `↑` / `W` | Tap the screen |
 | Shorter jump | Let go of the key early | Short tap |
+| Fast fall (in the air) | `↓` / `S` | Swipe down |
 | Pause | `P` / `Esc` | ⏸ button |
 | Fullscreen | `F` | Turns on when you press PLAY |
 | Sound effects | `M` | Menu button |
 | Music | `N` | Menu button |
 
-There is only one action: **jump** (hold to jump higher). Jump over ground obstacles and low and middle birds (the
+There is only one action: **jump** (hold to jump higher), and in the air you can **fast fall**. A jump pressed a
+moment before landing is remembered and happens on touchdown. Passing **very close** to an obstacle without touching
+it gives **+20 points** (*Close!*), and the screen shakes when a shield breaks or you crash. Jump over ground obstacles and low and middle birds (the
 middle ones a bit higher); you can run under high birds without doing anything. Day turns to night every 700
 points, and the speed grows with the score: fast at first and then more and more slowly, getting close to the
 maximum around four minutes into a run (half of the increase arrives at about a minute and a half).
@@ -216,7 +219,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v75';   // -> 'dinopixel-v76', ...
+const CACHE = 'dinopixel-v76';   // -> 'dinopixel-v77', ...
 ```
 
 Install notes:

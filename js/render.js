@@ -200,6 +200,7 @@ const FONT = {
   '.': F('00000/00000/00000/00000/00000/01100/01100'), ':': F('00000/01100/01100/00000/01100/01100/00000'),
   '!': F('00100/00100/00100/00100/00100/00000/00100'), '-': F('00000/00000/00000/11111/00000/00000/00000'),
   '#': F('01010/01010/11111/01010/11111/01010/01010'),
+  '+': F('00000/00100/00100/11111/00100/00100/00000'),
   ',': F('00000/00000/00000/00000/00110/00100/01000'), '?': F('01110/10001/00001/00110/00100/00000/00100'),
 };
 // Accents are drawn as extra cells above a base letter (acute, tilde, diaeresis), so á é í ó ú ñ ü all work.
@@ -262,6 +263,7 @@ function pixText(str, x, y, s, align = 'left', color = '#fff', shadow = true) {
   pass(0, 0, color);
 }
 
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 function drawHUD() {
   const c = col('hud');
   const blink = flash > 0 && Math.floor(flash / 7) % 2 === 0;
@@ -285,12 +287,15 @@ function draw() {
   specks.forEach((s) => { s.x -= v; if (s.x < -8) { s.x = W + rnd(0, 40); s.y = rnd(GROUND + 10, H - 4); } });
   clouds.forEach((c) => { c.x -= v * 0.2 + (state === 'running' ? 0 : 0.1); if (c.x < -80) { c.x = W + rnd(0, 80); c.y = rnd(20, Math.max(40, GROUND - 110)); } });
 
+  ctx.save();
+  if (shakeT > 0 && !reduceMotion.matches) ctx.translate(Math.round(rnd(-1, 1) * shakeT / 3) * 2, Math.round(rnd(-1, 1) * shakeT / 4) * 2);   // shield break / crash
   drawBackground();
   drawObstacles();
   drawItems();
   drawPlayer();
   drawShieldBubble();
   drawBirdWarnings();
+  popups.forEach((p) => { ctx.globalAlpha = Math.min(1, p.t / 15); pixText(p.text, PX + 24, GROUND - P.h - 70 - (50 - p.t) * 0.6, 2, 'center', p.color); ctx.globalAlpha = 1; });
   ctx.fillStyle = '#fff';
   dust.forEach((d) => {
     ctx.globalAlpha = Math.min(1, d.life / 14) * 0.8;
@@ -298,6 +303,7 @@ function draw() {
     ctx.fillRect(Math.round(d.x), Math.round(d.y), 3, 3);
   });
   ctx.globalAlpha = 1;
+  ctx.restore();
   drawHUD();
   // in-run banners only while running: the game over screen lists unlocks and achievements itself (they used to overlap)
   if (banner.t > 0 && state === 'running' && !paused) pixFit(banner.text, 44, 2, '#ffd23f');

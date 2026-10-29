@@ -18,12 +18,15 @@ desbloqueables**, cada uno con su propia habilidad. Se juega en el navegador y s
 |---|---|---|
 | Saltar | `Espacio` / `↑` / `W` | Toca la pantalla |
 | Salto más corto | Suelta la tecla pronto | Toque corto |
+| Caer rápido (en el aire) | `↓` / `S` | Desliza hacia abajo |
 | Pausa | `P` / `Esc` | Botón ⏸ |
 | Pantalla completa | `F` | Se activa al pulsar JUGAR |
 | Efectos de sonido | `M` | Botón del menú |
 | Música | `N` | Botón del menú |
 
-Solo hay una acción: **saltar** (mantén para saltar más alto). Salta los obstáculos del suelo y los pájaros bajos y medios
+Solo hay una acción: **saltar** (mantén para saltar más alto), y en el aire puedes **caer rápido**. Si pulsas saltar un
+instante antes de aterrizar, el salto se guarda y sale al tocar el suelo. Pasar **muy cerca** de un obstáculo sin tocarlo da
+**+20 puntos** (*¡Cerca!*), y la pantalla tiembla al romperse un escudo o al chocar. Salta los obstáculos del suelo y los pájaros bajos y medios
 (estos, un poco más alto); por debajo de los pájaros altos se pasa sin hacer nada. Cada 700 puntos cambia
 entre día y noche, y la velocidad aumenta con la puntuación: rápido al principio y cada vez más despacio, acercándose al máximo hacia
 los cuatro minutos de partida (la mitad del aumento llega hacia el minuto y medio).
@@ -213,7 +216,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v75';   // -> 'dinopixel-v76', ...
+const CACHE = 'dinopixel-v76';   // -> 'dinopixel-v77', ...
 ```
 
 Notas de instalación:

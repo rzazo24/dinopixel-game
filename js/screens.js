@@ -20,13 +20,14 @@ const HELP = {
       <table class="keys">
         <tr><th></th><th>${L('Teclado', 'Keyboard')}</th><th>${L('Táctil', 'Touch')}</th></tr>
         <tr><td>${L('Saltar', 'Jump')}</td><td>${keys(L('ESPACIO', 'SPACE'), '<i data-icon="up"></i>', 'W')}</td><td>${L('Toca', 'Tap')}</td></tr>
+        <tr><td>${L('Caer rápido', 'Fast fall')}</td><td>${keys('<i data-icon="down"></i>', 'S')}</td><td>${L('Desliza abajo', 'Swipe down')}</td></tr>
         <tr><td>${L('Pausa', 'Pause')}</td><td>${keys('P', 'ESC')}</td><td>${L('Botón arriba', 'Top button')}</td></tr>
         <tr><td>${L('Pantalla completa', 'Fullscreen')}</td><td>${keys('F')}</td><td></td></tr>
         <tr><td>${L('Efectos', 'Sounds')}</td><td>${keys('M')}</td><td>${L('Botón del menú', 'Menu button')}</td></tr>
         <tr><td>${L('Música', 'Music')}</td><td>${keys('N')}</td><td>${L('Botón del menú', 'Menu button')}</td></tr>
         <tr><td>${L('Ayuda', 'Help')}</td><td>${keys('H')}</td><td>${L('Botón del menú', 'Menu button')}</td></tr>
       </table>
-      <p class="note">${L('Mantén pulsado para saltar más alto; suelta pronto para un salto corto.', 'Hold to jump higher; let go early for a short hop.')}</p>
+      <p class="note">${L('Mantén pulsado para saltar más alto; suelta pronto para un salto corto. Si pulsas un instante antes de aterrizar, el salto también vale.', 'Hold to jump higher; let go early for a short hop. Pressing a moment before landing still counts.')}</p>
       <h3>${L('Obstáculos', 'Obstacles')}</h3>
       <div class="obs"><span data-sprite="cactus"></span><p>${L('<em>Cactus:</em> salta por encima.', '<em>Cactus:</em> jump over it.')}</p></div>
       <div class="obs"><span data-sprite="bird"></span><p>${L(`<em>Pájaro alto:</em> pasa por debajo sin hacer nada.<br>
@@ -52,6 +53,7 @@ const HELP = {
       'Las <em>monedas</em> dan 10 puntos y se gastan en la <em>tienda</em>: animales, colores, sombreros y <em>accesorios con poderes</em> (botas que saltan más, bufanda que alarga el imán, collar con más monedas y gafas que avisan de los pájaros). Cada <em>escudo</em> aguanta un golpe (se acumulan) y el <em>imán</em> atrae monedas 6 segundos (si coges otro, se suman).',
       'Cada <em>1500 puntos</em> cambias de zona: desierto, nieve, ciudad, selva y volcán, cada una con sus obstáculos.',
       'Desde 800 puntos hay <em>obstáculos que se mueven</em> (planta rodadora, bola de nieve, coche, coco, roca): llegan antes, salta un poco antes.',
+      'Pasar <em>muy cerca</em> de un obstáculo sin tocarlo da <em>+20 puntos</em> ("¡Cerca!").',
       'Cada animal guarda su <em>propio récord</em>.',
       'Si el juego te va muy rápido, baja la <em>velocidad</em> en el menú o en la pausa.',
       '<em>Gato:</em> guarda el segundo salto para corregir un salto corto.',
@@ -64,6 +66,7 @@ const HELP = {
       '<em>Coins</em> give 10 points and are spent in the <em>shop</em>: animals, colors, hats and <em>gear with powers</em> (boots that jump higher, a scarf that boosts the magnet, a collar with more coins and goggles that warn of birds). Each <em>shield</em> takes one hit (they stack) and the <em>magnet</em> pulls coins in for 6 seconds (another one adds 6 more).',
       'Every <em>1500 points</em> you change zone: desert, snow, city, jungle and volcano, each with its own obstacles.',
       'From 800 points there are <em>moving obstacles</em> (tumbleweed, snowball, car, coconut, boulder): they arrive sooner, so jump a little earlier.',
+      'Passing <em>very close</em> to an obstacle without touching it gives <em>+20 points</em> ("Close!").',
       'Each animal keeps its <em>own record</em>.',
       'If the game feels too fast, lower the <em>speed</em> in the menu or the pause screen.',
       '<em>Cat:</em> save the second jump to fix a short one.',

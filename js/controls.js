@@ -184,6 +184,7 @@ document.addEventListener('keydown', (e) => {
       e.preventDefault();
       if (paused) { if (e.code === 'Space') setPaused(false); } else { jumpHeld = true; press(); }
       break;
+    case 'ArrowDown': case 'KeyS': e.preventDefault(); if (!paused) fastFall(); break;
     case 'KeyP': case 'Escape': setPaused(!paused); break;
     case 'KeyF': if (inFs()) leaveFs(); else goFs(); break;
     case 'KeyM': setMuted(!muted); break;
@@ -199,7 +200,11 @@ canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
   if (paused) return;
   jumpHeld = true; press();                                  // tap anywhere: jump (hold for a higher jump)
+  swipeY = e.clientY;
 });
+let swipeY = null;                                           // swipe down in the air: fast fall
+canvas.addEventListener('pointermove', (e) => { if (swipeY !== null && e.clientY - swipeY > 40) { swipeY = null; jumpHeld = false; fastFall(); } });
+canvas.addEventListener('pointerup', () => { swipeY = null; });
 ['pointerup', 'pointercancel', 'pointerleave'].forEach((n) => canvas.addEventListener(n, () => { jumpHeld = false; }));
 document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'running') setPaused(true); });
 window.addEventListener('blur', () => { jumpHeld = false; if (state === 'running') setPaused(true); });
