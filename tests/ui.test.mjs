@@ -45,7 +45,7 @@ try {
   /* ---- static / PWA files ---- */
   const man = await (await fetch(base + '/manifest.json')).json();
   t.check('manifest is valid: fullscreen (no system bars) + landscape + start_url', man.display === 'fullscreen' && man.display_override[0] === 'fullscreen' && man.orientation === 'landscape' && man.start_url === './');
-  t.check('system bar color matches the menu (no light blue strips)', man.theme_color === '#1d2040' && (await ev(`document.querySelector('meta[name=theme-color]').content`)) === '#1d2040');
+  t.check('system bar color matches the menu (no light blue strips)', man.theme_color === '#1d2040' && /<meta name="theme-color" content="#1d2040">/.test(await (await fetch(base + '/index.html')).text()));
   const files = [...man.icons.map((i) => i.src), ...man.screenshots.map((i) => i.src), 'sw.js', 'og-image.png', 'fonts/press-start-2p.woff2'];
   const statuses = await Promise.all(files.map(async (f) => [f, (await fetch(`${base}/${f}`)).status]));
   t.check('icons, screenshots, service worker, preview image and font all exist', statuses.every(([, s]) => s === 200), statuses.filter(([, s]) => s !== 200));
@@ -678,8 +678,8 @@ try {
   const sc2 = await ev(`__dp.score`); await sleep(1000); const sc3 = await ev(`__dp.score`);
   await ev(`clearInterval(window.__clr2)`);
   t.check('rhythm: with x2 the score grows about twice as fast', (sc1 - sc0) / (sc3 - sc2) > 1.6, [sc1 - sc0, sc3 - sc2]);
-  const risky = await ev(`(() => { const r = { low: 0, high: 0 }; for (let i = 0; i < 300; i++) { for (const [k, dy] of [['low', -34], ['high', -100]]) { __dp.items.length = 0; __dp.addItems({ type: 'bird', x: 300, dy, w: 42, h: 27 }); if (__dp.items.some(it => it.v === 2 && it.dy < dy)) r[k]++; } } __dp.items.length = 0; return r; })()`);
-  t.check('rhythm: gold coins (worth 2) sit right above low birds, never by high ones', risky.low > 30 && risky.high === 0, risky);
+  const risky = await ev(`(() => { const r = { low: 0, high: 0 }; for (let i = 0; i < 800; i++) { for (const [k, dy] of [['low', -34], ['high', -100]]) { __dp.items.length = 0; __dp.addItems({ type: 'bird', x: 300, dy, w: 42, h: 27 }); if (__dp.items.some(it => it.v === 2 && it.dy < dy)) r[k]++; } } __dp.items.length = 0; return r; })()`);
+  t.check('rhythm: gold coins (worth 2) sit right above low birds, never by high ones', risky.low > 60 && risky.high === 0, risky);
   const c0r = await ev(`__dp.coinsRun`);
   await ev(`__dp.items.push({ kind: 'coin', v: 2, x: 60, dy: -30, w: 18, h: 18 })`); await sleep(300);
   t.check('rhythm: a gold coin counts as 2', (await ev(`__dp.coinsRun`)) === c0r + 2);
