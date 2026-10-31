@@ -298,13 +298,14 @@ function drawHUD() {
     row.forEach(([t, col]) => { pixText(t, x, y, 2, 'left', col); x += tw(t) + GAP; });
     if (row.length) bottom = y + 14;
   }
-  return Math.max(46, bottom);                                    // where in-run messages may start
+  return Math.max(52, hudBottom + 6, bottom);                     // where in-run messages may start: below the pause button and the coins
 }
 // left edge of the HUD: right of the pause button (measured in logical px; it can be wider than the notch margin)
-let hudLeft = 12;
+let hudLeft = 12, hudBottom = 0;
 function measureHud() {
   const b = $('pause-btn').getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
   hudLeft = Math.max(insetL + 12, b.width ? Math.ceil(b.right * dpr / K) + 10 : 0);
+  hudBottom = b.height ? Math.ceil((b.bottom + 8) * dpr / K) : 0;   // + the button's bevel shadow
 }
 // a stack of centred lines that always fits on screen: it moves up, then shrinks the title, if it would run off the bottom
 function stackLines(lines, y0, top) {
@@ -338,11 +339,16 @@ function draw() {
   });
   ctx.globalAlpha = 1;
   ctx.restore();
-  if (flapT % 30 < 1 || !hudLeft) measureHud();
+  if (!hudBottom || flapT % 30 < 1) measureHud();                // (also right after the stage shows up)
   let my = drawHUD();
   // in-run messages stack under the HUD (the game over screen lists unlocks and achievements itself)
   if (banner.t > 0 && state === 'running' && !paused) my += pixFit(banner.text, my, 2, '#ffd23f');
   if (achShow.t > 0 && state === 'running' && !paused) my += pixFit(L('Logro: ', 'Achievement: ') + achShow.text, my, 2, '#9be564');
+  if (tipShow && state === 'running' && !paused) {                // tutorial tip: white text on a dark band, under the messages
+    dryText = true; const th = pixFit(TIPS[tipShow.id], my, 2); dryText = false;
+    ctx.fillStyle = 'rgba(10,10,30,.6)'; ctx.fillRect(insetL + 6, my - 4, W - insetL - insetR - 12, th + 2);
+    my += pixFit(TIPS[tipShow.id], my, 2, '#ffffff') + 4;
+  }
   // floating texts ("Cerca! +20") follow the player but stay on screen and below the messages
   let py = my + 4;                                                // several at once stack downwards
   popups.forEach((p) => {

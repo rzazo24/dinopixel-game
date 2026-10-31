@@ -130,6 +130,11 @@ open the game are marked by themselves, without notices.
 
 ## Settings
 
+Speed, sound effects, music, volume, vibration, language and **Tips** sit together behind the **Settings** button in
+the menu. **Tips** (tutorial): the first time each thing shows up (jumping, fast fall, birds, coins, gold coins, shield,
+magnet, moving obstacles, combo, near misses, bosses, missions) a short tip appears in the run, only once. They can be
+turned off; turning them back on replays the tutorial.
+
 - **Pause**: Resume, speed, volume, fullscreen, ranking, achievements, help and back to the menu.
 - **Speed** (60–100 %): slows the whole game down evenly. Defaults to 100 % on phones and 80 % on computers.
 - **Volume** (menu and pause button): 25, 50, 75 or 100 %, for music and effects at once, with a beep so you can hear
@@ -240,7 +245,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v81';   // -> 'dinopixel-v82', ...
+const CACHE = 'dinopixel-v82';   // -> 'dinopixel-v83', ...
 ```
 
 Install notes:

@@ -455,6 +455,7 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
 }
 
 /* pause menu: options flow in rows (7 buttons would be a very tall column otherwise) */
+.settings { display: flex; flex-wrap: wrap; gap: 16px 14px; justify-content: center; padding: 8px 4px 12px; }
 .missions { list-style: none; margin: 0 0 12px; padding: 0 16px; font-size: 9px; line-height: 2; text-align: center; }
 .missions li.done { color: #9be564; }
 .pause-opts { display: flex; flex-wrap: wrap; gap: 16px 18px; justify-content: center; max-width: 640px; padding: 0 16px; }

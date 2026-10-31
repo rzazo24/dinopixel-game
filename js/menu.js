@@ -103,6 +103,22 @@ function setMusic(on) {
 $('music').addEventListener('click', (e) => { setMusic(!music.on); e.currentTarget.blur(); });
 setMusic(music.on);
 setMuted(muted);
+/* ---------- settings dialog ---------- */
+const settingsEl = $('settings');
+function setTips(on) {
+  tipsOn = on; store.set('dp-tips', on ? '1' : '0');
+  $('tips').querySelector('span').textContent = on ? L('Consejos: sí', 'Tips: on') : L('Consejos: no', 'Tips: off');
+  $('tips').classList.toggle('off', !on);
+}
+$('tips').addEventListener('click', (e) => {
+  if (!tipsOn) { tipsSeen.length = 0; store.set('dp-tips-seen', '[]'); }   // turning them back on replays the whole tutorial
+  setTips(!tipsOn); e.currentTarget.blur();
+});
+setTips(tipsOn);
+function openSettings() { settingsEl.hidden = false; $('settings-close').focus(); }
+function closeSettings() { settingsEl.hidden = true; $('set-btn').focus(); }
+$('set-btn').addEventListener('click', openSettings);
+$('settings-close').addEventListener('click', closeSettings);
 const MODE_NAME = { normal: L('Normal', 'Normal'), hard: L('Difícil', 'Hard'), zen: L('Zen', 'Zen') };
 const reachedZones = () => BIOMES.filter((_, i) => best >= i * BIOME_LEN).length;   // zen can start in any zone already reached
 function showMode() {
@@ -177,6 +193,6 @@ if (/[?&]test=1/.test(location.search)) {
     ANIMALS, ACH, stats, ach, music, sfx, get master() { return master; }, press, setScore: (v) => { score = v; },
      setJump: (v) => { jumpHeld = v; },
     get P() { return P; }, get o() { return obstacles; }, get state() { return state; }, get score() { return score; },
-    get biome() { return BIOMES[biome].id; }, BIOMES, SONGS, get night() { return night; }, get gear() { return gear; }, fastFall, get popups() { return popups; }, pattern: (n) => { patternQ = PATTERNS[n].slice(); }, get gap() { return gap; }, get combo() { return combo; }, comboMult, get missions() { return missions; }, startMissions, MISSIONS, setMissions: (ids) => { missions = ids.map((id) => ({ m: MISSIONS.find((m) => m.id === id), done: false })); }, get boss() { return boss; }, get mode() { return mode; }, setVars: (o) => { const set = { combo: (v) => { combo = v; }, magnetT: (v) => { magnetT = v; }, banner: (v) => { banner = v; }, achShow: (v) => { achShow = v; }, lastRank: (v) => { lastRank = v; }, newlyUnlocked: (v) => { newlyUnlocked = v; }, coinsRun: (v) => { coinsRun = v; }, popups: (v) => { popups = v; } }; Object.entries(o).forEach(([k, v]) => set[k](v)); }, get runMode() { return runMode; }, get shakeT() { return shakeT; }, addItems, GEAR, gearOf, get banner() { return banner; }, get K() { return K; }, spawn, makeMover, spawnMover: () => { const m = makeMover(); if (m) obstacles.push(m); return m; }, get cloudCode() { return cloudCode; }, cloudSave, snapshot, persist, get daily() { return daily; }, makeDaily, todayStr, yesterdayStr, get dailyDoneRun() { return dailyDoneRun; }, balance, get items() { return items; }, get coinsRun() { return coinsRun; }, get magnetT() { return magnetT; }, get GROUND() { return GROUND; }, get W() { return W; }, get H() { return H; }, get insets() { return [insetL, insetR]; }, textBoxes, get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },
+    get biome() { return BIOMES[biome].id; }, BIOMES, SONGS, get night() { return night; }, get gear() { return gear; }, fastFall, get popups() { return popups; }, pattern: (n) => { patternQ = PATTERNS[n].slice(); }, get gap() { return gap; }, get combo() { return combo; }, comboMult, get missions() { return missions; }, startMissions, MISSIONS, setMissions: (ids) => { missions = ids.map((id) => ({ m: MISSIONS.find((m) => m.id === id), done: false })); }, get boss() { return boss; }, get mode() { return mode; }, get tipShow() { return tipShow; }, tipsSeen, get tipQ() { return tipQ; }, setVars: (o) => { const set = { combo: (v) => { combo = v; }, magnetT: (v) => { magnetT = v; }, banner: (v) => { banner = v; }, achShow: (v) => { achShow = v; }, lastRank: (v) => { lastRank = v; }, newlyUnlocked: (v) => { newlyUnlocked = v; }, coinsRun: (v) => { coinsRun = v; }, popups: (v) => { popups = v; } }; Object.entries(o).forEach(([k, v]) => set[k](v)); }, get runMode() { return runMode; }, get shakeT() { return shakeT; }, addItems, GEAR, gearOf, get banner() { return banner; }, get K() { return K; }, spawn, makeMover, spawnMover: () => { const m = makeMover(); if (m) obstacles.push(m); return m; }, get cloudCode() { return cloudCode; }, cloudSave, snapshot, persist, get daily() { return daily; }, makeDaily, todayStr, yesterdayStr, get dailyDoneRun() { return dailyDoneRun; }, balance, get items() { return items; }, get coinsRun() { return coinsRun; }, get magnetT() { return magnetT; }, get GROUND() { return GROUND; }, get W() { return W; }, get H() { return H; }, get insets() { return [insetL, insetR]; }, textBoxes, get speed() { return speed; }, get best() { return best; }, get newAch() { return newAch; }, get achShow() { return achShow; },
   };
 }

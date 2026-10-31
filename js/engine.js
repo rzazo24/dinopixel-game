@@ -19,6 +19,35 @@ let missions = [], runBest = {}, boss = null, bossZone = -1;
 // and it can start in any zone you have reached). runMode is fixed when a run starts.
 const MODES = ['normal', 'hard', 'zen'];
 let mode = MODES.includes(store.get('dp-mode', 'normal')) ? store.get('dp-mode', 'normal') : 'normal', runMode = 'normal', zenZone = 0, zenStats = null;
+// Tutorial: a short tip the first time each thing shows up (once per device profile; Ajustes > Consejos turns them off / back on)
+let tipsOn = store.get('dp-tips', '1') === '1', tipQ = [], tipShow = null;
+const tipsSeen = jsonList('dp-tips-seen');
+const TIPS = {
+  jump: L('Toca o pulsa espacio para saltar. Mantén para saltar más alto', 'Tap or press space to jump. Hold to jump higher'),
+  fall: L('En el aire, desliza abajo (o pulsa abajo) para caer rápido', 'In the air, swipe down (or press down) to drop fast'),
+  bird: L('Pájaro bajo o medio: sáltalo. Pájaro alto: pasa por debajo', 'Low or middle bird: jump it. High bird: run under it'),
+  coin: L('Monedas: +10 puntos, y se gastan en la tienda', 'Coins: +10 points, and you spend them in the shop'),
+  gold: L('Monedas doradas: valen 2, pero están en sitios con riesgo', 'Gold coins: worth 2, but they sit in risky spots'),
+  shield: L('Escudo: aguanta un golpe. Se acumulan', 'Shield: takes one hit. They stack'),
+  magnet: L('Imán: atrae las monedas cercanas unos segundos', 'Magnet: pulls in nearby coins for a few seconds'),
+  mover: L('Este obstáculo va más rápido que el suelo: salta un poco antes', 'This obstacle moves faster than the ground: jump a bit earlier'),
+  combo: L('Combo: esquiva sin que te den. Con 10, todo puntúa x2', 'Combo: dodge without getting hit. At 10, everything scores x2'),
+  close: L('Por los pelos! Pasar muy cerca de un obstáculo da puntos', 'Close call! Passing very near an obstacle gives points'),
+  boss: L('Jefe de zona: aguanta hasta la zona siguiente para superarlo', 'Zone boss: hold on until the next zone to beat it'),
+  missions: L('Cada partida trae 3 misiones con premio: míralas en la pausa', 'Every run brings 3 missions with a prize: see them in the pause menu'),
+};
+function tip(id) {
+  if (!tipsOn || runMode === 'zen' && id === 'missions' || tipsSeen.includes(id) || tipQ.includes(id) || (tipShow && tipShow.id === id)) return;
+  tipQ.push(id);
+}
+function updateTips(dt) {
+  if (tipShow && (tipShow.t -= dt) <= 0) tipShow = null;
+  if (!tipShow && tipQ.length) {
+    const id = tipQ.shift();
+    tipShow = { id, t: 270 };                            // ~4.5 s each, one at a time
+    tipsSeen.push(id); store.set('dp-tips-seen', JSON.stringify(tipsSeen));
+  }
+}
 const HARD = { start: 7.5, max: 15, birds: 0.45, birdsFrom: 150 };   // this run's mini-missions; the zone boss (end-of-zone wave)   // combo: obstacles dodged in a row without a hit                // jump buffer, screen shake, floating texts ("Cerca! +20")
 const MIN_H = 75, CUT_V = 4;                           // variable jump: released early => cut once above MIN_H
 const P = { h: 0, vy: 0, doubled: false, shield: 0, ownShield: 0, inv: 0, charge: 0, dodge: 0 };
@@ -61,6 +90,8 @@ function start() {
     missions = [];
     banner = { text: L('Modo zen', 'Zen mode'), t: 150 };
   } else startMissions();
+  tipQ = []; tipShow = null;
+  tip('jump'); if (stats.runs > 0 && missions.length) tip('missions');
   if (runMode === 'hard') banner = { text: L('Modo difícil', 'Hard mode'), t: 150 };
   else if (HALLOWEEN && runMode === 'normal') banner = { text: L('Feliz Halloween!', 'Happy Halloween!'), t: 150 };
   state = 'running';
@@ -132,15 +163,18 @@ function addItems(o) {
   const r = Math.random();
   if (score > 400 && r < 0.07) {
     items.push({ kind: Math.random() < 0.5 ? 'shield' : 'magnet', x: o.x + o.w + 120, dy: -80, w: 18, h: 18 });
+    tip(items[items.length - 1].kind);
     return;
   }
   if (score < 50 || r > (gear === 'collar' ? 0.85 : 0.5)) return;   // lucky collar: coins after most obstacles
   // risky spots (from 500 points): gold coins worth 2, right above a low/mid bird or high over a cactus (a full jump)
   if (score > RISKY_FROM && Math.random() < 0.3 && !(o.type === 'bird' && o.dy === BIRD_HIGH)) {
     const top = o.type === 'bird' ? o.dy - 22 : -(o.h + 78);
+    tip('gold');
     for (let i = 0; i < 3; i++) items.push({ kind: 'coin', v: 2, x: o.x + o.w / 2 - 27 + i * 18, dy: top - 18, w: 18, h: 18 });
     return;
   }
+  tip('coin');
   if (o.type === 'cactus' && Math.random() < 0.6) {
     const n = 5, cx = o.x + o.w / 2, span = 150;
     for (let i = 0; i < n; i++) {
@@ -184,6 +218,7 @@ function makeMover() {
 }
 function spawnBird(top) {
   const lead = BIRD_LEAD();                      // goggles: the bird is placed further out and everything after it shifts too
+  tip('bird');
   obstacles.push({ type: 'bird', x: W + 20 + lead, dy: top, w: 14 * S, h: 9 * S });
   addItems(obstacles[obstacles.length - 1]);
   return lead;
@@ -234,7 +269,7 @@ function spawn() {
   }
   const birdOK = runMode === 'hard' ? score > HARD.birdsFrom && Math.random() < HARD.birds : score > 300 && Math.random() < 0.3;
   const mover = !birdOK && score > MOVER_FROM && Math.random() < 0.25 ? makeMover() : null;
-  if (mover) obstacles.push(mover);
+  if (mover) { obstacles.push(mover); tip('mover'); }
   else if (birdOK) lead = spawnBird([BIRD_HIGH, BIRD_MID, BIRD_LOW][(Math.random() * 3) | 0]);
   else spawnCactus(1 + ((Math.random() * (score > 150 ? 3 : 2)) | 0));
   gap = speed * 30 + 120 + rnd(0, 260);
@@ -320,6 +355,8 @@ function update(dt) {
     P.h += P.vy * dt;
     if (P.h <= 0) { P.h = 0; P.vy = 0; P.doubled = false; P.fast = false; puff(5); if (bufT > 0) { bufT = 0; jump(); } }
   } else if (Math.floor(animT) % 18 === 0 && Math.random() < 0.15) puff(1);
+  if (P.h > 70 && P.vy < 0 && !P.fast) tip('fall');
+  updateTips(dt);
   if (bufT > 0) bufT -= dt;
   if (shakeT > 0) shakeT -= dt;
   popups.forEach((p) => { p.t -= dt; }); popups = popups.filter((p) => p.t > 0);
@@ -344,7 +381,7 @@ function update(dt) {
   if (!boss && bossZone < zn && score >= MOVER_FROM && score % BIOME_LEN >= BIOME_LEN - BOSS_LEN) {
     bossZone = zn; boss = { zone: BIOMES[biome].id };
     patternQ = [];
-    banner = { text: BOSS_NAME[boss.zone] + '!', t: 150 }; sfx.power(); shakeT = 8;
+    banner = { text: BOSS_NAME[boss.zone] + '!', t: 150 }; sfx.power(); shakeT = 8; tip('boss');
   }
   if (boss && score % BIOME_LEN < BIOME_LEN - BOSS_LEN) {
     boss = null; score += BOSS_POINTS; stats.bosses = (stats.bosses || 0) + 1;
@@ -377,8 +414,9 @@ function update(dt) {
       if (!o.hit) {
         stats.dodged++; if (o.type === 'bird') stats.birds++;
         const m0 = comboMult(); combo++; stats.bestCombo = Math.max(stats.bestCombo || 0, combo); runBest.combo = Math.max(runBest.combo || 0, combo);
+        if (combo >= 3) tip('combo');
         if (comboMult() > m0) { popup('Combo x' + comboMult() + '!', '#ffd23f'); sfx.mile(); }
-        if (o.close) { score += NEAR_POINTS * comboMult(); stats.close = (stats.close || 0) + 1; popup(L('Cerca! +', 'Close! +') + NEAR_POINTS, '#7fd0ff'); haptic(12); }   // near miss
+        if (o.close) { score += NEAR_POINTS * comboMult(); stats.close = (stats.close || 0) + 1; popup(L('Cerca! +', 'Close! +') + NEAR_POINTS, '#7fd0ff'); haptic(12); tip('close'); }   // near miss
         checkAch();
       }
     }

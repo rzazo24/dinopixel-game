@@ -733,6 +733,9 @@ try {
 
   /* ---- layout: in-run texts never overlap each other nor leave the screen, even when everything shows at once ---- */
   const textClash = `(() => { const b = __dp.textBoxes.filter(x => x.w > 0), bad = [];
+    const r = document.getElementById('pause-btn').getBoundingClientRect(), k = (window.devicePixelRatio || 1) / __dp.K;
+    const pb = { x: r.left * k, y: r.top * k, w: r.width * k, h: (r.height + 8) * k };   // the pause button sits on top of the canvas
+    b.push({ t: 'pause button', ...pb });
     for (const x of b) if (x.x < 0 || x.y < 0 || x.x + x.w > __dp.W || x.y + x.h > __dp.H) bad.push('off:' + x.t);
     for (let i = 0; i < b.length; i++) for (let j = i + 1; j < b.length; j++) { const p = b[i], q = b[j];
       if (p.x < q.x + q.w && p.x + p.w > q.x && p.y < q.y + q.h && p.y + p.h > q.y) bad.push(p.t + ' / ' + q.t); }
@@ -755,6 +758,31 @@ try {
   }
   await chrome.send('Emulation.clearDeviceMetricsOverride');
   await fresh();
+
+  /* ---- settings dialog and tutorial tips ---- */
+  await fresh();
+  t.check('settings: the menu has an Ajustes button and no sound/speed buttons of its own', !(await hidden('set-btn')) && (await ev(`document.querySelector('.actions #pace, .actions #mute, .actions #music, .actions #vol, .actions #lang')`)) === null);
+  await click('set-btn');
+  t.check('settings: Ajustes opens with speed, sounds, music, volume, language and tips', !(await hidden('settings')) && (await ev(`['pace','mute','music','vol','lang','tips'].every(id => document.querySelector('#settings #' + id))`)));
+  await click('mute');
+  t.check('settings: its buttons still work (Efectos -> Sin efectos)', /Sin efectos/.test(await ev(`document.querySelector('#mute span').textContent`)));
+  await click('mute'); await esc();
+  t.check('settings: Escape closes it', await hidden('settings'));
+  await startRun('dino');
+  t.check('tutorial: the first run shows the jump tip', (await ev(`__dp.tipShow && __dp.tipShow.id`)) === 'jump' && (await ev(`__dp.tipsSeen.includes('jump')`)));
+  await noObstacles(); await grounded();
+  await ev(`__dp.setScore(400); __dp.pattern('sandwich'); for (let i = 0; i < 3; i++) __dp.spawn(); __dp.o.length = 0`);
+  t.check('tutorial: the first bird queues its tip', (await ev(`__dp.tipQ.includes('bird') || __dp.tipsSeen.includes('bird')`)));
+  t.check('tutorial: the tip is drawn on screen', (await ev(`__dp.textBoxes.some(b => /saltar/.test(b.t))`)));
+  await ev(`document.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyP'}))`); await sleep(200); await click('home'); await sleep(300);
+  await startRun('dino');
+  t.check('tutorial: a tip is shown only once', (await ev(`__dp.tipShow && __dp.tipShow.id`)) !== 'jump');
+  await ev(`document.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyP'}))`); await sleep(200); await click('home'); await sleep(300);
+  await click('set-btn'); await click('tips');
+  t.check('tutorial: Consejos can be turned off (device setting)', /no/.test(await ev(`document.querySelector('#tips span').textContent`)) && (await ev(`localStorage.getItem('dp-tips')`)) === '0' && !('dp-tips' in (await ev(`__dp.snapshot().keys`))));
+  await click('tips');
+  t.check('tutorial: turning them back on replays the tutorial', (await ev(`__dp.tipsSeen.length`)) === 0);
+  await click('settings-close');
 
   /* ---- gear: shop accessories with small powers ---- */
   await fresh(`localStorage.setItem('dp-stats', JSON.stringify({ coins: 3000 }))`);

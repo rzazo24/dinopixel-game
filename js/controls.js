@@ -31,6 +31,7 @@ const ICONS = {
   target: ['00111100', '01000010', '10011001', '10111101', '10111101', '10011001', '01000010', '00111100'],
   check: ['00000000', '00000001', '00000011', '10000110', '11001100', '01111000', '00110000', '00000000'],
   globe: ['00111100', '01011010', '10011001', '11111111', '10011001', '10011001', '01011010', '00111100'],
+  gear: ['00011000', '01111110', '01100110', '11000011', '11000011', '01100110', '01111110', '00011000'],
   cloud: ['00000000', '00111000', '01111100', '01111110', '11111111', '11111111', '01111110', '00000000'],
   phone: [                                       // a phone: thin bezel, big screen, speaker slit, home button
     '011111110', '111111111', '111000111', '111111111', '100000001', '100000001', '100000001', '100000001',
@@ -182,6 +183,7 @@ document.addEventListener('keydown', (e) => {
   if (!shopEl.hidden) { if (e.code === 'Escape') { e.preventDefault(); closeShop(); } return; }
   if (!achEl.hidden) { if (e.code === 'Escape') { e.preventDefault(); closeAch(); } return; }
   if (!rankEl.hidden) { if (e.code === 'Escape') { e.preventDefault(); closeRank(); } return; }
+  if (!settingsEl.hidden) { if (e.code === 'Escape') { e.preventDefault(); closeSettings(); } return; }
   if (!help.hidden) { if (e.code === 'Escape' || e.code === 'KeyH') { e.preventDefault(); closeHelp(); } return; }
   if (e.code === 'KeyH') { e.preventDefault(); if (inGame) setPaused(true); openHelp(); return; }
   if (!inGame) {

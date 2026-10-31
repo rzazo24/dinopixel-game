@@ -132,6 +132,11 @@ navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos
 
 ## Ajustes
 
+Velocidad, efectos, música, volumen, vibración, idioma y **Consejos** están juntos en el botón **Ajustes** del menú.
+**Consejos** (tutorial): la primera vez que aparece cada cosa (saltar, caer rápido, pájaros, monedas, monedas doradas,
+escudo, imán, obstáculos que se mueven, combo, esquivas por los pelos, jefes, misiones) sale un consejo corto en la
+partida, una sola vez. Se pueden quitar; al volver a activarlos, el tutorial empieza de nuevo.
+
 - **Pausa**: Seguir, velocidad, volumen, pantalla completa, ranking, logros, ayuda y volver al menú.
 - **Velocidad** (60–100 %): ralentiza todo el juego por igual. Por defecto 100 % en móvil y 80 % en PC.
 - **Volumen** (botón del menú y de la pausa): 25, 50, 75 o 100 %, para música y efectos a la vez, con un pitido para
@@ -239,7 +244,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v81';   // -> 'dinopixel-v82', ...
+const CACHE = 'dinopixel-v82';   // -> 'dinopixel-v83', ...
 ```
 
 Notas de instalación:

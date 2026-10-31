@@ -52,16 +52,11 @@
   <div class="actions">
     <button id="mode" class="small" type="button"><i data-icon="target"></i><span>Modo</span></button>
     <button id="zone" class="small" type="button" hidden><i data-icon="home"></i><span>Zona</span></button>
-    <button id="pace" class="small" type="button" data-en="Speed"><i data-icon="bolt"></i><span>Velocidad</span></button>
-    <button id="mute" class="small" type="button" data-en="Sounds"><i data-icon="sound"></i><span>Efectos</span></button>
-    <button id="music" class="small" type="button" data-en="Music"><i data-icon="note"></i><span>Música</span></button>
-    <button id="vol" class="small" type="button" data-en="Volume"><i data-icon="volume"></i><span>Volumen</span></button>
-    <button id="vibe" class="small" type="button" hidden data-en="Vibration"><i data-icon="vibrate"></i><span>Vibración</span></button>
     <button id="shop-btn" class="small" type="button" data-en="Shop"><i data-icon="cart"></i><span>Tienda</span></button>
     <button id="ach-btn" class="small" type="button" data-en="Achievements"><i data-icon="medal"></i><span>Logros</span></button>
     <button id="rank-btn" class="small" type="button" data-en="Ranking"><i data-icon="trophy"></i><span>Ranking</span></button>
+    <button id="set-btn" class="small" type="button" data-en="Settings"><i data-icon="gear"></i><span>Ajustes</span></button>
     <button id="help-btn" class="small" type="button" data-en="Help"><i data-icon="help"></i><span>Ayuda</span></button>
-    <button id="lang" class="small" type="button"><i data-icon="globe"></i><span>English</span></button>
     <button id="install" class="small" type="button" hidden data-en="Install"><i data-icon="download"></i><span>Instalar</span></button>
   </div>
 </main>
@@ -163,6 +158,21 @@
       <button id="rank-close" class="small" type="button" data-en="Close"><i data-icon="close"></i><span>Cerrar</span></button>
     </div>
     <p class="rank-privacy" data-en="We store your nickname, your best score and a random id. Nothing else.">Se guardan tu apodo, tu mejor puntuación y un id aleatorio. Nada más.</p>
+  </div>
+</div>
+<div id="settings" class="help" hidden role="dialog" aria-modal="true" aria-label="Ajustes" data-en-label="Settings">
+  <div class="help-box daily-box">
+    <h2 data-en="SETTINGS">AJUSTES</h2>
+    <div class="help-body settings" id="settings-body" tabindex="0">
+      <button id="pace" class="small" type="button" data-en="Speed"><i data-icon="bolt"></i><span>Velocidad</span></button>
+      <button id="mute" class="small" type="button" data-en="Sounds"><i data-icon="sound"></i><span>Efectos</span></button>
+      <button id="music" class="small" type="button" data-en="Music"><i data-icon="note"></i><span>Música</span></button>
+      <button id="vol" class="small" type="button" data-en="Volume"><i data-icon="volume"></i><span>Volumen</span></button>
+      <button id="vibe" class="small" type="button" hidden data-en="Vibration"><i data-icon="vibrate"></i><span>Vibración</span></button>
+      <button id="lang" class="small" type="button"><i data-icon="globe"></i><span>English</span></button>
+      <button id="tips" class="small" type="button"><i data-icon="help"></i><span>Consejos</span></button>
+    </div>
+    <button id="settings-close" class="small" type="button" data-en="Close"><i data-icon="close"></i><span>Cerrar</span></button>
   </div>
 </div>
 <div id="help" class="help" hidden role="dialog" aria-modal="true" aria-label="Ayuda" data-en-label="Help">

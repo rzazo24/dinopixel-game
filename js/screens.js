@@ -25,6 +25,7 @@ const HELP = {
         <tr><td>${L('Pantalla completa', 'Fullscreen')}</td><td>${keys('F')}</td><td></td></tr>
         <tr><td>${L('Efectos', 'Sounds')}</td><td>${keys('M')}</td><td>${L('Botón del menú', 'Menu button')}</td></tr>
         <tr><td>${L('Música', 'Music')}</td><td>${keys('N')}</td><td>${L('Botón del menú', 'Menu button')}</td></tr>
+        <tr><td>${L('Ajustes', 'Settings')}</td><td></td><td>${L('Botón del menú', 'Menu button')}</td></tr>
         <tr><td>${L('Ayuda', 'Help')}</td><td>${keys('H')}</td><td>${L('Botón del menú', 'Menu button')}</td></tr>
       </table>
       <p class="note">${L('Mantén pulsado para saltar más alto; suelta pronto para un salto corto. Si pulsas un instante antes de aterrizar, el salto también vale.', 'Hold to jump higher; let go early for a short hop. Pressing a moment before landing still counts.')}</p>
