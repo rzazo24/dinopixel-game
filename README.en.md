@@ -240,12 +240,12 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v80';   // -> 'dinopixel-v81', ...
+const CACHE = 'dinopixel-v81';   // -> 'dinopixel-v82', ...
 ```
 
 Install notes:
 
-- **Android (Chrome):** ⋮ menu → *Install app*. It opens in landscape without browser bars.
+- **Android (Chrome):** ⋮ menu → *Install app*. It opens in landscape and fullscreen, with no status bar or system buttons. If it was already installed, Chrome updates the app by itself within a day or so; to see it now, uninstall and install it again.
 - **iPhone/iPad:** Safari → Share → *Add to Home Screen*. iOS doesn't allow locking the orientation or vibrating;
   if the phone is upright, the game asks you to turn it.
 - If you had installed an old version as a shortcut, delete it and install it again.

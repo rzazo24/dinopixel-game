@@ -44,7 +44,8 @@ const airTime = async (script) => {
 try {
   /* ---- static / PWA files ---- */
   const man = await (await fetch(base + '/manifest.json')).json();
-  t.check('manifest is valid: standalone + landscape + start_url', man.display === 'standalone' && man.orientation === 'landscape' && man.start_url === './');
+  t.check('manifest is valid: fullscreen (no system bars) + landscape + start_url', man.display === 'fullscreen' && man.display_override[0] === 'fullscreen' && man.orientation === 'landscape' && man.start_url === './');
+  t.check('system bar color matches the menu (no light blue strips)', man.theme_color === '#1d2040' && (await ev(`document.querySelector('meta[name=theme-color]').content`)) === '#1d2040');
   const files = [...man.icons.map((i) => i.src), ...man.screenshots.map((i) => i.src), 'sw.js', 'og-image.png', 'fonts/press-start-2p.woff2'];
   const statuses = await Promise.all(files.map(async (f) => [f, (await fetch(`${base}/${f}`)).status]));
   t.check('icons, screenshots, service worker, preview image and font all exist', statuses.every(([, s]) => s === 200), statuses.filter(([, s]) => s !== 200));
