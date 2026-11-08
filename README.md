@@ -94,6 +94,17 @@ Durante esos días el juego se disfraza solo, sin tocar nada:
 
 Para probarlo fuera de fecha: `?season=halloween` en la URL (y `?season=off` para quitarlo).
 
+## Navidad (del 15 de diciembre al 6 de enero)
+
+- **Ambiente:** **nieva** en todas las zonas, las monedas son **regalos** y salen **árboles de Navidad** entre los
+  obstáculos. El menú se viste de verde y rojo, con nieve cayendo, dos árboles y un *¡Feliz Navidad!*.
+- **Tienda de temporada:** gorros **Reno** y **Gorro de elfo** (300), y colores **Elfo** y **Jengibre** (300).
+  Solo se venden esos días, pero lo que compres se queda para siempre.
+- **Reto especial el 25:** recoge 25 regalos en una partida (100 monedas).
+- **Logro *Feliz Navidad*:** recoge 100 regalos en Navidad.
+
+Para probarlo fuera de fecha: `?season=christmas`.
+
 ## Modos
 
 Botón **Modo** del menú (se recuerda en cada dispositivo):
@@ -127,7 +138,7 @@ Los récords se guardan por animal en el navegador (`localStorage`).
 
 26 logros con aviso en pantalla al conseguirlos y una pantalla **Logros** (botón del menú) con el progreso de cada
 uno. Entre ellos: puntuaciones (500 a 7000), partidas jugadas, saltos, obstáculos y pájaros esquivados, monedas (100 y 1000), aguantar 2 minutos, uno por habilidad (doble salto del gato, escudo del perro, planeo de la gallina, deslizar del
-pingüino), 1500 con cada animal, desbloquear los 9, entrar en el top 3 del ranking, ser el número 1 de la semana, completar 7 retos diarios, un combo de 50, compartir y recoger 100 caramelos en Halloween. Se guardan en el
+pingüino), 1500 con cada animal, desbloquear los 9, entrar en el top 3 del ranking, ser el número 1 de la semana, completar 7 retos diarios, un combo de 50, compartir, recoger 100 caramelos en Halloween y 100 regalos en Navidad. Se guardan en el
 navegador (`localStorage`); los que ya cumplas al abrir el juego se marcan solos, sin avisos.
 
 ## Ajustes
@@ -244,7 +255,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v82';   // -> 'dinopixel-v83', ...
+const CACHE = 'dinopixel-v83';   // -> 'dinopixel-v84', ...
 ```
 
 Notas de instalación:

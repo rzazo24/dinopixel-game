@@ -586,5 +586,20 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
 .spooky .pumpkin { bottom: max(10px, env(safe-area-inset-bottom)); animation: glow 2.4s ease-in-out infinite; }
 @keyframes flutter { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(14px, -10px); } }
 @keyframes glow { 0%, 100% { filter: drop-shadow(0 0 2px #ff8a1a); } 50% { filter: drop-shadow(0 0 10px #ffb347); } }
+/* ---------- Christmas (html.christmas while CHRISTMAS is on): pine green and red, snow and trees from menu.js ---------- */
+.christmas {
+  --bg: #0f2a22;
+  --panel: #1f4a3a;
+  --accent: #e53935;
+  --shadow: #06140f;
+}
+.christmas body { background: radial-gradient(ellipse at 50% 0%, #1f5a44 0%, var(--bg) 60%) fixed var(--bg); }
+.christmas .big:hover { --face: #ff6b6b; }
+.christmas .small:hover, .christmas .pick:hover, .christmas .pick.on { --face: #2a6a52; }
+.christmas .pick.on { --edge: var(--accent); }
+.christmas h1 { text-shadow: 4px 4px 0 #8a1f1f; }
+.xmas .flake { position: absolute; top: -8px; width: 4px; height: 4px; background: #fff; opacity: .8; animation: snowfall 7s linear infinite; }
+.xmas .tree { bottom: max(10px, env(safe-area-inset-bottom)); animation: glow 2.4s ease-in-out infinite; }
+@keyframes snowfall { to { transform: translate(-30px, 105vh); } }
 main { position: relative; z-index: 1; }
-@media (prefers-reduced-motion: reduce) { .spooky canvas { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .spooky canvas, .xmas .flake { animation: none; } .xmas .flake { display: none; } }

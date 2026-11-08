@@ -15,16 +15,23 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, v); } catch { /* storage unavailable */ } },
 };
-// Halloween season: Oct 24 - Nov 2 (bats, candies, pumpkins, a graveyard zone, seasonal shop items).
-// ?season=halloween / ?season=off forces it (tests).
-const HALLOWEEN = (() => {
+// Seasons: Halloween Oct 24 - Nov 2 (bats, candies, pumpkins, a graveyard zone, seasonal shop items),
+// Christmas Dec 15 - Jan 6 (falling snow, presents, Christmas trees, seasonal shop items).
+// ?season=halloween / ?season=christmas / ?season=off forces it (tests).
+const SEASON = (() => {
   const q = /[?&]season=(\w+)/.exec(location.search);
-  if (q) return q[1] === 'halloween';
+  if (q) return ['halloween', 'christmas'].includes(q[1]) ? q[1] : null;
   const d = new Date(), m = d.getMonth(), day = d.getDate();
-  return (m === 9 && day >= 24) || (m === 10 && day <= 2);
+  if ((m === 9 && day >= 24) || (m === 10 && day <= 2)) return 'halloween';
+  if ((m === 11 && day >= 15) || (m === 0 && day <= 6)) return 'christmas';
+  return null;
 })();
-document.documentElement.classList.toggle('halloween', HALLOWEEN);
-if (HALLOWEEN) document.querySelector('meta[name=theme-color]').setAttribute('content', '#1c0f2e');   // system bars, if any, blend with the menu   // Halloween colors for the menu and screens (style.css)
+const HALLOWEEN = SEASON === 'halloween', CHRISTMAS = SEASON === 'christmas';
+const SEASON_NAME = { halloween: 'Halloween', christmas: L('Navidad', 'Christmas') };
+const inSeason = (x, owned) => !x.season || x.season === SEASON || owned.includes(x.id);   // seasonal shop items: on sale only in season, kept forever
+document.documentElement.classList.toggle('halloween', HALLOWEEN);   // seasonal colors for the menu and screens (style.css)
+document.documentElement.classList.toggle('christmas', CHRISTMAS);
+if (SEASON) document.querySelector('meta[name=theme-color]').setAttribute('content', HALLOWEEN ? '#1c0f2e' : '#0f2a22');   // system bars, if any, blend with the menu
 const pad = (n) => String(Math.floor(n)).padStart(5, '0');
 
 const DAY = { skyT: '#6ec6f0', skyB: '#d4f1fc', hill1: '#a8dba0', hill2: '#7cc47a', ground: '#e0c48a', lip: '#8a6a3a', speck: '#b89860', cloud: '#ffffff', hud: '#2c2c2c' };

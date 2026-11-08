@@ -206,9 +206,11 @@ const SKINS = [
   { id: 'shadow', name: L('Sombra', 'Shadow'), price: 300, f: (h, s, l) => [h, s * 0.15, l * 0.55] },
   { id: 'ice', name: L('Hielo', 'Ice'), price: 300, f: (h, s, l) => [195, s * 0.8, Math.min(0.85, l + 0.1)] },
   { id: 'candy', name: L('Chicle', 'Bubblegum'), price: 300, f: (h, s, l) => [320, Math.max(s, 0.6), Math.min(0.8, l + 0.05)] },
-  // seasonal: only on sale during Halloween (see HALLOWEEN in helpers.js); once bought they stay
+  // seasonal: only on sale during their season (see SEASON in helpers.js); once bought they stay
   { id: 'zombie', name: L('Zombi', 'Zombie'), price: 300, season: 'halloween', f: (h, s, l) => [95, s * 0.4 + 0.1, l * 0.85] },
   { id: 'ghost', name: L('Fantasma', 'Ghost'), price: 300, season: 'halloween', f: (h, s, l) => [235, s * 0.12, Math.min(0.88, l * 0.45 + 0.5)] },
+  { id: 'elf', name: L('Elfo', 'Elf'), price: 300, season: 'christmas', f: (h, s, l) => [130, Math.max(s, 0.55), l * 0.9] },
+  { id: 'ginger', name: L('Jengibre', 'Gingerbread'), price: 300, season: 'christmas', f: (h, s, l) => [28, Math.max(s, 0.55), l * 0.75] },
 ];
 function hexToHsl(hex) {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.substr(i, 2), 16) / 255);
@@ -282,6 +284,8 @@ const HATS = [
   { id: 'crown', name: L('Corona', 'Crown'), price: 600, rows: ['y..y..y', 'yy.y.yy', 'yyyyyyy', 'yryybyy'], pal: { y: '#ffd23f', r: '#e53935', b: '#3f7fe0' } },
   { id: 'witch', name: L('Bruja', 'Witch'), price: 250, season: 'halloween', rows: ['.....k...', '....kk...', '...kkk...', '...kkkk..', '..kpppk..', 'kkkkkkkkk'], pal: { k: '#2c1f3a', p: '#8e44ad' } },
   { id: 'pumpkin', name: L('Calabaza', 'Pumpkin'), price: 350, season: 'halloween', rows: ['...gg..', '.ooOoo.', 'ooyOyoo', 'oOoOoOo', '.ooOoo.'], pal: { o: '#f28a1a', O: '#c4600e', g: '#3a7a2a', y: '#ffd23f' } },
+  { id: 'antlers', name: L('Reno', 'Reindeer'), price: 300, season: 'christmas', rows: ['b.b...b.b', 'bb.....bb', '.bb...bb.', '..bbbbb..'], pal: { b: '#7a4a24' } },
+  { id: 'elfhat', name: L('Gorro de elfo', 'Elf hat'), price: 300, season: 'christmas', rows: ['......y', '.....gg', '....ggg', '...gggg', '..ggggg', '.rrrrrrr'], pal: { g: '#2e9a4a', r: '#d32f2f', y: '#ffd23f' } },
 ];
 HATS.forEach((h) => { if (h.rows) h.img = sprite(h.rows, h.pal); });
 // an animal frame with a hat on it: a taller canvas (HAT_PAD more rows on top)
@@ -319,6 +323,12 @@ const CANDY_PAL = { o: '#b06ad8', c: '#ff8a1a', w: '#fff2c0', b: '#ffd23f' };
 const CANDY_IMGS = [
   sprite(['o.....o', 'oocccoo', 'ocwccco', 'occcbco', 'ocbccco', 'oocccoo', 'o.....o'], CANDY_PAL),
   sprite(['...o...', '..ooo..', '..cwc..', '..ccc..', '..cbc..', '..ooo..', '...o...'], CANDY_PAL),
+];
+// Christmas: coins become presents (same spin: face / edge)
+const GIFT_PAL = { r: '#d32f2f', R: '#9a1f1f', y: '#ffd23f' };
+const GIFT_IMGS = [
+  sprite(['.y...y.', '..y.y..', 'rrryrrr', 'yyyyyyy', 'rrryrrR', 'rrryrrR', 'RRRyRRR'], GIFT_PAL),
+  sprite(['...y...', '...y...', '..ryr..', '..yyy..', '..ryR..', '..ryR..', '..RyR..'], GIFT_PAL),
 ];
 const SHIELD_IMG = sprite([
   '..ccccc..', '.cwwbbbc.', 'cwbbbbbbc', 'cbbbbbbbc', 'cbbbbbbbc', 'cbbbbbbbc', 'cbbbbbbbc', '.cbbbbbc.', '..ccccc..',
@@ -395,6 +405,10 @@ const OBST = {
     '..........', '..........', '..........', '....g.....', '....gg....', '..oOooOo..', '.oOooooOo.',
     'oOyooooyOo', 'oOooooooOo', 'oOyyyyyyOo', 'oOoyoyoyOo', '.oOooooOo.', '..oooooo..',
   ], { o: '#f28a1a', O: '#c4600e', g: '#3a7a2a', y: '#ffd23f' }),
+  xtree: sprite([                                       // Christmas: next to the usual obstacles in every zone
+    '....yy....', '....yy....', '....gg....', '...gggg...', '..ggrggg..', '...gggg...', '..ggggbg..',
+    '.gyggggrg.', '..gggggg..', '.ggbggyggg', 'ggggrggggg', '....tt....', '...tttt...',
+  ], { g: '#2f8a4a', y: '#ffd23f', r: '#e53935', b: '#4fc3f7', t: '#6b4426' }),
   tomb: sprite([
     '..........', '..........', '...ssss...', '..ssssss..', '.ssssssss.', '.ssssSsss.', '.sssSSSss.',
     '.ssssSsss.', '.ssssSsss.', '.ssssssss.', '.ssssssss.', '.ssssssss.', 'gggggggggg',

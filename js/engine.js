@@ -54,6 +54,7 @@ const P = { h: 0, vy: 0, doubled: false, shield: 0, ownShield: 0, inv: 0, charge
 
 const specks = Array.from({ length: 110 }, () => ({ x: rnd(0, 1400), y: rnd(GROUND + 10, H - 4), w: Math.floor(rnd(1, 4)) * 2 }));
 const clouds = Array.from({ length: 7 }, (_, i) => ({ x: i * 170 + rnd(0, 60), y: rnd(20, Math.max(40, GROUND - 110)), s: rnd(3, 5) | 0 }));
+const snow = Array.from({ length: 60 }, () => ({ x: rnd(0, 1400), y: rnd(0, 400), v: rnd(0.6, 1.4), p: rnd(0, 6) }));   // Christmas snowfall
 const stars = Array.from({ length: 70 }, () => ({ x: rnd(0, 1400), y: rnd(4, 220), p: rnd(0, 6) }));
 
 function reset() {
@@ -94,6 +95,7 @@ function start() {
   tip('jump'); if (stats.runs > 0 && missions.length) tip('missions');
   if (runMode === 'hard') banner = { text: L('Modo difícil', 'Hard mode'), t: 150 };
   else if (HALLOWEEN && runMode === 'normal') banner = { text: L('Feliz Halloween!', 'Happy Halloween!'), t: 150 };
+  else if (CHRISTMAS && runMode === 'normal') banner = { text: L('Feliz Navidad!', 'Merry Christmas!'), t: 150 };
   state = 'running';
   stopMusic(0.05); startMusic(true);
   lastRank = null;
@@ -192,6 +194,7 @@ function collect(it) {
     if (v > 1) runBest.gold = (runBest.gold || 0) + 1;
     score += COIN_POINTS * v * comboMult(); coinsRun += v; stats.coins += v;
     if (HALLOWEEN) stats.candy += v;                       // coins are candies at Halloween ("Truco o trato")
+    if (CHRISTMAS) stats.gifts += v;                       // and presents at Christmas ("Feliz Navidad")
     sfx.coin(); checkAch();
   } else if (it.kind === 'shield') {
     P.shield++; sfx.power(); banner = { text: (P.shield > 1 ? L('Escudo x', 'Shield x') + P.shield : L('Escudo', 'Shield')) + '!', t: 90 };   // shields stack
@@ -230,7 +233,7 @@ function spawnCactus(n, bigOK = true) {
     const big = bigOK && n < 3 && Math.random() < 0.4;   // 3-cactus groups stay small so they remain jumpable
     const k = big ? 4 : 3;
     const kinds = BIOMES[biome].obs;
-    const kind = HALLOWEEN && Math.random() < 0.2 ? 'pumpkin' : kinds[(Math.random() * kinds.length) | 0];   // Halloween: pumpkins among the cacti
+    const kind = SEASON && Math.random() < 0.2 ? (HALLOWEEN ? 'pumpkin' : 'xtree') : kinds[(Math.random() * kinds.length) | 0];   // pumpkins / Christmas trees among the cacti
     parts.push({ k, dx: w, kind });
     w += 10 * k + 6;
     h = Math.max(h, 13 * k);

@@ -74,7 +74,7 @@ try {
   await esc(); await sleep(100);
   t.check('Esc closes help', await hidden('help'));
   await click('ach-btn'); await sleep(200);
-  t.check('achievements screen: 0/26 on a fresh profile', (await ev(`document.getElementById('ach-count').textContent`)) === '0/26' && (await ev(`document.querySelectorAll('.ach').length`)) === 26);
+  t.check('achievements screen: 0/27 on a fresh profile', (await ev(`document.getElementById('ach-count').textContent`)) === '0/27' && (await ev(`document.querySelectorAll('.ach').length`)) === 27);
   await esc(); await sleep(100);
   t.check('Esc closes achievements', await hidden('ach'));
 
@@ -871,6 +871,43 @@ try {
   await click('shop-btn'); await ev(`document.querySelector('[data-stab=hats]').click()`);
   t.check('off season: a witch hat you bought stays yours', /Bruja/.test(await ev(`document.getElementById('shop-body').textContent`)));
   await click('shop-close');
+
+  // Christmas (forced with ?season=christmas)
+  await fresh(); await chrome.goto(base + '/index.html?test=1&season=christmas', 1400);
+  t.check('christmas: menu in green and red, with snow, trees and a greeting', (await ev(`document.documentElement.classList.contains('christmas')`))
+    && (await ev(`getComputedStyle(document.body).backgroundColor`)) === 'rgb(15, 42, 34)' && (await ev(`document.querySelectorAll('.xmas .flake').length`)) > 10
+    && (await ev(`document.querySelectorAll('.xmas .tree').length`)) === 2 && /Feliz Navidad/.test(await ev(`document.getElementById('tag').textContent`)));
+  t.check('christmas: no graveyard zone and no Halloween look', (await ev(`__dp.BIOMES.length`)) === 5 && !(await ev(`document.documentElement.classList.contains('halloween')`)));
+  await click('shop-btn'); await ev(`document.querySelector('[data-stab=hats]').click()`);
+  const xhat = await ev(`document.getElementById('shop-body').textContent`);
+  t.check('christmas: reindeer and elf hats on sale, marked as seasonal; witch hat not', /Reno/.test(xhat) && /Gorro de elfo/.test(xhat) && /solo en Navidad/.test(xhat) && !/Bruja/.test(xhat), xhat);
+  await ev(`document.querySelector('[data-stab=skins]').click()`);
+  const xskin = await ev(`document.getElementById('shop-body').textContent`);
+  t.check('christmas: elf and gingerbread colors on sale', /Elfo/.test(xskin) && /Jengibre/.test(xskin) && !/Zombi/.test(xskin));
+  await click('shop-close');
+  await startRun(); await noObstacles();
+  t.check('christmas: the menu decoration hides during the run', (await ev(`getComputedStyle(document.querySelector('.xmas')).display`)) === 'none');
+  t.check('christmas: the run starts with a greeting', /Navidad/.test((await ev(`__dp.banner.text`)) || ''));
+  await grounded();
+  const gifts0 = await ev(`__dp.stats.gifts`);
+  await ev(`__dp.items.push({ kind: 'coin', x: 60, dy: -30, w: 14, h: 14 })`);
+  await chrome.waitFor(`__dp.coinsRun > 0`, 3000);
+  t.check('christmas: coins count as presents for "Feliz Navidad"', (await ev(`__dp.stats.gifts`)) === gifts0 + 1 && (await ev(`__dp.ACH.some(a => a.id === 'christmas')`)));
+  await ev(`clearInterval(window.__clr); __dp.o.length = 0`); await sleep(150);
+  const whites = () => ev(`(() => { const c = document.getElementById('game'), d = c.getContext('2d').getImageData(0, 0, c.width, Math.floor(c.height * 0.6)).data; let n = 0;
+    for (let i = 0; i < d.length; i += 4) if (d[i] > 220 && d[i + 1] > 220 && d[i + 2] > 220) n++; return n; })()`);
+  const withSnow = await whites();
+  await ev(`window.__sv = __dp.snow.map(f => f.v); __dp.snow.forEach(f => { f.y = -60; f.v = 0; })`); await sleep(100);
+  const noSnow = await whites();
+  await ev(`__dp.snow.forEach((f, i) => { f.v = window.__sv[i]; })`);
+  const flakes = withSnow - noSnow;
+  t.check('christmas: snow falls over the stage', flakes > 60, flakes);
+  const xkinds = await ev(`(() => { const s = new Set(); for (let i = 0; i < 400; i++) { __dp.o.length = 0; __dp.spawn(); __dp.o.forEach(o => (o.parts || []).forEach(p => s.add(p.kind))); } __dp.o.length = 0; return [...s]; })()`);
+  t.check('christmas: Christmas trees show up among the cacti, no pumpkins', xkinds.includes('xtree') && xkinds.includes('cactus') && !xkinds.includes('pumpkin'), xkinds);
+  const xd = await ev(`__dp.makeDaily('2026-12-25', ['dino'])`);
+  t.check('christmas: special daily challenge on the 25th (25 presents, 100 coins)', xd.special === 'christmas' && xd.n === 25 && xd.reward === 100 && xd.type === 'coins');
+  await fresh();
+  t.check('off season: no Christmas colors or decoration', !(await ev(`document.documentElement.classList.contains('christmas')`)) && !(await ev(`document.querySelector('.xmas')`)));
 
   // language: the menu button switches to English (and back); the choice stays on this device only
   await fresh();

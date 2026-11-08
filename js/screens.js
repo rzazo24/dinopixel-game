@@ -86,6 +86,8 @@ const HELP = {
     ]);
     if (HALLOWEEN) t.unshift(L('<em>Halloween</em> (hasta el 2 de noviembre): murciélagos, caramelos, calabazas, la zona <em>Cementerio</em> después del volcán, y sombreros y colores de temporada en la tienda. El 31 hay un reto especial.',
       '<em>Halloween</em> (until November 2): bats, candies, pumpkins, the <em>Graveyard</em> zone after the volcano, and seasonal hats and colors in the shop. On the 31st there is a special challenge.'));
+    if (CHRISTMAS) t.unshift(L('<em>Navidad</em> (hasta el 6 de enero): nieva en todas las zonas, las monedas son <em>regalos</em>, salen árboles de Navidad entre los obstáculos, y hay gorros y colores de temporada en la tienda. El 25 hay un reto especial.',
+      '<em>Christmas</em> (until January 6): it snows in every zone, coins are <em>presents</em>, Christmas trees show up among the obstacles, and there are seasonal hats and colors in the shop. On the 25th there is a special challenge.'));
     return '<ul class="tips">' + t.map((x) => '<li>' + bullet + '<p>' + x + '</p></li>').join('') + '</ul>';
   },
 };
@@ -283,11 +285,10 @@ function renderShop() {
     const note = document.createElement('p'); note.className = 'note';
     note.textContent = L('Sombreros para: ' + a.name + ' (cada sombrero se compra una vez y sirve para todos los animales)', 'Hats for: ' + a.name + ' (buy each hat once and use it on every animal)');
     list.appendChild(note);
-    const season = (x, owned) => !x.season || HALLOWEEN || owned.includes(x.id);   // seasonal items: on sale only in season, kept forever
-    HATS.filter((h) => season(h, ownedHats)).forEach((h) => {
+    HATS.filter((h) => inSeason(h, ownedHats)).forEach((h) => {
       const owned = h.price === 0 || ownedHats.includes(h.id), using = hatOf(a.id) === h.id;
       list.appendChild(shopRow(spriteCanvas(dressedLooks(a, skinOf(a.id), h.id, gearOf(a.id)).frames[0], 3), h.name,
-        using ? L('En uso', 'In use') : owned ? L('Comprado', 'Owned') : h.price + L(' monedas', ' coins') + (h.season ? L(' - solo en Halloween', ' - Halloween only') : ''),
+        using ? L('En uso', 'In use') : owned ? L('Comprado', 'Owned') : h.price + L(' monedas', ' coins') + (h.season ? L(' - solo en ', ' - ') + SEASON_NAME[h.season] + L('', ' only') : ''),
         using ? null : owned ? { label: L('Usar', 'Use'), action: () => { setHat(a.id, h.id); return h.id === 'none' ? a.name + L(' ya no lleva sombrero.', ' has no hat now.') : a.name + L(' lleva ', ' wears: ') + h.name.toLowerCase() + '.'; } }
           : { price: h.price, action: () => {
             ownedHats.push(h.id); store.set('dp-hats', JSON.stringify(ownedHats));
@@ -300,10 +301,10 @@ function renderShop() {
     const note = document.createElement('p'); note.className = 'note';
     note.textContent = L('Colores para: ' + a.name + ' (cada color se compra una vez y sirve para todos los animales)', 'Colors for: ' + a.name + ' (buy each color once and use it on every animal)');
     list.appendChild(note);
-    SKINS.filter((sk) => !sk.season || HALLOWEEN || ownedSkins.includes(sk.id)).forEach((sk) => {
+    SKINS.filter((sk) => inSeason(sk, ownedSkins)).forEach((sk) => {
       const owned = sk.price === 0 || ownedSkins.includes(sk.id), using = skinOf(a.id) === sk.id;
       list.appendChild(shopRow(spriteCanvas(dressedLooks(a, sk.id, hatOf(a.id), gearOf(a.id)).frames[0], 3), sk.name,
-        using ? L('En uso', 'In use') : owned ? L('Comprado', 'Owned') : sk.price + L(' monedas', ' coins') + (sk.season ? L(' - solo en Halloween', ' - Halloween only') : ''),
+        using ? L('En uso', 'In use') : owned ? L('Comprado', 'Owned') : sk.price + L(' monedas', ' coins') + (sk.season ? L(' - solo en ', ' - ') + SEASON_NAME[sk.season] + L('', ' only') : ''),
         using ? null : owned ? { label: L('Usar', 'Use'), action: () => { setSkin(a.id, sk.id); return a.name + L(' ahora es ', ' is now ') + sk.name.toLowerCase() + '.'; } }
           : { price: sk.price, action: () => {
             ownedSkins.push(sk.id); store.set('dp-skins', JSON.stringify(ownedSkins));

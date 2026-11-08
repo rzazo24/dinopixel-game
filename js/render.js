@@ -139,7 +139,7 @@ function drawPlayer() {
   }
 }
 
-const COINS = HALLOWEEN ? CANDY_IMGS : COIN_IMGS;
+const COINS = HALLOWEEN ? CANDY_IMGS : CHRISTMAS ? GIFT_IMGS : COIN_IMGS;
 function drawItems() {
   items.forEach((it) => {
     const y = GROUND + it.dy;
@@ -316,6 +316,17 @@ function stackLines(lines, y0, top) {
   lines.forEach((l) => { y += pixFit(l.t, y, l.s, l.c) + (l.gap || 0); });
 }
 
+function drawSnow() {                                            // Christmas: flakes drift down and left with the run
+  ctx.fillStyle = '#ffffff'; ctx.globalAlpha = 0.85;
+  const v = state === 'running' && !paused ? speed : 0;
+  snow.forEach((f) => {
+    if (!paused) { f.y += f.v; f.x -= v * 0.3 + Math.sin(f.y / 30 + f.p) * 0.4; f.p += 0.01; }
+    if (f.y > GROUND) { f.y = -4; f.x = rnd(0, W + 200); }
+    if (f.x < -4) f.x += W + 8;
+    ctx.fillRect(Math.round(f.x), Math.round(f.y), 3, 3);
+  });
+  ctx.globalAlpha = 1;
+}
 function draw() {
   textBoxes.length = 0;
   // scroll specks/clouds
@@ -338,6 +349,7 @@ function draw() {
     ctx.fillRect(Math.round(d.x), Math.round(d.y), 3, 3);
   });
   ctx.globalAlpha = 1;
+  if (CHRISTMAS) drawSnow();
   ctx.restore();
   if (!hudBottom || flapT % 30 < 1) measureHud();                // (also right after the stage shows up)
   let my = drawHUD();

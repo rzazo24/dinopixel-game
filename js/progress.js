@@ -27,7 +27,7 @@ const lookOf = (a) => dressedLooks(a, skinOf(a.id), hatOf(a.id), gearOf(a.id)); 
 
 /* ---------- achievements ---------- */
 const jsonStore = (k, d) => { try { return Object.assign(d, JSON.parse(store.get(k, '{}'))); } catch { return d; } };
-const stats = jsonStore('dp-stats', { runs: 0, jumps: 0, dodged: 0, birds: 0, doubles: 0, shields: 0, glideSec: 0, slidePts: 0, longestRun: 0, podium: 0, weekwin: 0, shared: 0, coins: 0, spent: 0, timeSec: 0, bonus: 0, dailyDone: 0, dailyStreak: 0, dailyLast: '', candy: 0 });
+const stats = jsonStore('dp-stats', { runs: 0, jumps: 0, dodged: 0, birds: 0, doubles: 0, shields: 0, glideSec: 0, slidePts: 0, longestRun: 0, podium: 0, weekwin: 0, shared: 0, coins: 0, spent: 0, timeSec: 0, bonus: 0, dailyDone: 0, dailyStreak: 0, dailyLast: '', candy: 0, gifts: 0 });
 const balance = () => stats.coins + stats.bonus - stats.spent;   // spendable: collected + challenge prizes - spent (achievements only count collected)
 const ach = jsonStore('dp-ach', {});                    // { id: unlock timestamp }
 const animalBest = {};                                  // best score per animal (kept in memory, saved with the record)
@@ -61,6 +61,7 @@ const ACH = [
   { id: 'weekwin', name: L('Campeón semanal', 'Weekly champion'), desc: L('Sé el número 1 del ranking semanal', 'Be number 1 in the weekly ranking'), goal: 1, val: () => stats.weekwin },
   { id: 'share', name: L('Embajador', 'Ambassador'), desc: L('Comparte una puntuación', 'Share a score'), goal: 1, val: () => stats.shared },
   { id: 'halloween', name: L('Truco o trato', 'Trick or treat'), desc: L('Recoge 100 caramelos en Halloween', 'Collect 100 candies at Halloween'), goal: 100, val: () => stats.candy },
+  { id: 'christmas', name: L('Feliz Navidad', 'Merry Christmas'), desc: L('Recoge 100 regalos en Navidad', 'Collect 100 presents at Christmas'), goal: 100, val: () => stats.gifts },
   { id: 'combo50', name: L('En racha', 'On a roll'), desc: L('Esquiva 50 obstáculos seguidos sin un golpe', 'Dodge 50 obstacles in a row without a hit'), goal: 50, val: () => stats.bestCombo || 0 },
   { id: 'daily7', name: L('Constancia', 'Dedication'), desc: L('Completa 7 retos diarios', 'Complete 7 daily challenges'), goal: 7, val: () => stats.dailyDone },
 ];

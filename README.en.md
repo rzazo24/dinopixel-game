@@ -90,6 +90,17 @@ During those days the game dresses up by itself:
 
 To try it out of season: `?season=halloween` in the URL (and `?season=off` to turn it off).
 
+## Christmas (December 15 to January 6)
+
+- **Atmosphere:** it **snows** in every zone, coins are **presents** and **Christmas trees** show up among the
+  obstacles. The menu turns green and red, with falling snow, two trees and a *Merry Christmas!*.
+- **Seasonal shop:** **Reindeer** and **Elf hat** hats (300), and **Elf** and **Gingerbread** colors (300).
+  On sale only those days, but what you buy stays forever.
+- **Special challenge on the 25th:** collect 25 presents in one run (100 coins).
+- ***Merry Christmas* achievement:** collect 100 presents at Christmas.
+
+To try it out of season: `?season=christmas`.
+
 ## Modes
 
 **Mode** button in the menu (remembered on each device):
@@ -125,7 +136,7 @@ Records are saved per animal in the browser (`localStorage`).
 progress of each one. Among them: scores (500 to 7000), runs played, jumps, obstacles and birds dodged, coins (100
 and 1000), lasting 2 minutes, one per ability (cat's double jump, dog's shield, chicken's glide, penguin's slide),
 1500 with every animal, unlocking all 9, reaching the top 3 of the ranking, being number 1 of the week, completing 7
-daily challenges, a 50 combo, sharing and collecting 100 candies at Halloween. They are saved in the browser (`localStorage`); the ones you already meet when you
+daily challenges, a 50 combo, sharing, collecting 100 candies at Halloween and 100 presents at Christmas. They are saved in the browser (`localStorage`); the ones you already meet when you
 open the game are marked by themselves, without notices.
 
 ## Settings
@@ -245,7 +256,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v82';   // -> 'dinopixel-v83', ...
+const CACHE = 'dinopixel-v83';   // -> 'dinopixel-v84', ...
 ```
 
 Install notes:
