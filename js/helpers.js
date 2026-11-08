@@ -59,3 +59,6 @@ if (HALLOWEEN) {
     day: { skyT: '#8a6a9a', skyB: '#e8b88a', hill1: '#5a4a6a', hill2: '#3e3250', ground: '#4a4238', lip: '#2a2420', speck: '#6a5e50' },
     night: { hill1: '#2a1f3a', hill2: '#1e1630', ground: '#2a2420', lip: '#14100c', speck: '#4a3e30' } });
 }
+if (CHRISTMAS) BIOMES.push({ id: 'northpole', name: L('Polo Norte', 'North Pole'), obs: ['present', 'xtree'],   // Christmas: sixth zone after the volcano
+  day: { skyT: '#7ab8e0', skyB: '#f0f8ff', hill1: '#e4eef6', hill2: '#c2d6e6', ground: '#fbfdff', lip: '#a8c0d4', speck: '#d4e2ee' },
+  night: { skyT: '#071a2a', skyB: '#1a4a5a', hill1: '#2e4a66', hill2: '#223a54', ground: '#5a6e8a', lip: '#2a3650', speck: '#8ab0d0' } });

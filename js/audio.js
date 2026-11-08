@@ -75,6 +75,10 @@ const SONGS = {
     day: { base: 57, scale: PENT_MIN, chords: [[45, MIN], [41, MAJ], [44, MAJ], [40, MAJ]], lead: ['square', 0.04], arp: ['triangle', 0.035, 12], bass: 'long', drums: 'soft', tempo: 0.86 },
     night: { base: 54, scale: PENT_MIN, chords: [[42, MIN], [38, MAJ], [41, MAJ], [37, MAJ]], lead: ['square', 0.04], arp: ['triangle', 0.035, 12], bass: 'long', drums: 'soft', tempo: 0.8 },
   },
+  northpole: {                                           // Christmas: jingly major, sleigh-bell sparkle, brisk
+    day: { base: 67, scale: PENT_MAJ, chords: [[43, MAJ], [48, MAJ], [45, MIN], [50, MAJ]], lead: ['triangle', 0.11], arp: ['sine', 0.035, 24], bass: 'pump', drums: 'soft', tempo: 1.04 },
+    night: { base: 64, scale: PENT_MAJ, chords: [[48, MAJ], [45, MIN], [41, MAJ], [43, MAJ]], lead: ['triangle', 0.1], arp: ['sine', 0.035, 24], bass: 'long', drums: 'soft', tempo: 0.92, sparse: true },
+  },
   city: {                                                // driving: pumping bass, four-on-the-floor, offbeat hats
     day: { base: 64, scale: PENT_MIN, chords: [[40, MIN], [45, MAJ], [40, MIN], [50, MAJ]], lead: ['sawtooth', 0.03], arp: ['square', 0.016, 12], bass: 'pump', drums: 'city', tempo: 1.08 },
     night: { base: 60, scale: PENT_MIN, chords: [[48, MIN], [44, MAJ], [51, MAJ], [46, MAJ]], lead: ['square', 0.045], arp: ['square', 0.016, 12], bass: 'pump', drums: 'city', tempo: 1 },

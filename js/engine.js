@@ -284,6 +284,7 @@ const BOSS_LEN = 250, BOSS_POINTS = 100;
 const BOSS_NAME = {
   desert: L('Tormenta de arena', 'Sandstorm'), snow: L('Avalancha', 'Avalanche'), city: L('Hora punta', 'Rush hour'),
   jungle: L('Lluvia de cocos', 'Coconut rain'), volcano: L('Erupción', 'Eruption'), graveyard: L('Noche de fantasmas', 'Ghost night'),
+  northpole: L('Trineo desbocado', 'Runaway sleigh'),
 };
 // Three per run, picked at random; each pays coins (like the daily challenge prize: spendable, not for coin achievements)
 const MISSIONS = [

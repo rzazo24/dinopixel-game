@@ -877,7 +877,7 @@ try {
   t.check('christmas: menu in green and red, with snow, trees and a greeting', (await ev(`document.documentElement.classList.contains('christmas')`))
     && (await ev(`getComputedStyle(document.body).backgroundColor`)) === 'rgb(15, 42, 34)' && (await ev(`document.querySelectorAll('.xmas .flake').length`)) > 10
     && (await ev(`document.querySelectorAll('.xmas .tree').length`)) === 2 && /Feliz Navidad/.test(await ev(`document.getElementById('tag').textContent`)));
-  t.check('christmas: no graveyard zone and no Halloween look', (await ev(`__dp.BIOMES.length`)) === 5 && !(await ev(`document.documentElement.classList.contains('halloween')`)));
+  t.check('christmas: North Pole is a sixth zone, no graveyard and no Halloween look', (await ev(`__dp.BIOMES.map(b => b.id).join()`)) === 'desert,snow,city,jungle,volcano,northpole' && !(await ev(`document.documentElement.classList.contains('halloween')`)));
   await click('shop-btn'); await ev(`document.querySelector('[data-stab=hats]').click()`);
   const xhat = await ev(`document.getElementById('shop-body').textContent`);
   t.check('christmas: reindeer and elf hats on sale, marked as seasonal; witch hat not', /Reno/.test(xhat) && /Gorro de elfo/.test(xhat) && /solo en Navidad/.test(xhat) && !/Bruja/.test(xhat), xhat);
@@ -904,6 +904,12 @@ try {
   t.check('christmas: snow falls over the stage', flakes > 60, flakes);
   const xkinds = await ev(`(() => { const s = new Set(); for (let i = 0; i < 400; i++) { __dp.o.length = 0; __dp.spawn(); __dp.o.forEach(o => (o.parts || []).forEach(p => s.add(p.kind))); } __dp.o.length = 0; return [...s]; })()`);
   t.check('christmas: Christmas trees show up among the cacti, no pumpkins', xkinds.includes('xtree') && xkinds.includes('cactus') && !xkinds.includes('pumpkin'), xkinds);
+  await ev(`__dp.setScore(7600)`); await sleep(600);
+  t.check('christmas: North Pole zone after the volcano, with its sleigh mover and song', (await ev(`__dp.biome`)) === 'northpole' && (await ev(`(() => { __dp.o.length = 0; return __dp.spawnMover(); })()`))?.kind === 'sled' && (await ev(`!!__dp.SONGS.northpole`)));
+  const npk = await ev(`(() => { const s = new Set(); for (let i = 0; i < 300; i++) { __dp.o.length = 0; __dp.spawn(); __dp.o.forEach(o => (o.parts || []).forEach(p => s.add(p.kind))); } __dp.o.length = 0; return [...s]; })()`);
+  t.check('christmas: the North Pole has giant presents and trees', npk.includes('present') && npk.includes('xtree'), npk);
+  await ev(`__dp.setScore(8750)`); await sleep(400);
+  t.check('christmas: North Pole boss is the runaway sleigh', /Trineo/.test((await ev(`__dp.banner.text`)) || '') && (await ev(`__dp.boss`))?.zone !== undefined, await ev(`__dp.banner.text`));
   const xd = await ev(`__dp.makeDaily('2026-12-25', ['dino'])`);
   t.check('christmas: special daily challenge on the 25th (25 presents, 100 coins)', xd.special === 'christmas' && xd.n === 25 && xd.reward === 100 && xd.type === 'coins');
   await fresh();

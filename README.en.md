@@ -94,6 +94,8 @@ To try it out of season: `?season=halloween` in the URL (and `?season=off` to tu
 
 - **Atmosphere:** it **snows** in every zone, coins are **presents** and **Christmas trees** show up among the
   obstacles. The menu turns green and red, with falling snow, two trees and a *Merry Christmas!*.
+- **North Pole zone:** a sixth zone after the volcano, with giant presents and Christmas trees, a **runaway
+  sleigh** as the moving obstacle, its *Runaway sleigh* boss and its own Christmas song.
 - **Seasonal shop:** **Reindeer** and **Elf hat** hats (300), and **Elf** and **Gingerbread** colors (300).
   On sale only those days, but what you buy stays forever.
 - **Special challenge on the 25th:** collect 25 presents in one run (100 coins).

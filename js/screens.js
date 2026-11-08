@@ -86,8 +86,8 @@ const HELP = {
     ]);
     if (HALLOWEEN) t.unshift(L('<em>Halloween</em> (hasta el 2 de noviembre): murciélagos, caramelos, calabazas, la zona <em>Cementerio</em> después del volcán, y sombreros y colores de temporada en la tienda. El 31 hay un reto especial.',
       '<em>Halloween</em> (until November 2): bats, candies, pumpkins, the <em>Graveyard</em> zone after the volcano, and seasonal hats and colors in the shop. On the 31st there is a special challenge.'));
-    if (CHRISTMAS) t.unshift(L('<em>Navidad</em> (hasta el 6 de enero): nieva en todas las zonas, las monedas son <em>regalos</em>, salen árboles de Navidad entre los obstáculos, y hay gorros y colores de temporada en la tienda. El 25 hay un reto especial.',
-      '<em>Christmas</em> (until January 6): it snows in every zone, coins are <em>presents</em>, Christmas trees show up among the obstacles, and there are seasonal hats and colors in the shop. On the 25th there is a special challenge.'));
+    if (CHRISTMAS) t.unshift(L('<em>Navidad</em> (hasta el 6 de enero): nieva en todas las zonas, las monedas son <em>regalos</em>, salen árboles de Navidad entre los obstáculos, la zona <em>Polo Norte</em> llega después del volcán, y hay gorros y colores de temporada en la tienda. El 25 hay un reto especial.',
+      '<em>Christmas</em> (until January 6): it snows in every zone, coins are <em>presents</em>, Christmas trees show up among the obstacles, the <em>North Pole</em> zone comes after the volcano, and there are seasonal hats and colors in the shop. On the 25th there is a special challenge.'));
     return '<ul class="tips">' + t.map((x) => '<li>' + bullet + '<p>' + x + '</p></li>').join('') + '</ul>';
   },
 };

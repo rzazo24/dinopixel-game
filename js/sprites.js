@@ -366,7 +366,12 @@ const MOVERS = {                                         // w/h in logical px; e
 };
 const GHOST_ROWS = (tail) => ['..wwwwww..', '.wwwwwwww.', 'wwwwwwwwww', 'wwkkwwkkww', 'wwkkwwkkww', 'wwwwwwwwww', 'wwwwkkwwww', 'wwwwwwwwww', 'wwwwwwwwww', tail];
 MOVERS.ghost = { w: 30, h: 30, extra: [0.25, 0.4], bounce: 18, imgs: ['w.ww.ww.ww', 'ww.ww.ww.w'].map((t) => sprite(GHOST_ROWS(t), { w: '#f4f4ff', k: '#2a2a3a' })) };
-const ZONE_MOVER = { desert: 'tumbleweed', snow: 'snowball', city: 'car', jungle: 'coconut', volcano: 'boulder', graveyard: 'ghost' };
+const SLED_ROWS = (b) => [                               // Christmas: a runaway sleigh full of presents, its bell swings
+  '..........' + b + '.......', '...gg.rr...r....r.', '..ggyyrrg..rrrrrr.', '.rrrrrrrrrrrrrrrr.', 'rrrrrrrrrrrrrrrr..',
+  '.rrryyyyyyyyyrrr..', '..rrrrrrrrrrrrr...', 'k..k.........k....', '.kkkkkkkkkkkkkkkkk',
+];
+MOVERS.sled = { w: 54, h: 27, extra: [0.3, 0.45], bounce: 0, imgs: ['y', '.'].map((b) => sprite(SLED_ROWS(b), { r: '#d32f2f', g: '#2e9a4a', y: '#ffd23f', k: '#5a3a1e' })) };
+const ZONE_MOVER = { desert: 'tumbleweed', snow: 'snowball', city: 'car', jungle: 'coconut', volcano: 'boulder', graveyard: 'ghost', northpole: 'sled' };
 const OBST = {
   cactus: cactusImg,
   snowman: sprite([
@@ -409,6 +414,10 @@ const OBST = {
     '....yy....', '....yy....', '....gg....', '...gggg...', '..ggrggg..', '...gggg...', '..ggggbg..',
     '.gyggggrg.', '..gggggg..', '.ggbggyggg', 'ggggrggggg', '....tt....', '...tttt...',
   ], { g: '#2f8a4a', y: '#ffd23f', r: '#e53935', b: '#4fc3f7', t: '#6b4426' }),
+  present: sprite([                                     // Christmas: a big present in the North Pole
+    '..........', '..........', '..........', '..y....y..', '...y..y...', '....yy....', 'gggggyyggg',
+    'ggGggyyggg', 'gggggyygGg', 'yyyyyyyyyy', 'gGgggyyggg', 'gggggyyggG', 'GGGGGyyGGG',
+  ], { g: '#2e9a4a', G: '#1e6a32', y: '#ffd23f' }),
   tomb: sprite([
     '..........', '..........', '...ssss...', '..ssssss..', '.ssssssss.', '.ssssSsss.', '.sssSSSss.',
     '.ssssSsss.', '.ssssSsss.', '.ssssssss.', '.ssssssss.', '.ssssssss.', 'gggggggggg',

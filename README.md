@@ -98,6 +98,8 @@ Para probarlo fuera de fecha: `?season=halloween` en la URL (y `?season=off` par
 
 - **Ambiente:** **nieva** en todas las zonas, las monedas son **regalos** y salen **árboles de Navidad** entre los
   obstáculos. El menú se viste de verde y rojo, con nieve cayendo, dos árboles y un *¡Feliz Navidad!*.
+- **Zona Polo Norte:** sexta zona después del volcán, con regalos gigantes y árboles de Navidad, un **trineo
+  desbocado** como obstáculo móvil, su jefe *Trineo desbocado* y su propia canción navideña.
 - **Tienda de temporada:** gorros **Reno** y **Gorro de elfo** (300), y colores **Elfo** y **Jengibre** (300).
   Solo se venden esos días, pero lo que compres se queda para siempre.
 - **Reto especial el 25:** recoge 25 regalos en una partida (100 monedas).
