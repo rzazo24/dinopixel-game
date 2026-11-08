@@ -94,7 +94,7 @@ Durante esos días el juego se disfraza solo, sin tocar nada:
 
 Para probarlo fuera de fecha: `?season=halloween` en la URL (y `?season=off` para quitarlo).
 
-## Navidad (del 15 de diciembre al 6 de enero)
+## Navidad (del 15 de diciembre al 6 de enero; en 2026, desde el 8 de noviembre)
 
 - **Ambiente:** **nieva** en todas las zonas, las monedas son **regalos** y salen **árboles de Navidad** entre los
   obstáculos. El menú se viste de verde y rojo, con nieve cayendo, dos árboles y un *¡Feliz Navidad!*.
@@ -257,7 +257,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v83';   // -> 'dinopixel-v84', ...
+const CACHE = 'dinopixel-v85';   // -> 'dinopixel-v86', ...
 ```
 
 Notas de instalación:

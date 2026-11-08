@@ -18,13 +18,17 @@ const store = {
 // Seasons: Halloween Oct 24 - Nov 2 (bats, candies, pumpkins, a graveyard zone, seasonal shop items),
 // Christmas Dec 15 - Jan 6 (falling snow, presents, Christmas trees, seasonal shop items).
 // ?season=halloween / ?season=christmas / ?season=off forces it (tests).
+function seasonOf(d) {
+  const m = d.getMonth(), day = d.getDate();
+  if ((m === 9 && day >= 24) || (m === 10 && day <= 2)) return 'halloween';
+  if ((m === 11 && day >= 15) || (m === 0 && day <= 6)) return 'christmas';
+  if (d.getFullYear() === 2026 && ((m === 10 && day >= 8) || m === 11)) return 'christmas';   // 2026 only: Christmas from Nov 8
+  return null;
+}
 const SEASON = (() => {
   const q = /[?&]season=(\w+)/.exec(location.search);
   if (q) return ['halloween', 'christmas'].includes(q[1]) ? q[1] : null;
-  const d = new Date(), m = d.getMonth(), day = d.getDate();
-  if ((m === 9 && day >= 24) || (m === 10 && day <= 2)) return 'halloween';
-  if ((m === 11 && day >= 15) || (m === 0 && day <= 6)) return 'christmas';
-  return null;
+  return seasonOf(new Date());
 })();
 const HALLOWEEN = SEASON === 'halloween', CHRISTMAS = SEASON === 'christmas';
 const SEASON_NAME = { halloween: 'Halloween', christmas: L('Navidad', 'Christmas') };

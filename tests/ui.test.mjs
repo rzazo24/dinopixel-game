@@ -912,6 +912,11 @@ try {
   t.check('christmas: North Pole boss is the runaway sleigh', /Trineo/.test((await ev(`__dp.banner.text`)) || '') && (await ev(`__dp.boss`))?.zone !== undefined, await ev(`__dp.banner.text`));
   const xd = await ev(`__dp.makeDaily('2026-12-25', ['dino'])`);
   t.check('christmas: special daily challenge on the 25th (25 presents, 100 coins)', xd.special === 'christmas' && xd.n === 25 && xd.reward === 100 && xd.type === 'coins');
+  const so = (d) => ev(`__dp.seasonOf(new Date(${JSON.stringify(d)} + 'T12:00'))`);
+  t.check('seasons by date: Halloween Oct 24 - Nov 2, Christmas Dec 15 - Jan 6, and from Nov 8 in 2026 only',
+    (await so('2026-10-31')) === 'halloween' && (await so('2026-11-02')) === 'halloween' && (await so('2026-11-07')) === null && (await so('2026-11-08')) === 'christmas'
+    && (await so('2026-11-30')) === 'christmas' && (await so('2027-01-06')) === 'christmas' && (await so('2027-01-07')) === null
+    && (await so('2027-11-08')) === null && (await so('2027-12-14')) === null && (await so('2027-12-15')) === 'christmas');
   await fresh();
   t.check('off season: no Christmas colors or decoration', !(await ev(`document.documentElement.classList.contains('christmas')`)) && !(await ev(`document.querySelector('.xmas')`)));
 

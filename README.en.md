@@ -90,7 +90,7 @@ During those days the game dresses up by itself:
 
 To try it out of season: `?season=halloween` in the URL (and `?season=off` to turn it off).
 
-## Christmas (December 15 to January 6)
+## Christmas (December 15 to January 6; in 2026, from November 8)
 
 - **Atmosphere:** it **snows** in every zone, coins are **presents** and **Christmas trees** show up among the
   obstacles. The menu turns green and red, with falling snow, two trees and a *Merry Christmas!*.
@@ -258,7 +258,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v83';   // -> 'dinopixel-v84', ...
+const CACHE = 'dinopixel-v85';   // -> 'dinopixel-v86', ...
 ```
 
 Install notes:
