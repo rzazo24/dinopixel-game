@@ -9,7 +9,7 @@ let state = 'ready';                                    // ready | running | ove
 let paused = false;
 let score, speed, hi, night = 0, nightTarget = 0, worldX, distSince, gap, mile, flash, diedAt;
 let obstacles, dust, animT, flapT = 0, jumpHeld = false, runTime = 0;
-let items = [], coinsRun = 0, magnetT = 0;                // pickups (see addItems)
+let items = [], coinsRun = 0, coinsMissed = 0, magnetT = 0;   // pickups (see addItems); coins that went by uncollected
 let banner = { text: '', t: 0 }, newlyUnlocked = [];
 let runToken = null, lastRank = null, pendingRun = null;
 let biome = 0, biomePrev = 0, biomeT = 1, gear = 'none';   // gear: the accessory worn this run (fixed at the start)   // online ranking (see the ranking section below)
@@ -61,7 +61,7 @@ function reset() {
   score = 0; speed = START_SPEED; worldX = 0; distSince = 0; gap = 320; mile = 0; flash = 0;
   night = 0; nightTarget = 0; animT = 0; flapT = 0;
   obstacles = []; dust = [];
-  items = []; coinsRun = 0; magnetT = 0;
+  items = []; coinsRun = 0; coinsMissed = 0; magnetT = 0;
   bufT = 0; shakeT = 0; popups = []; patternQ = []; combo = 0; boss = null; bossZone = -1;
   P.h = 0; P.vy = 0; P.doubled = false; P.inv = 0; P.charge = 0; P.dodge = 0; P.foxCd = 0;
   P.shield = animal.id === 'dog' ? 1 : 0;
@@ -457,5 +457,6 @@ function update(dt) {
     }
     if (!it.got && state === 'running' && overlap(pb, { x: it.x, y: GROUND + it.dy, w: it.w, h: it.h })) { it.got = true; collect(it); }
   }
+  items.forEach((it) => { if (!it.got && it.x + it.w <= -20 && it.kind === 'coin' && state === 'running') coinsMissed += it.v || 1; });
   items = items.filter((it) => !it.got && it.x + it.w > -20);
 }

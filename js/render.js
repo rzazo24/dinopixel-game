@@ -200,6 +200,7 @@ const FONT = {
   '.': F('00000/00000/00000/00000/00000/01100/01100'), ':': F('00000/01100/01100/00000/01100/01100/00000'),
   '!': F('00100/00100/00100/00100/00100/00000/00100'), '-': F('00000/00000/00000/11111/00000/00000/00000'),
   '#': F('01010/01010/11111/01010/11111/01010/01010'),
+  '/': F('00001/00010/00010/00100/01000/01000/10000'),
   '+': F('00000/00100/00100/11111/00100/00100/00000'),
   ',': F('00000/00000/00000/00000/00110/00100/01000'), '?': F('01110/10001/00001/00110/00100/00000/00100'),
 };
@@ -274,8 +275,8 @@ function drawHUD() {
   ctx.globalAlpha = 1;
   if (!blink) pixText(pad(score), W - 12 - insetR, 12, 2, 'right', c, false);
   let coinsLeft = W - insetR - 12;
-  if (state === 'running' || state === 'over') {                   // coins this run, under the score
-    const t = String(coinsRun), w = t.length * 12 - 2;
+  if (state === 'running' || state === 'over') {                   // coins this run / coins that came by, under the score
+    const t = coinsRun + '/' + (coinsRun + coinsMissed), w = t.length * 12 - 2;
     pixText(t, W - 12 - insetR, 32, 2, 'right', '#ffd23f', false);
     blit(COINS[0], W - 12 - insetR - w - 18, 32, 14, 14);
     coinsLeft = W - 12 - insetR - w - 18;
@@ -384,7 +385,7 @@ function draw() {
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, 0, W, H);
     const lines = [{ t: 'Game over', s: 4, c: '#ffd23f', gap: 4 }, { t: L('Toca o pulsa espacio para reintentar', 'Tap or press space to retry'), s: 2, gap: 6 }];
     const add = (t, c) => lines.push({ t, s: 2, c });
-    if (coinsRun) add(L('Monedas: ', 'Coins: ') + coinsRun, '#ffd23f');
+    if (coinsRun + coinsMissed) add(L('Monedas: ', 'Coins: ') + coinsRun + ' / ' + (coinsRun + coinsMissed) + (coinsMissed ? L(' - perdidas: ', ' - missed: ') + coinsMissed : ''), '#ffd23f');
     if (dailyDoneRun) add(L('Reto del día completado! +', 'Daily challenge done! +') + dailyDoneRun, '#9be564');
     else if (!daily.done) add(L('Reto: ', 'Challenge: ') + Math.min(daily.n, dailyProgress()) + ' / ' + daily.n, '#9be564');
     if (missions.length) { const d = missions.filter((x) => x.done); add(L('Misiones: ', 'Missions: ') + d.length + ' / ' + missions.length + (d.length ? ' +' + d.reduce((a, x) => a + x.m.reward, 0) : ''), '#9be564'); }

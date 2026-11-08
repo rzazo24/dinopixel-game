@@ -784,6 +784,17 @@ try {
   t.check('tutorial: turning them back on replays the tutorial', (await ev(`__dp.tipsSeen.length`)) === 0);
   await click('settings-close');
 
+  /* ---- coins counter: collected / came by ---- */
+  await fresh(); await startRun('dino'); await noObstacles(); await grounded();
+  await ev(`__dp.items.push({ kind: 'coin', x: 60, dy: -30, w: 14, h: 14 }, { kind: 'coin', v: 2, x: 60, dy: -260, w: 18, h: 18 })`);
+  await chrome.waitFor(`__dp.coinsMissed > 0`, 4000);
+  t.check('coins: the ones you miss are counted (a gold one counts 2)', (await ev(`__dp.coinsRun`)) === 1 && (await ev(`__dp.coinsMissed`)) === 2);
+  t.check('coins: the HUD shows collected / total', await ev(`__dp.textBoxes.some(b => b.t === '1/3')`), await ev(`__dp.textBoxes.map(b => b.t)`));
+  await ev(`clearInterval(window.__clr); __dp.o.length = 0; __dp.o.push({ type: 'bird', x: 40, dy: -50, w: 42, h: 27 })`);
+  await chrome.waitFor(`__dp.state === 'over'`, 4000); await sleep(200);
+  t.check('coins: game over says how many got away', await ev(`__dp.textBoxes.some(b => b.t.includes('Monedas: 1 / 3 - perdidas: 2'))`), await ev(`__dp.textBoxes.map(b => b.t)`));
+  t.check('font: "/" has its own glyph', await ev(`!!FONT['/']`));
+
   /* ---- upgrades: bought level by level, for every run ---- */
   await fresh(`localStorage.setItem('dp-stats', JSON.stringify({ coins: 5000 }))`);
   await click('shop-btn'); await ev(`document.querySelector('[data-stab=upg]').click()`);

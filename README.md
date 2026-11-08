@@ -51,7 +51,7 @@ siguiente lo supera y da **+100 puntos**.
 **Monedas y objetos:** las monedas dan 10 puntos y salen en arco sobre algunos cactus (se cogen al saltarlos) o en
 fila tras un obstáculo, a ras de suelo o en alto. Desde 400 puntos aparecen, de vez en cuando, un **escudo** (aguanta
 un golpe, con cualquier animal; se acumulan) y un **imán** (atrae las monedas cercanas durante 6 s; si coges otro, el tiempo se suma). Un contador bajo la
-puntuación muestra las monedas de la partida, y el **monedero** de la esquina del menú, las monedas que puedes gastar.
+puntuación muestra las monedas de la partida frente a las que han pasado (por ejemplo **12/15**: se te han escapado 3; al acabar se ve también cuántas perdiste), y el **monedero** de la esquina del menú, las monedas que puedes gastar.
 
 **Tienda:** las monedas se gastan en la **Tienda** (botón del menú, o tocando el monedero): desbloquear un animal antes
 de llegar a su puntuación (cuesta su puntuación entre 10: gato 100, …, tortuga 800) comprar **colores** (Dorado,
@@ -260,7 +260,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v86';   // -> 'dinopixel-v87', ...
+const CACHE = 'dinopixel-v87';   // -> 'dinopixel-v88', ...
 ```
 
 Notas de instalación:

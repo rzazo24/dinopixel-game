@@ -49,7 +49,7 @@ hour*, *Coconut rain*, *Eruption*, *Ghost night*). Reaching the next zone beats 
 **Coins and items:** coins give 10 points and appear in an arc over some cacti (you grab them by jumping) or in a
 row after an obstacle, at ground level or up high. From 400 points a **shield** (takes one hit, with any animal;
 they stack) and a **magnet** (pulls in nearby coins for 6 s; another one adds 6 more seconds) show up now and then. A counter under the score shows
-the coins of the run, and the **wallet** in the corner of the menu shows the coins you can spend.
+the coins of the run against the ones that came by (e.g. **12/15**: 3 got away; the game over screen also says how many you missed), and the **wallet** in the corner of the menu shows the coins you can spend.
 
 **Shop:** coins are spent in the **Shop** (menu button, or tap the wallet): unlock an animal before reaching its
 score (it costs its score divided by 10: cat 100, …, turtle 800), buy **colors** (Gold, Shadow, Ice, Bubblegum;
@@ -261,7 +261,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v86';   // -> 'dinopixel-v87', ...
+const CACHE = 'dinopixel-v87';   // -> 'dinopixel-v88', ...
 ```
 
 Install notes:
