@@ -51,7 +51,7 @@ const HELP = {
       'Tu <em>mejor puntuación</em> con cualquier animal desbloquea a los demás: uno nuevo cada 1000 puntos.',
       'Cada <em>700 puntos</em> cambia entre día y noche, y el juego va cada vez más rápido.',
       'Los <em>pájaros</em> aparecen a partir de 300 puntos.',
-      'Las <em>monedas</em> dan 10 puntos y se gastan en la <em>tienda</em>: animales, colores, sombreros y <em>accesorios con poderes</em> (botas que saltan más, bufanda que alarga el imán, collar con más monedas y gafas que avisan de los pájaros). Cada <em>escudo</em> aguanta un golpe (se acumulan) y el <em>imán</em> atrae monedas 6 segundos (si coges otro, se suman).',
+      'Las <em>monedas</em> dan 10 puntos y se gastan en la <em>tienda</em>: animales, colores, sombreros y <em>accesorios con poderes</em> (botas que saltan más, bufanda que alarga el imán, collar con más monedas y gafas que avisan de los pájaros), y <em>mejoras</em> por niveles para todas las partidas (imán más largo, más escudos e imanes, más monedas doradas). Cada <em>escudo</em> aguanta un golpe (se acumulan) y el <em>imán</em> atrae monedas 6 segundos (si coges otro, se suman).',
       'Cada <em>1500 puntos</em> cambias de zona: desierto, nieve, ciudad, selva y volcán, cada una con sus obstáculos.',
       'Desde 800 puntos hay <em>obstáculos que se mueven</em> (planta rodadora, bola de nieve, coche, coco, roca): llegan antes, salta un poco antes.',
       'Pasar <em>muy cerca</em> de un obstáculo sin tocarlo da <em>+20 puntos</em> ("¡Cerca!").',
@@ -69,7 +69,7 @@ const HELP = {
       'Your <em>best score</em> with any animal unlocks the others: a new one every 1000 points.',
       'Every <em>700 points</em> day turns to night and back, and the game keeps getting faster.',
       '<em>Birds</em> show up from 300 points.',
-      '<em>Coins</em> give 10 points and are spent in the <em>shop</em>: animals, colors, hats and <em>gear with powers</em> (boots that jump higher, a scarf that boosts the magnet, a collar with more coins and goggles that warn of birds). Each <em>shield</em> takes one hit (they stack) and the <em>magnet</em> pulls coins in for 6 seconds (another one adds 6 more).',
+      '<em>Coins</em> give 10 points and are spent in the <em>shop</em>: animals, colors, hats and <em>gear with powers</em> (boots that jump higher, a scarf that boosts the magnet, a collar with more coins and goggles that warn of birds), and level-by-level <em>upgrades</em> for every run (longer magnet, more shields and magnets, more gold coins). Each <em>shield</em> takes one hit (they stack) and the <em>magnet</em> pulls coins in for 6 seconds (another one adds 6 more).',
       'Every <em>1500 points</em> you change zone: desert, snow, city, jungle and volcano, each with its own obstacles.',
       'From 800 points there are <em>moving obstacles</em> (tumbleweed, snowball, car, coconut, boulder): they arrive sooner, so jump a little earlier.',
       'Passing <em>very close</em> to an obstacle without touching it gives <em>+20 points</em> ("Close!").',
@@ -279,6 +279,20 @@ function renderShop() {
             setGear(a.id, g.id);
             return L('¡' + g.name + ' comprado!', g.name + ' bought!');
           } }));
+    });
+  } else if (shopTab === 'upg') {
+    const note = document.createElement('p'); note.className = 'note';
+    note.textContent = L('Mejoras para todas las partidas y todos los animales. Cada nivel cuesta más.', 'Upgrades for every run and every animal. Each level costs more.');
+    list.appendChild(note);
+    const icon = { magnet: MAGNET_IMG, power: SHIELD_IMG, gold: COIN_IMGS[0] };
+    UPGRADES.forEach((u) => {
+      const lv = upg[u.id], max = lv >= UPG_MAX;
+      list.appendChild(shopRow(spriteCanvas(icon[u.id], 3), u.name,
+        u.desc + ' - ' + L('Nivel ', 'Level ') + lv + ' / ' + UPG_MAX + ' ' + '■'.repeat(lv) + '□'.repeat(UPG_MAX - lv),
+        max ? null : { price: UPG_PRICE[lv], action: () => {
+          upg[u.id] = lv + 1; store.set('dp-upg', JSON.stringify(upg));
+          return L(u.name + ': nivel ' + (lv + 1) + '!', u.name + ': level ' + (lv + 1) + '!');
+        } }));
     });
   } else if (shopTab === 'hats') {
     const a = animal;                                   // hats are chosen for the animal selected in the menu

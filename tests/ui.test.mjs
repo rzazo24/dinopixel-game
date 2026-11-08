@@ -784,6 +784,27 @@ try {
   t.check('tutorial: turning them back on replays the tutorial', (await ev(`__dp.tipsSeen.length`)) === 0);
   await click('settings-close');
 
+  /* ---- upgrades: bought level by level, for every run ---- */
+  await fresh(`localStorage.setItem('dp-stats', JSON.stringify({ coins: 5000 }))`);
+  await click('shop-btn'); await ev(`document.querySelector('[data-stab=upg]').click()`);
+  const upgTxt = await ev(`document.getElementById('shop-body').textContent`);
+  t.check('upgrades: tab lists the three upgrades at level 0', ['Imán duradero', 'Más potenciadores', 'Fiebre del oro'].every((n) => upgTxt.includes(n)) && (upgTxt.match(/Nivel 0 \/ 5/g) || []).length === 3, upgTxt);
+  const t0 = await ev(`__dp.MAGNET_TIME()`);
+  await buyFor('Imán duradero'); await sleep(100); await buyFor('Imán duradero'); await sleep(100);
+  t.check('upgrades: each level costs more (100 + 250) and adds a second of magnet', (await ev(`__dp.upg.magnet`)) === 2 && (await ev(`document.getElementById('shop-balance').textContent`)) === '4650' && (await ev(`__dp.MAGNET_TIME()`)) === t0 + 120);
+  await ev(`__dp.upg.magnet = 5`); await ev(`document.querySelector('[data-stab=upg]').click()`);
+  t.check('upgrades: at level 5 there is nothing more to buy', /Nivel 5 \/ 5/.test(await ev(`document.getElementById('shop-body').textContent`)) && (await ev(`document.querySelectorAll('#shop-body .buy').length`)) === 2);
+  await click('shop-close');
+  t.check('upgrades: levels travel in the cloud save', /"magnet":2/.test((await ev(`__dp.snapshot().keys['dp-upg']`)) || ''));
+  await startRun('dino'); await noObstacles(); await ev(`__dp.setScore(1000)`);
+  const goldRate = (lv) => ev(`(() => { __dp.upg.gold = ${lv}; let g = 0, n = 0; for (let i = 0; i < 1500; i++) { __dp.items.length = 0; __dp.addItems({ type: 'cactus', x: 600, w: 30, h: 39, dy: -37 }); if (__dp.items.length) { n++; if (__dp.items.some(it => it.v === 2)) g++; } } __dp.items.length = 0; return g / n; })()`);
+  const g0 = await goldRate(0), g5 = await goldRate(5);
+  t.check('upgrades: "Fiebre del oro" doubles the gold coins', g0 < 0.4 && g5 > 0.5, [g0, g5]);
+  const powRate = (lv) => ev(`(() => { __dp.upg.power = ${lv}; let p = 0; for (let i = 0; i < 4000; i++) { __dp.items.length = 0; __dp.addItems({ type: 'cactus', x: 600, w: 30, h: 39, dy: -37 }); if (__dp.items.some(it => it.kind !== 'coin')) p++; } __dp.items.length = 0; __dp.upg.power = 0; __dp.upg.gold = 0; return p / 4000; })()`);
+  const pw0 = await powRate(0), pw5 = await powRate(5);
+  t.check('upgrades: "Más potenciadores" brings more shields and magnets', pw0 < 0.095 && pw5 > 0.105, [pw0, pw5]);
+  await ev(`clearInterval(window.__clr)`);
+
   /* ---- gear: shop accessories with small powers ---- */
   await fresh(`localStorage.setItem('dp-stats', JSON.stringify({ coins: 3000 }))`);
   await click('shop-btn'); await ev(`document.querySelector('[data-stab=gear]').click()`);

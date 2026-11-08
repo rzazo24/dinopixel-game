@@ -60,6 +60,9 @@ animal), scores made with gear show its icon next to the animal and a **\***, in
 Colors, hats and gear are bought once,
 work on every animal and you choose which one each animal wears; they show in the game and in the menu. Spending
 coins does not take away progress from the coin achievements.
+**Upgrades** (*Upgrades* tab, for every run and every animal, 5 levels each at 100, 250, 500, 1000 and 2000 coins):
+**Lasting magnet** (+1 s of magnet per level), **More power-ups** (shields and magnets more often: from 7 % to 13 % of
+obstacles) and **Gold rush** (gold coins more often: from 30 % to 60 %).
 
 **Daily challenge:** there is a different challenge each day (the same all day, renewed at midnight): reach X
 points with an animal, collect X coins, dodge X birds or obstacles, or last X seconds, always in one run. It gives
@@ -258,7 +261,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v85';   // -> 'dinopixel-v86', ...
+const CACHE = 'dinopixel-v86';   // -> 'dinopixel-v87', ...
 ```
 
 Install notes:

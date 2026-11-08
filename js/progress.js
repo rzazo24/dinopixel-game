@@ -23,11 +23,19 @@ const ownedGear = jsonList('dp-gear');                  // gear bought (it works
 const gearSel = {};                                     // chosen gear per animal
 ANIMALS.forEach((a) => { gearSel[a.id] = store.get('dp-gear-' + a.id, 'none'); });
 const gearOf = (id) => (GEAR.some((g) => g.id === gearSel[id]) ? gearSel[id] : 'none');
+// Upgrades: bought level by level (5 each, rising prices), they work in every run with every animal
+const UPG_PRICE = [100, 250, 500, 1000, 2000], UPG_MAX = UPG_PRICE.length;
+const UPGRADES = [
+  { id: 'magnet', name: L('Imán duradero', 'Lasting magnet'), desc: L('+1 s de imán por nivel', '+1 s of magnet per level') },
+  { id: 'power', name: L('Más potenciadores', 'More power-ups'), desc: L('Más escudos e imanes por nivel', 'More shields and magnets per level') },
+  { id: 'gold', name: L('Fiebre del oro', 'Gold rush'), desc: L('Más monedas doradas por nivel', 'More gold coins per level') },
+];
 const lookOf = (a) => dressedLooks(a, skinOf(a.id), hatOf(a.id), gearOf(a.id));   // skin + hat + gear, for the game and the menus
 
 /* ---------- achievements ---------- */
 const jsonStore = (k, d) => { try { return Object.assign(d, JSON.parse(store.get(k, '{}'))); } catch { return d; } };
 const stats = jsonStore('dp-stats', { runs: 0, jumps: 0, dodged: 0, birds: 0, doubles: 0, shields: 0, glideSec: 0, slidePts: 0, longestRun: 0, podium: 0, weekwin: 0, shared: 0, coins: 0, spent: 0, timeSec: 0, bonus: 0, dailyDone: 0, dailyStreak: 0, dailyLast: '', candy: 0, gifts: 0 });
+const upg = jsonStore('dp-upg', { magnet: 0, power: 0, gold: 0 });   // upgrade levels (UPGRADES)
 const balance = () => stats.coins + stats.bonus - stats.spent;   // spendable: collected + challenge prizes - spent (achievements only count collected)
 const ach = jsonStore('dp-ach', {});                    // { id: unlock timestamp }
 const animalBest = {};                                  // best score per animal (kept in memory, saved with the record)

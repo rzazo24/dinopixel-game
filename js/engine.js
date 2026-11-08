@@ -159,18 +159,19 @@ function puff(n) {
 // Pickups. Coins (+10 points) come in an arc over a cactus (collected by jumping it) or in a row after an obstacle
 // (low: just run through; high: jump). Rarely, a shield or a magnet floats at jump height.
 const COIN_POINTS = 10, RISKY_FROM = 500;
-const MAGNET_TIME = () => (gear === 'scarf' ? 600 : 360), MAGNET_REACH = () => (gear === 'scarf' ? 260 : 170);   // magnet scarf: 10 s and a longer reach
+const MAGNET_TIME = () => (gear === 'scarf' ? 600 : 360) + upg.magnet * 60, MAGNET_REACH = () => (gear === 'scarf' ? 260 : 170);   // magnet scarf: 10 s and a longer reach
 const BIRD_LEAD = () => (gear === 'goggles' ? speed * 50 : 0);   // aviator goggles: birds start further out, announced at the edge
 function addItems(o) {
   const r = Math.random();
-  if (score > 400 && r < 0.07) {
+  if (score > 400 && r < 0.07 + upg.power * 0.012) {   // "Más potenciadores": up to 13%
     items.push({ kind: Math.random() < 0.5 ? 'shield' : 'magnet', x: o.x + o.w + 120, dy: -80, w: 18, h: 18 });
     tip(items[items.length - 1].kind);
     return;
   }
   if (score < 50 || r > (gear === 'collar' ? 0.85 : 0.5)) return;   // lucky collar: coins after most obstacles
   // risky spots (from 500 points): gold coins worth 2, right above a low/mid bird or high over a cactus (a full jump)
-  if (score > RISKY_FROM && Math.random() < 0.3 && !(o.type === 'bird' && o.dy === BIRD_HIGH)) {
+  if (score > RISKY_FROM && Math.random() < 0.3 + upg.gold * 0.06 &&   // "Fiebre del oro": up to 60%
+      !(o.type === 'bird' && o.dy === BIRD_HIGH)) {
     const top = o.type === 'bird' ? o.dy - 22 : -(o.h + 78);
     tip('gold');
     for (let i = 0; i < 3; i++) items.push({ kind: 'coin', v: 2, x: o.x + o.w / 2 - 27 + i * 18, dy: top - 18, w: 18, h: 18 });

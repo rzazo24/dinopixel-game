@@ -61,6 +61,9 @@ Sombra, Hielo, Chicle; 300 cada uno) o **sombreros** (Gorra 150, Chistera 250, V
 tras muchos más obstáculos) y **Gafas de aviador** (700, los pájaros salen más lejos y un **!** rojo en el borde avisa
 de que vienen). En el ranking (global y por animal), las puntuaciones hechas con un accesorio llevan su icono junto al animal, un
 **\*** y van en naranja, con una leyenda debajo.
+**Mejoras** (pestaña *Mejoras*, valen para todas las partidas y todos los animales, 5 niveles cada una a 100, 250, 500,
+1000 y 2000 monedas): **Imán duradero** (+1 s de imán por nivel), **Más potenciadores** (escudos e imanes más a
+menudo: del 7 % al 13 % de los obstáculos) y **Fiebre del oro** (monedas doradas más a menudo: del 30 % al 60 %).
 Colores, sombreros y accesorios se compran una vez, sirven para todos los animales y se elige cuál lleva cada uno; se ven en la
 partida y en el menú. El monedero
 muestra el saldo; lo gastado no resta progreso a los logros de monedas.
@@ -257,7 +260,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v85';   // -> 'dinopixel-v86', ...
+const CACHE = 'dinopixel-v86';   // -> 'dinopixel-v87', ...
 ```
 
 Notas de instalación:
