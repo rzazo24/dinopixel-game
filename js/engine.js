@@ -9,6 +9,7 @@ let state = 'ready';                                    // ready | running | ove
 let paused = false;
 let score, speed, hi, night = 0, nightTarget = 0, worldX, distSince, gap, mile, flash, diedAt;
 let obstacles, dust, animT, flapT = 0, jumpHeld = false, runTime = 0;
+let recordBeat = false;                                  // "Nuevo récord!" already shown this run
 let items = [], coinsRun = 0, coinsMissed = 0, magnetT = 0;   // pickups (see addItems); coins that went by uncollected
 let banner = { text: '', t: 0 }, newlyUnlocked = [];
 let runToken = null, lastRank = null, pendingRun = null;
@@ -61,7 +62,7 @@ function reset() {
   score = 0; speed = START_SPEED; worldX = 0; distSince = 0; gap = 320; mile = 0; flash = 0;
   night = 0; nightTarget = 0; animT = 0; flapT = 0;
   obstacles = []; dust = [];
-  items = []; coinsRun = 0; coinsMissed = 0; magnetT = 0;
+  items = []; coinsRun = 0; coinsMissed = 0; magnetT = 0; recordBeat = false;
   bufT = 0; shakeT = 0; popups = []; patternQ = []; combo = 0; boss = null; bossZone = -1;
   P.h = 0; P.vy = 0; P.doubled = false; P.inv = 0; P.charge = 0; P.dodge = 0; P.foxCd = 0;
   P.shield = animal.id === 'dog' ? 1 : 0;
@@ -115,6 +116,7 @@ function die() {
   if (score > best) { best = Math.floor(score); store.set('dp-best', String(best)); }
   dailyEnd();
   stats.runs++;
+  if (runMode !== 'zen') weeklyCheck();               // "Juega N partidas" counts at the end of each run
   cloudSaveSoon();                                      // cloud copy (if enabled) a moment after each run
   checkAch();
   saveStats();
@@ -378,7 +380,10 @@ function update(dt) {
     }
   }
 
-  if (runMode !== 'zen') dailyCheck();
+  if (runMode !== 'zen') { dailyCheck(); weeklyCheck(); }
+  if (!recordBeat && hi > 0 && score > hi && runMode !== 'zen') {   // overtaking the record ghost
+    recordBeat = true; banner = { text: L('Nuevo récord!', 'New record!'), t: 150 }; sfx.ach(); haptic([30, 40, 30]);
+  }
 
   checkMissions();
   // zone boss: the last BOSS_LEN points of every zone are a wave of its moving obstacle; reach the next zone to beat it

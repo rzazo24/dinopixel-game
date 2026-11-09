@@ -542,6 +542,10 @@ i[data-icon] { display: inline-flex; vertical-align: middle; --c: 2px; }
 #daily-body .goal { color: #9be564; font-size: 11px; margin: 0 0 10px; }
 #daily-body .state.ok { color: var(--accent); }
 #daily-body p { margin: 0 0 6px; }
+#daily-body .week-title { color: var(--accent); font-size: 11px; margin: 16px 0 8px; }
+#daily-body .week { margin: 0 0 10px; }
+#daily-body .week.ok { color: #9be564; }
+#daily-body .week .bar { display: block; height: 6px; margin: 4px auto 0; max-width: 320px; background: linear-gradient(90deg, #9be564 var(--p), #151837 var(--p)); }
 @media (max-height: 500px) and (orientation: landscape) { .daily-chip { padding: 5px 8px; font-size: 8px; } #daily-body .goal { font-size: 9px; } }
 
 /* ---------- cloud save ---------- */

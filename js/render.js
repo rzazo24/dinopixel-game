@@ -104,6 +104,29 @@ function tint(img, color) {
   return c;
 }
 
+// Record ghost: a pale silhouette of your animal running where your record ends (8.3 px per point at x1 points)
+const ghostCache = new WeakMap();
+function ghostImg(img) {
+  let c = ghostCache.get(img);
+  if (!c) {
+    c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+    const g = c.getContext('2d'); g.drawImage(img, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = '#ffffff'; g.fillRect(0, 0, c.width, c.height);
+    ghostCache.set(img, c);
+  }
+  return c;
+}
+const ghostX = () => PX + (hi - score) / (0.12 * (animal.id === 'peng' ? 1.5 : 1));
+function drawGhost() {
+  if (state !== 'running' || runMode === 'zen' || hi <= 0) return;
+  const x = ghostX();
+  if (x > W + 60 || x < -60) return;
+  const lk = lookOf(animal), f = Math.floor(animT / 40) % 2;
+  ctx.globalAlpha = 0.35;
+  blit(ghostImg(lk.frames[f]), Math.round(x), GROUND - (SP + lk.pad) * S, SP * S, (SP + lk.pad) * S);
+  ctx.globalAlpha = 0.7;
+  if (x > PX + 30) pixText(L('RÉCORD', 'RECORD'), Math.round(x) + SP * S / 2, GROUND - (SP + lk.pad) * S - 16, 2, 'center', '#ffffff', false);
+  ctx.globalAlpha = 1;
+}
 function drawPlayer() {
   if (P.inv > 0 && Math.floor(P.inv / 5) % 2 === 0) return;     // blink while invulnerable
   const run = Math.floor(animT / 40) % 2;   // one step every 40 px of travel: ~6 frames at start, ~3 at top speed
@@ -340,6 +363,7 @@ function draw() {
   drawBackground();
   drawObstacles();
   drawItems();
+  drawGhost();
   drawPlayer();
   drawShieldBubble();
   drawBirdWarnings();

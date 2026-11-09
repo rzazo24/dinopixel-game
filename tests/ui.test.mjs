@@ -16,7 +16,9 @@ async function fresh(seed = '') {                // clean storage (seeded before
   // (daily tests seed their own dp-daily)
   await ev(`localStorage.clear(); localStorage.setItem('dp-lang', 'es');
     { const d = new Date(), p = (n) => String(n).padStart(2, '0');
-      localStorage.setItem('dp-daily', JSON.stringify({ date: d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()), type: 'time', n: 9999, animal: null, reward: 50, done: true, best: 0 })); }
+      localStorage.setItem('dp-daily', JSON.stringify({ date: d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()), type: 'time', n: 9999, animal: null, reward: 50, done: true, best: 0 }));
+      const m = new Date(d); m.setDate(m.getDate() - ((m.getDay() + 6) % 7));   // and this week's challenges, already done
+      localStorage.setItem('dp-weekly', JSON.stringify({ week: m.getFullYear() + '-' + p(m.getMonth() + 1) + '-' + p(m.getDate()), goals: [], base: {} })); }
     ${seed}`);
   await chrome.goto(url, 1400);
 }
@@ -213,7 +215,7 @@ try {
 
   /* ---- moving obstacles ---- */
   await fresh(); await startRun();
-  await ev(`window.__inv = setInterval(() => { __dp.P.inv = 2; }, 5)`);
+  await ev(`window.__inv = setInterval(() => { __dp.P.inv = 1e6; }, 5)`);
   const cactusAt = (x) => `__dp.o.push({ type: 'cactus', x: ${x}, dy: -37, w: 30, h: 39, parts: [{ k: 3, dx: 0, kind: 'cactus' }], zone: 'desert' })`;
   // they show up by themselves from 800 points
   await ev('__dp.setScore(850)');
@@ -434,7 +436,7 @@ try {
 
   // pickups appear by themselves during a run
   await fresh(); await startRun();
-  await ev(`setInterval(() => { __dp.P.inv = 2; }, 5); window.__kinds = {}; setInterval(() => __dp.items.forEach(i => { __kinds[i.kind] = 1; }), 30)`);
+  await ev(`setInterval(() => { __dp.P.inv = 1e6; }, 5); window.__kinds = {}; setInterval(() => __dp.items.forEach(i => { __kinds[i.kind] = 1; }), 30)`);
   await ev('__dp.setScore(600)');
   t.check('pickups: coins (and power-ups) show up during a run', await chrome.waitFor(`!!window.__kinds.coin`, 15000), await ev('window.__kinds'));
 
@@ -469,7 +471,7 @@ try {
   await ev(`document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyN', bubbles: true }))`); await sleep(400);
   t.check('music: N turns it back on and it restarts mid-run', (await ev('__dp.music.playing')) === true);
   /* music follows the zone (desert -> snow -> city), switching on the next bar line */
-  await fresh(); await startRun('dino'); await ev(`setInterval(() => { __dp.P.inv = 2; }, 5)`); await sleep(1200);
+  await fresh(); await startRun('dino'); await ev(`setInterval(() => { __dp.P.inv = 1e6; }, 5)`); await sleep(1200);
   t.check('music: the desert song plays first (square lead)', (await ev('__dp.music.zone')) === 'desert' && (await ev('__dp.music.lastLead')) === 'square', [await ev('__dp.music.zone'), await ev('__dp.music.lastLead')]);
   await ev('__dp.setScore(1495)');
   t.check('music: entering the snow switches to the snow song (bell-like triangle lead)', (await chrome.waitFor(`__dp.music.zone === 'snow'`, 6000)) && (await chrome.waitFor(`__dp.music.lastLead === 'triangle'`, 4000)));
@@ -524,7 +526,7 @@ try {
 
   /* ---- zones: desert -> snow -> city every 1500 points, each with its own obstacles ---- */
   await fresh(); await startRun();
-  await ev(`setInterval(() => { __dp.P.inv = 2; }, 5); window.__seen = {}; setInterval(() => __dp.o.forEach(o => (o.parts || []).forEach(p => { __seen[o.zone + ':' + p.kind] = 1; })), 30)`);
+  await ev(`setInterval(() => { __dp.P.inv = 1e6; }, 5); window.__seen = {}; setInterval(() => __dp.o.forEach(o => (o.parts || []).forEach(p => { __seen[o.zone + ':' + p.kind] = 1; })), 30)`);
   t.check('zones: a run starts in the desert', (await ev('__dp.biome')) === 'desert');
   await ev('__dp.setScore(3000)'); await sleep(200);
   { const sp = await ev('__dp.speed'); t.check('speed: gradual ramp, at 3000 points still well under halfway to the max', sp > 6.5 && sp < 9, sp); }
@@ -532,7 +534,7 @@ try {
   t.check('zones: snow from 1500, with a "Zona: Nieve" notice', (await ev('__dp.biome')) === 'snow' && (await ev('__dp.banner.text')) === 'Zona: Nieve');
   await sleep(9000);   // ~0.7 obstacles/s, some of them birds or movers
   await ev('__dp.setScore(2995)'); await sleep(500);
-  t.check('zones: city from 3000', (await ev('__dp.biome')) === 'city');
+  t.check('zones: city from 3000', (await ev('__dp.biome')) === 'city', await ev(`[__dp.state, Math.round(__dp.score), __dp.biome, !!__dp.boss, document.hidden]`));
   await sleep(9000);   // ~0.7 obstacles/s, some of them birds or movers
   await ev('__dp.setScore(4495)'); await sleep(500);
   t.check('zones: jungle from 4500, with a "Zona: Selva" notice', (await ev('__dp.biome')) === 'jungle' && (await ev('__dp.banner.text')) === 'Zona: Selva');
@@ -541,7 +543,7 @@ try {
   t.check('zones: volcano from 6000', (await ev('__dp.biome')) === 'volcano' && (await ev('__dp.banner.text')) === 'Zona: Volcán');
   await sleep(9000);   // ~0.7 obstacles/s, some of them birds or movers
   await ev('__dp.setScore(7495)'); await sleep(500);
-  t.check('zones: back to the desert at 7500 (it loops)', (await ev('__dp.biome')) === 'desert');
+  t.check('zones: back to the desert at 7500 (it loops)', (await ev('__dp.biome')) === 'desert', await ev(`[__dp.state, Math.round(__dp.score), __dp.biome, !!__dp.boss, document.hidden]`));
   const seen = Object.keys(await ev('window.__seen'));
   const allowed = { desert: ['cactus'], snow: ['snowman', 'pine'], city: ['cone', 'hydrant'], jungle: ['bush', 'stump'], volcano: ['rock', 'lava'] };
   t.check('zones: every zone spawned its own obstacles', ['snow', 'city', 'jungle', 'volcano'].every((z) => seen.some((k) => k.startsWith(z + ':'))), seen);
@@ -783,6 +785,42 @@ try {
   await click('tips');
   t.check('tutorial: turning them back on replays the tutorial', (await ev(`__dp.tipsSeen.length`)) === 0);
   await click('settings-close');
+
+  /* ---- weekly challenges ---- */
+  await fresh(`localStorage.removeItem('dp-weekly'); localStorage.setItem('dp-stats', JSON.stringify({ runs: 10, birds: 100, coins: 1000, dodged: 900, bosses: 2, missions: 5 }))`);
+  const wk = await ev(`__dp.weekly`);
+  t.check('weekly: three different goals for this week, starting from your current stats', wk.week === (await ev(`__dp.weekStr()`)) && wk.goals.length === 3 && new Set(wk.goals.map(g => g.k)).size === 3 && wk.goals.every(g => wk.base[g.k] === { runs: 10, birds: 100, coins: 1000, dodged: 900, bosses: 2, missions: 5 }[g.k]), wk);
+  t.check('weekly: same week -> same goals; another week -> others', JSON.stringify((await ev(`__dp.makeWeekly('2026-11-09')`)).goals) === JSON.stringify((await ev(`__dp.makeWeekly('2026-11-09')`)).goals)
+    && (await ev(`[...Array(8)].map((_, i) => __dp.makeWeekly('2026-1' + (i % 2) + '-0' + (i + 1)).goals.map(g => g.k).join()).join('|')`)).split('|').length === 8);
+  t.check('weekly: weeks start on Monday', (await ev(`__dp.weekStr(new Date('2026-11-15T12:00'))`)) === '2026-11-09' && (await ev(`__dp.weekStr(new Date('2026-11-16T12:00'))`)) === '2026-11-16');
+  await ev(`document.getElementById('daily-chip').click()`); await sleep(150);
+  const wtx = await ev(`document.getElementById('daily-body').textContent`);
+  t.check('weekly: the challenge screen lists them with progress', /Retos de la semana/.test(wtx) && (wtx.match(/: 0 \/ /g) || []).length >= 3 && (await ev(`document.querySelectorAll('#daily-body .week .bar').length`)) === 3, wtx);
+  await ev(`document.getElementById('daily-close').click()`);
+  await fresh(`localStorage.removeItem('dp-weekly'); localStorage.setItem('dp-stats', JSON.stringify({ runs: 10 }))`);
+  await ev(`(() => { const w = __dp.weekly; w.goals = [{ k: 'runs', n: 1, reward: 300, done: false }]; w.base = { runs: 10 }; localStorage.setItem('dp-weekly', JSON.stringify(w)); })()`);
+  await startRun('dino'); await noObstacles(); await grounded();
+  t.check('weekly: nothing paid before the goal is met', (await ev(`__dp.stats.bonus`)) === 0);
+  await ev(`clearInterval(window.__clr); __dp.o.length = 0; __dp.o.push({ type: 'bird', x: 40, dy: -50, w: 42, h: 27 })`);
+  await chrome.waitFor(`__dp.state === 'over'`, 4000); await sleep(100);
+  t.check('weekly: finishing the run completes "play 1 run" and pays 300 once', (await ev(`__dp.stats.bonus`)) === 300 && (await ev(`__dp.weekly.goals[0].done`)) && (await ev(`__dp.stats.weeklyDone`)) === 1 && /Reto semanal! \+300/.test(await ev(`__dp.banner.text`)));
+  t.check('weekly: it is saved (and travels in the cloud save)', /"done":true/.test((await ev(`__dp.snapshot().keys['dp-weekly']`)) || ''));
+
+  /* ---- record ghost ---- */
+  await fresh(`localStorage.setItem('dp-hi-dino', '300')`);
+  await startRun('dino'); await noObstacles(); await grounded();
+  await ev(`__dp.setScore(250)`); await sleep(100);
+  const gx = await ev(`__dp.ghostX()`);
+  t.check('ghost: 50 points before the record it runs ahead of you, on screen', gx > 300 && gx < (await ev(`__dp.W`)), gx);
+  t.check('ghost: it is labelled RÉCORD', await ev(`__dp.textBoxes.some(b => b.t === 'RÉCORD')`));
+  await ev(`__dp.setScore(290)`); await sleep(30);
+  t.check('ghost: no "new record" before passing it', !(await ev(`__dp.recordBeat`)));
+  await ev(`__dp.setScore(301)`); await sleep(100);
+  t.check('ghost: passing it says "Nuevo récord!"', (await ev(`__dp.recordBeat`)) && (await ev(`__dp.banner.text`)) === 'Nuevo récord!');
+  await ev(`clearInterval(window.__clr)`);
+  await fresh(); await startRun('dino'); await noObstacles(); await ev(`__dp.setScore(100)`); await sleep(100);
+  t.check('ghost: no ghost and no "new record" on your first run', !(await ev(`__dp.recordBeat`)) && !(await ev(`__dp.textBoxes.some(b => b.t === 'RÉCORD')`)));
+  await ev(`clearInterval(window.__clr)`);
 
   /* ---- coins counter: collected / came by ---- */
   await fresh(); await startRun('dino'); await noObstacles(); await grounded();

@@ -69,6 +69,15 @@ points with an animal, collect X coins, dodge X birds or obstacles, or last X se
 50–70 coins, +10 for each day of streak (up to +50). It shows in the **Daily** button of the menu and on the
 start screen of a run. Prize coins can be spent, but they don't count for the coin achievements.
 
+**Weekly challenges:** every week (Monday to Sunday) there are 3 challenges that add up all the runs of the week:
+collect 250–400 coins, dodge 30–50 birds or 300–500 obstacles, beat 3–5 bosses, play 15–25 runs or complete 6–10
+missions. Each one gives 300 or 400 coins. They show, with a progress bar, in the **Daily** button of the menu. Zen
+runs don't count.
+
+**Record ghost:** a pale, see-through silhouette of your animal, labelled *RECORD*, runs ahead of you when you get
+close to your best score with that animal. When you overtake it, *New record!* shows up. It doesn't appear on your
+first run or in Zen mode.
+
 **Stats:** a tab inside **Achievements** with runs, time played, best score, jumps, dodges, coins collected and
 spent, and each animal's record.
 
@@ -261,7 +270,7 @@ The service worker stores the files in a named cache. For players to get a chang
 notice, bump the `CACHE` number in [sw.js](sw.js) on every release:
 
 ```js
-const CACHE = 'dinopixel-v87';   // -> 'dinopixel-v88', ...
+const CACHE = 'dinopixel-v88';   // -> 'dinopixel-v89', ...
 ```
 
 Install notes:

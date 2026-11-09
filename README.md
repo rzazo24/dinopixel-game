@@ -73,6 +73,15 @@ con un animal, recoger X monedas, esquivar X pájaros u obstáculos, o aguantar 
 partida. Da 50–70 monedas, +10 por cada día seguido de racha (hasta +50). Se ve en el botón **Reto** del menú y en la
 pantalla de inicio de partida. Las monedas de premio se pueden gastar, pero no cuentan para los logros de monedas.
 
+**Retos semanales:** cada semana (de lunes a domingo) hay 3 retos que suman todas las partidas de la semana:
+recoger 250–400 monedas, esquivar 30–50 pájaros o 300–500 obstáculos, superar 3–5 jefes, jugar 15–25 partidas o
+completar 6–10 misiones. Dan 300 o 400 monedas cada uno. Se ven, con su barra de progreso, en el botón **Reto** del menú.
+Las partidas en modo Zen no cuentan.
+
+**Fantasma del récord:** una silueta blanca y translúcida de tu animal, con el letrero *RÉCORD*, corre por delante
+cuando te acercas a tu mejor puntuación con ese animal. Cuando la adelantas aparece *¡Nuevo récord!*. No sale en la
+primera partida ni en modo Zen.
+
 **Estadísticas:** pestaña dentro de **Logros** con partidas, tiempo jugado, mejor puntuación, saltos, esquivas,
 monedas recogidas y gastadas, y el récord de cada animal.
 
@@ -260,7 +269,7 @@ El service worker guarda los archivos en una caché con nombre. Para que los usu
 aviso **"Nueva versión"**, sube el número de `CACHE` en [sw.js](sw.js) en cada publicación:
 
 ```js
-const CACHE = 'dinopixel-v87';   // -> 'dinopixel-v88', ...
+const CACHE = 'dinopixel-v88';   // -> 'dinopixel-v89', ...
 ```
 
 Notas de instalación:

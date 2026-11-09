@@ -95,6 +95,46 @@ function dailyEnd() {                                  // called on game over: r
   if (!daily.done) { daily.best = Math.max(daily.best, Math.min(daily.n, dailyProgress())); saveDaily(); }
 }
 
+/* ---------- weekly challenges ---------- */
+// Three goals a week (Monday to Sunday), over all the runs of the week: progress = a stat now minus its value when the week began.
+// Zen runs don't count (their stats are rolled back).
+const WEEKLY_TYPES = {
+  coins: { n: [250, 300, 400], reward: 300, text: (n) => L('Recoge ' + n + ' monedas', 'Collect ' + n + ' coins') },
+  birds: { n: [30, 40, 50], reward: 300, text: (n) => L('Esquiva ' + n + ' pájaros', 'Dodge ' + n + ' birds') },
+  dodged: { n: [300, 400, 500], reward: 300, text: (n) => L('Esquiva ' + n + ' obstáculos', 'Dodge ' + n + ' obstacles') },
+  bosses: { n: [3, 4, 5], reward: 400, text: (n) => L('Supera ' + n + ' jefes de zona', 'Beat ' + n + ' zone bosses') },
+  runs: { n: [15, 20, 25], reward: 300, text: (n) => L('Juega ' + n + ' partidas', 'Play ' + n + ' runs') },
+  missions: { n: [6, 8, 10], reward: 400, text: (n) => L('Completa ' + n + ' misiones', 'Complete ' + n + ' missions') },
+};
+const weekStr = (d = new Date()) => { const m = new Date(d); m.setDate(m.getDate() - ((m.getDay() + 6) % 7)); return dateStr(m); };   // the week's Monday
+function makeWeekly(week) {
+  const r = seeded('dinopixel-week:' + week), types = Object.keys(WEEKLY_TYPES), goals = [];
+  while (goals.length < 3) {
+    const k = types.splice(Math.floor(r() * types.length), 1)[0], w = WEEKLY_TYPES[k];
+    goals.push({ k, n: w.n[Math.floor(r() * w.n.length)], reward: w.reward, done: false });
+  }
+  const base = {}; goals.forEach((g) => { base[g.k] = stats[g.k] || 0; });
+  return { week, goals, base };
+}
+function loadWeekly() {
+  let w = null;
+  try { w = JSON.parse(store.get('dp-weekly', 'null')); } catch { /* ignore */ }
+  if (!w || w.week !== weekStr() || !Array.isArray(w.goals)) { w = makeWeekly(weekStr()); store.set('dp-weekly', JSON.stringify(w)); }
+  return w;
+}
+let weekly = loadWeekly();
+const weeklyProgress = (g) => Math.max(0, Math.min(g.n, (stats[g.k] || 0) - (weekly.base[g.k] || 0)));
+function weeklyCheck() {                               // every frame while running, and at game over (runs count then)
+  if (weekly.week !== weekStr()) weekly = loadWeekly();   // a new week began while the game was open
+  weekly.goals.forEach((g) => {
+    if (g.done || weeklyProgress(g) < g.n) return;
+    g.done = true; stats.bonus += g.reward; stats.weeklyDone = (stats.weeklyDone || 0) + 1;
+    store.set('dp-weekly', JSON.stringify(weekly)); saveStats();
+    banner = { text: L('Reto semanal! +', 'Weekly challenge! +') + g.reward, t: 220 };
+    sfx.unlock(); haptic([40, 60, 40, 60, 90]);
+  });
+}
+
 /* ---------- menu chip + detail screen ---------- */
 const dailyEl = $('daily');
 function untilMidnight() {
@@ -124,6 +164,14 @@ function renderDaily() {
   }
   p('note', L('Racha: ', 'Streak: ') + (stats.dailyStreak || 0) + (stats.dailyStreak === 1 ? L(' día', ' day') : L(' días', ' days')) + L(' - Retos completados: ', ' - Challenges done: ') + (stats.dailyDone || 0));
   p('note', L('Nuevo reto en ', 'New challenge in ') + untilMidnight());
+  if (weekly.week !== weekStr()) weekly = loadWeekly();
+  p('week-title', L('Retos de la semana', 'Weekly challenges'));
+  weekly.goals.forEach((g) => {
+    const e = p('week' + (g.done ? ' ok' : ''), WEEKLY_TYPES[g.k].text(g.n) + ': ' + (g.done ? L('¡hecho!', 'done!') : weeklyProgress(g) + ' / ' + g.n + ' - ' + g.reward + L(' monedas', ' coins')));
+    const bar = document.createElement('span'); bar.className = 'bar'; bar.style.setProperty('--p', (weeklyProgress(g) / g.n * 100) + '%'); e.appendChild(bar);
+  });
+  const left = Math.ceil((new Date(weekly.week + 'T00:00').getTime() + 7 * 864e5 - Date.now()) / 864e5);
+  p('note', L('Nuevos retos semanales en ', 'New weekly challenges in ') + left + (left === 1 ? L(' día', ' day') : L(' días', ' days')));
 }
 function openDaily() { renderDaily(); dailyEl.hidden = false; $('daily-close').focus(); }
 function closeDaily() { dailyEl.hidden = true; $('daily-chip').focus(); }
